@@ -1,0 +1,46 @@
+schema: spec-driven
+
+# Shared standards from the workspace root (my-work-ai-builds), registered as an OpenSpec store.
+references:
+  - ai-builds-shared
+
+context: |
+  Project: operating-model-explorer. This is an interactive HTML app with its own git repo (github.com/stevenbiss/operating-model-explorer).
+  It lives at projects/operating-model-explorer/ inside the my-work-ai-builds workspace, which provides the shared
+  agents (html-builder, html-tester, html-verifier, html-qa), skills and plugins.
+  Layout: src/ (source), tests/ (Playwright), dist/operating-model-explorer.html (the shareable single file, built output).
+  The deliverable is one self-contained HTML file that colleagues and clients can open from email or disk.
+  It must work offline, with no CDN or network calls.
+  Must also meet the shared html-deliverable spec in the ai-builds-shared store.
+  Default stack: vanilla HTML/CSS/JS in one file. Use React (via the web-artifacts-builder skill) only when complexity justifies it.
+  Platform: Windows 11 (PowerShell primary, Git Bash available).
+  Ponytail minimal-code mode is active: no unrequested features, abstractions or dependencies.
+
+rules:
+  proposal:
+    - Say who will use the HTML (colleagues, clients, or both) and how it will be shared
+    - Include a "Non-goals" section
+  specs:
+    - Every requirement has at least one scenario, and every scenario must be testable in a browser (observable WHEN/THEN)
+    - Include scenarios for keyboard access and small-screen layout where the UI is interactive
+  design:
+    - State the stack choice (vanilla single file vs React bundle) and why
+  tasks:
+    - Group tasks into these sections, in order - 1 Build, 2 Test, 3 Verify, 4 QA, 5 Package
+    - The Test section has one task per spec scenario
+    - The Package section ends with "dist/operating-model-explorer.html built, self-contained, and README updated"
+
+operations:
+  apply:
+    guidance:
+      - Run the change through the agent pipeline and don't implement directly in the main session. Pass each agent the project name (operating-model-explorer) and change id
+      - 1. html-builder implements the Build tasks
+      - 2. html-tester writes and runs a Playwright test per scenario; on FAIL, send the report back to html-builder and repeat
+      - 3. html-verifier checks every requirement against the running app; on NOT VERIFIED, back to html-builder, then re-run html-tester
+      - 4. html-qa runs the final gate; on HOLD, fix the BLOCKERs via html-builder, then re-run tester, verifier and QA
+      - Stop and ask the user after 3 failed loops on the same issue, or when an agent raises a spec ambiguity
+      - Save each agent's final report to openspec/changes/<change>/reports/<agent>.md
+      - Finish by summarising the test, verify and QA results and giving the path to the shareable HTML file
+  archive:
+    guidance:
+      - Only archive when html-qa returned SHIP and html-verifier returned VERIFIED
