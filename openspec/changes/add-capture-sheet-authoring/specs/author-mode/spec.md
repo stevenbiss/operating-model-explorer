@@ -21,7 +21,7 @@ Author mode SHALL accept a capture sheet (a single `.md` file) by file picker or
 - **THEN** the sample model is validated and previewed without the author selecting any files
 
 #### Scenario: Load a capture sheet
-- **WHEN** the author activates "Load capture sheet" and chooses `examples/acme-sample/capture-sheet.md`
+- **WHEN** the author activates "Load capture sheet" and chooses `examples/acme-capture-sheet/capture-sheet.md`
 - **THEN** the validation report and the preview appear, and no network requests are made
 
 #### Scenario: Keyboard load of a capture sheet

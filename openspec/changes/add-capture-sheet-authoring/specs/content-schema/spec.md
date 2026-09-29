@@ -28,7 +28,7 @@ Every step SHALL have exactly one role marked A. A step with no A SHALL produce 
 `npm run validate -- <path>` SHALL validate a capture sheet, a content folder or a `.zip`, using the same checks as the engine. It SHALL print each message with its level, location, problem and fix, followed by the counts. It SHALL exit with code 1 when there are errors, and 0 otherwise. Open questions SHALL be reported as warnings.
 
 #### Scenario: Clean sheet
-- **WHEN** `npm run validate -- examples/acme-sample/capture-sheet.md` is run
+- **WHEN** `npm run validate -- examples/acme-capture-sheet/capture-sheet.md` is run
 - **THEN** it prints "0 errors, 0 warnings" and exits with code 0
 
 #### Scenario: Errors fail the command

@@ -8,7 +8,7 @@
 - [x] 1.4 Write `docs/capture-sheet.md`, the format spec: every section, table and column (required or optional), name matching, `Next` syntax, RACI matrix, theme keys, Notes, Open questions, Sources, with examples. Verify each example block parses once 1.5 exists (checked in 1.8)
 - [x] 1.5 Implement `src/model/sheet.js` `sheetToDocs(text)` using the markdown-it token stream (D1, D2, D4): sections, tables by column name, id derivation, name matching with `closest()`, steps with `Next`, RACI matrix, personas and `Starts at`, theme lines, Notes, narrative, HTML comments dropped, and `meta.openQuestions` / `meta.sources`. Every message carries a `where`. Verify with unit tests per section type
 - [x] 1.6 Route sheets through `loadModel` (D3): detect a sheet as a single file or inside a folder/zip, read `assets/` alongside, and report mixed formats as an error. Verify with unit tests loading a sheet file, a folder containing a sheet, and a mixed folder
-- [x] 1.7 Write `examples/acme-sample/capture-sheet.md` describing exactly the sample model (no ids, names only), and the parity unit test (D9) that normalises both models by name and asserts deep equality. Verify the parity test passes
+- [x] 1.7 Write `examples/acme-capture-sheet/capture-sheet.md` describing exactly the sample model (no ids, names only), and the parity unit test (D9) that normalises both models by name and asserts deep equality. Verify the parity test passes
 - [x] 1.8 Write `templates/capture-sheet.md`, the blank template with guidance as HTML comments. Add unit checks that the template loads without crashing and that the format spec's examples parse. Verify both
 - [ ] 1.9 Author mode: add "Load capture sheet" (single-file picker, keyboard operable), accept a dropped single `.md` file, add an "Open questions (N)" report group, and link to `docs/capture-sheet.md` content from the content reference (bundled at build time, offline). Verify manually against the sample sheet at 1280 and 768
 - [ ] 1.10 Make sure snapshots exclude sheet meta and comments (D5). Verify an exported sample sheet snapshot contains no Open questions, Sources or comment text
@@ -102,6 +102,6 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 Build `dist/operating-model-author.zip` and export `examples/acme-sample/capture-sheet.md` to a demo snapshot. Verify both, commit the generated skill folder, push, then install the skill from GitHub through the Claude Code marketplace and run one smoke trial
+- [ ] 5.1 Build `dist/operating-model-author.zip` and export `examples/acme-capture-sheet/capture-sheet.md` to a demo snapshot. Verify both, commit the generated skill folder, push, then install the skill from GitHub through the Claude Code marketplace and run one smoke trial
 - [ ] 5.2 Bump the version to 1.1.0 across the bundle, tag it, and publish the release with `gh release create`: attach `operating-model-author.zip`, `operating-model-explorer.html` and the demo snapshot, with notes from the template and checksums. Verify by downloading the assets and checking their checksums (2.52)
 - [ ] 5.3 dist/operating-model-explorer.html built, self-contained, and README updated

@@ -10,7 +10,7 @@ Defines the capture sheet: one readable Markdown document that holds a whole ope
 A capture sheet SHALL be a single Markdown file whose first heading is `# Operating model: <name>`. The engine SHALL recognise these `##` sections by heading: `Purpose`, `Key messages`, `About this model`, `Parties`, `Teams`, `Roles`, `Workstreams`, one `Process: <name>` section per process, `Personas`, `Theme`, `Notes: <element name>`, `Open questions` and `Sources`. The sections `Purpose`, `Key messages`, `Parties` and `Roles` SHALL be required. Any other `##` heading SHALL produce a warning naming it. HTML comments (`<!-- … -->`) SHALL be ignored, so templates can carry guidance.
 
 #### Scenario: Acme capture sheet loads cleanly
-- **WHEN** `examples/acme-sample/capture-sheet.md` is loaded in author mode
+- **WHEN** `examples/acme-capture-sheet/capture-sheet.md` is loaded in author mode
 - **THEN** the validation report shows 0 errors and 0 warnings, and the preview shows the Acme + Globex model
 
 #### Scenario: Missing required section
@@ -40,7 +40,7 @@ Authors SHALL refer to parties, teams, roles, workstreams, processes and steps b
 - **THEN** the report shows an error naming the process, the step row and the name, with "Did you mean Solution architect?"
 
 ### Requirement: Process sections
-Each `## Process: <name>` section SHALL contain a `Workstream:` line, an optional `Summary:` line, and a step table with the columns `#`, `Step` and `Owner`. It MAY also have the optional columns `Description`, `Inputs`, `Outputs`, `Systems`, `KPIs`, `Next`, `Change` and `Today`. Lists in a cell (inputs, outputs, systems, KPIs) SHALL be separated by semicolons. `Next` SHALL accept step numbers or names, with optional labels (e.g. `Go: 4; No go: 5`). An empty `Next` SHALL mean the following row. An optional `### Notes` subsection SHALL become the process's narrative.
+Each `## Process: <name>` section SHALL contain a `Workstream:` line, an optional `Summary:` line, and a step table with the columns `#`, `Step` and `Owner`. It MAY also have the optional columns `Description`, `Inputs`, `Outputs`, `Systems`, `KPIs`, `Next`, `Change` and `Today`. Lists in a cell (inputs, outputs, systems, KPIs) SHALL be separated by semicolons. `Next` SHALL accept step numbers or names, with optional labels (e.g. `Go: 4; No go: 5`). An empty `Next` SHALL mean the following row, and `End` SHALL mean the flow stops at that step. An optional `### Notes` subsection SHALL become the process's narrative.
 
 #### Scenario: Decision with labelled branches
 - **WHEN** a step row has `Next` set to `Go: 4; No go: 5`
@@ -101,7 +101,7 @@ Every validation message for a capture sheet SHALL name its location in the shee
 - **THEN** the message names "Process: Build the proposal" and row 2
 
 ### Requirement: Same model as the folder
-`examples/acme-sample/capture-sheet.md` SHALL describe exactly the same model as the `examples/acme-sample/` folder: the same elements, names, relationships, steps, RACI, change data, personas, theme and narrative. Where ids differ because the sheet derives them from names, they SHALL be compared by name.
+`examples/acme-capture-sheet/capture-sheet.md` SHALL describe exactly the same model as the `examples/acme-sample/` folder: the same elements, names, relationships, steps, RACI, change data, personas, theme and narrative. Where ids differ because the sheet derives them from names, they SHALL be compared by name.
 
 #### Scenario: Snapshots match
 - **WHEN** the sample is exported once from the folder and once from the capture sheet
@@ -115,7 +115,7 @@ The repo SHALL provide `templates/capture-sheet.md`, a blank capture sheet with 
 - **THEN** the report lists what is missing (errors for the empty required sections) without crashing, and the guidance comments do not appear anywhere in the preview
 
 ### Requirement: Format version
-A capture sheet SHALL declare its format version on a `Format: <n>` line under the title. The engine and the validator SHALL know which format versions they support. A sheet with a newer format SHALL be an error naming the format and the minimum engine version needed. A sheet with no `Format:` line SHALL be treated as the current format, with a warning suggesting the line be added. The blank template, the Acme sheet and every sheet the skill writes SHALL include the line.
+A capture sheet SHALL declare its format version on a `Format: <n>` line under the title. The engine and the validator SHALL know which format versions they support. A sheet with a newer format SHALL be an error naming the sheet's format, the highest format this engine reads, and that a newer engine is needed. A sheet with no `Format:` line SHALL be treated as the current format, with a warning suggesting the line be added. The blank template, the Acme sheet and every sheet the skill writes SHALL include the line.
 
 #### Scenario: Newer format
 - **WHEN** a sheet declaring `Format: 99` is loaded

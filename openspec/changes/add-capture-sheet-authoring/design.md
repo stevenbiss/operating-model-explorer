@@ -75,7 +75,7 @@ It is exposed as `npm run validate -- <path>`. For the skill, esbuild bundles it
 The single sources live in the repo:
 - `docs/capture-sheet.md` (the format spec)
 - `templates/capture-sheet.md` (the blank template)
-- `examples/acme-sample/capture-sheet.md` (the example)
+- `examples/acme-capture-sheet/capture-sheet.md` (the example)
 - `docs/interview-guide.md` (question order, gap, assumption and contradiction checks, RACI coaching, handover)
 
 `skills/operating-model-author/SKILL.md` holds only the Claude workflow:
@@ -98,7 +98,9 @@ Install:
 - **claude.ai:** Settings → Capabilities → Skills → upload the zip.
 
 ### D9. Parity test: one sample, two formats
-A unit test loads `examples/acme-sample/` and `examples/acme-sample/capture-sheet.md` and normalises both models, replacing every id with its element's name and sorting. It asserts they are deeply equal, covering elements, fields, steps, `next`, RACI, change data, personas, entry points, theme and narrative. An e2e test exports both and compares the rendered overview, swimlane and step-detail text.
+The sheet form of the sample lives in its own folder, `examples/acme-capture-sheet/`, with `capture-sheet.md` and a copy of `assets/logo.svg`. It isn't placed in `examples/acme-sample/`, because a folder holding both a sheet and element files is rejected as mixed formats (author-mode › Load content). The sheet declares `ID: acme-sample`, so both forms export as `acme-sample.html`.
+
+A unit test loads `examples/acme-sample/` and `examples/acme-capture-sheet/capture-sheet.md` and normalises both models, replacing every id with its element's name and sorting. It asserts they are deeply equal, covering elements, fields, steps, `next`, RACI, change data, personas, entry points, theme and narrative. An e2e test exports both and compares the rendered overview, swimlane and step-detail text.
 
 ### D10. Testing the skill (an exception to the "testable in a browser" rule)
 Skill behaviour is a conversation, so it can't be a Playwright test. It is verified by **skill trials**:
@@ -120,7 +122,7 @@ This is the only departure from the project rule that scenarios be browser-testa
   - `.claude-plugin/plugin.json`.
 
   A unit test compares all of them.
-- **Format versions.** The capture sheet format has its own integer version (`Format: 1`), separate from the release version. The engine declares the highest format it supports. A sheet with a newer format is an error naming the minimum engine release, taken from a small table in `src/model/sheet.js`. The format version only goes up when an older engine would misread a sheet. Adding optional columns doesn't need a bump, because unknown columns are already only a warning.
+- **Format versions.** The capture sheet format has its own integer version (`Format: 1`), separate from the release version. The engine declares the highest format it supports. A sheet with a newer format is an error saying "this engine reads formats up to N; use a newer engine". An older engine can't know which future release introduced a format, so there's no minimum-release table. The format version only goes up when an older engine would misread a sheet. Adding optional columns doesn't need a bump, because unknown columns are already only a warning.
 - **Claude Code marketplace.** The repo root gets `.claude-plugin/marketplace.json`, which lists one plugin whose source is the repo root, and `.claude-plugin/plugin.json`, which holds the name, version and description. Skills are found automatically in `skills/`. The layout follows an existing working plugin (Ponytail): a root plugin with `skills/<name>/SKILL.md`. Colleagues run `/plugin marketplace add stevenbiss/operating-model-explorer` followed by `/plugin install operating-model-author@operating-model-explorer`. They get updates through the marketplace when `main` moves on, so releases are always cut from `main` after a build.
 - **claude.ai.** There's no install from a repo, so colleagues download `operating-model-author.zip` from the release and upload it once. The zip's contents are identical to the committed skill folder.
 - **Release.** `gh release create vX.Y.Z` attaches the zip, the standalone engine and a demo snapshot exported from the Acme capture sheet, with notes explaining which file to use and SHA-256 checksums. A check confirms that the engine inside the zip is byte-identical to the standalone engine.
