@@ -45,6 +45,12 @@ Loading turns the files into one normalised in-memory model: elements indexed by
 ### D5. Export: rebuild the file from known parts
 The engine's CSS and JS sit in `<style id="om-style">` and `<script id="om-engine">`. Rendering never changes those elements. To export, the engine assembles a new document from the doctype, those two elements, and `<script id="om-content" type="application/json">…</script>`, then offers it as a download via a Blob. On startup, the presence of `om-content` means viewer mode, and its absence means author mode.
 **Alternatives:** serialising the live DOM (it contains rendered state and author UI); fetching its own file (not allowed from `file://`); embedding a second copy of the engine (doubles the size).
+**Implementation notes (task 1.15):**
+- The bundled sample lives in its own `<script id="om-sample" type="application/json">`, not inside `om-engine`, so snapshots don't carry the sample's content.
+- The snapshot holds the normalised model (no file paths), only the assets the model uses (theme logo and fonts, and images referenced from Markdown text), and `exported` (ISO date). The viewer footer shows the model version, if any, and the export date.
+- In author mode the preview is the real viewer `render(snapshot, #om-preview)`. The theme is scoped to `#om-preview`, so a model's colours never restyle the author controls.
+- Reload feature-detects `window.showDirectoryPicker` at click time, so tests can replace it with an in-memory directory handle.
+- **Security (html-qa round 1):** the CSP's `script-src` is the `sha256` hash of the `om-engine` script, which `scripts/build.mjs` computes and puts in place of the `'om-engine-hash'` placeholder in `src/index.html`. There's no `'unsafe-inline'`, so inline event handlers and `javascript:` URLs never run. The export copies the CSP meta and `om-engine` verbatim, so the hash stays valid in snapshots. `om-sample` and `om-content` are JSON data blocks and are never executed. As defence in depth, every HTML string escapes content at the source: the labeller returns escaped terms, one shared `esc` (`src/viewer/esc.js`) is used by the viewer, the swimlane and author mode, and Markdown is rendered with `html: false`.
 
 ### D6. Swimlane layout: SVG with automatic ranking
 - **Rows:** lanes, one per role, grouped by party in content order.
@@ -64,6 +70,19 @@ Hash routes, e.g. `#/w/presales`, `#/p/qualify`, `#/p/qualify/s/scope`, `#/r/acc
 
 ### D9. Reloading a folder
 In Chrome and Edge, `showDirectoryPicker()` keeps a directory handle, so "Reload" re-reads it. Drag-and-drop uses `DataTransferItem.getAsFileSystemHandle()` where available. Otherwise the author re-selects the folder or uses `.zip` (`<input webkitdirectory>` or a file input).
+
+**Spike results (task 1.2, 2026-09-28; Chrome 154.0.8037.58 and Edge 154.0.4258.37 on Windows 11, via Playwright against `file://`, offline, with the engine's CSP):**
+
+| Check | Chrome | Edge | How it was verified |
+|---|---|---|---|
+| `.zip` via a file input (fflate) → loader | Works | Works | Automated. The sample loaded with 22 files, 2 processes and 0 messages. No console errors and no network requests. |
+| Folder via `<input webkitdirectory>` → loader | Works | Works | Automated, with the same result as the zip. |
+| `isSecureContext` on `file://` | true | true | Automated |
+| `showDirectoryPicker` present and callable from a click | Yes | Yes | Automated. The call reached the browser's dialog. |
+| Picking a folder with `showDirectoryPicker`, then "Reload" | Not verified | Not verified | Playwright intercepts the native dialog and aborts it (`AbortError`), with no `filechooser` event to answer, so it needs a **manual check**. The OPFS stand-in handle is not available on `file://` (`SecurityError`, opaque origin). |
+| `DataTransferItem.getAsFileSystemHandle` present | Yes | Yes | Automated feature check only. A real OS folder drag can't be synthesised, so it needs a **manual check**. |
+
+**Consequences:** `.zip` and `webkitdirectory` are the automated baseline in both browsers. The handle-based "Reload" path (`readDirectoryHandle` in `src/model/read.js`) can only be tested automatically by stubbing `window.showDirectoryPicker` in the page with an in-memory directory handle. Test 2.51 should do that, plus a one-off manual check in real Chrome and Edge. Author mode must feature-detect `showDirectoryPicker`: show "Reload" only when a handle is held, and fall back to re-selecting or `.zip` otherwise.
 
 ### D10. EDGY alignment
 Each type maps to an EDGY concept: `party` and `team` → Organisation; `role` and `persona` → People; `process` and `step` → Process/Activity; `workstream` → Capability-like grouping; step `inputs`/`outputs` → Object; `model.key_messages` → Outcome/Purpose. The mapping is recorded in the schema (`x-edgy`) and shown in the content reference. Project 2 can add Identity- and Experience-facet types, such as journeys and products, without changing these.

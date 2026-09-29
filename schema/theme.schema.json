@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/theme.schema.json",
+  "title": "theme",
+  "description": "Optional look and language of the model: colours, fonts, logo and the words used for each term. Lives in theme.md at the top of the folder. Anything left out uses the neutral default theme.",
+  "x-edgy": "None (presentation only)",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": { "enum": ["theme"], "description": "Always theme." },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Optional id: lower-case letters and numbers joined by hyphens." },
+    "name": { "type": "string", "description": "Optional theme name." },
+    "colors": {
+      "type": "object",
+      "description": "Colours as hex codes, e.g. \"#0b1f4d\". Put quotes around them.",
+      "properties": {
+        "primary": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Header, active navigation and selected items. A hex colour such as #0b1f4d." },
+        "accent": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Highlights. A hex colour such as #e0632a." },
+        "background": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Page background. A hex colour such as #ffffff." },
+        "surface": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Cards and panels. A hex colour such as #f4f5f7." },
+        "text": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Body text. A hex colour such as #1a1a1a." },
+        "palette": { "type": "array", "items": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "A hex colour such as #3a6ea5." }, "description": "Colours for parties and lanes, used in order." }
+      },
+      "additionalProperties": false
+    },
+    "fonts": {
+      "type": "object",
+      "description": "A font file in assets/ (e.g. assets/brand.woff2) or a system font stack (e.g. Georgia, serif). Web addresses are not allowed.",
+      "properties": {
+        "body": { "type": "string", "description": "Font for body text." },
+        "heading": { "type": "string", "description": "Font for headings." }
+      },
+      "additionalProperties": false
+    },
+    "logo": { "type": "string", "description": "An image file in assets/, e.g. assets/logo.svg." },
+    "labels": {
+      "type": "object",
+      "description": "Your words for the engine's terms. Anything left out keeps its default.",
+      "properties": {
+        "model": { "type": "string", "description": "Default: Model" },
+        "models": { "type": "string", "description": "Default: Models" },
+        "party": { "type": "string", "description": "Default: Party" },
+        "parties": { "type": "string", "description": "Default: Parties" },
+        "team": { "type": "string", "description": "Default: Team" },
+        "teams": { "type": "string", "description": "Default: Teams" },
+        "role": { "type": "string", "description": "Default: Role" },
+        "roles": { "type": "string", "description": "Default: Roles" },
+        "persona": { "type": "string", "description": "Default: Persona" },
+        "personas": { "type": "string", "description": "Default: Personas" },
+        "workstream": { "type": "string", "description": "Default: Workstream" },
+        "workstreams": { "type": "string", "description": "Default: Workstreams" },
+        "process": { "type": "string", "description": "Default: Process" },
+        "processes": { "type": "string", "description": "Default: Processes" },
+        "step": { "type": "string", "description": "Default: Step" },
+        "steps": { "type": "string", "description": "Default: Steps" },
+        "key_message": { "type": "string", "description": "Default: Key message" },
+        "key_messages": { "type": "string", "description": "Default: Key messages" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "type": "theme",
+      "colors": { "primary": "#0b1f4d", "accent": "#e0632a", "background": "#ffffff", "surface": "#f4f5f7", "text": "#1a1a1a", "palette": ["#3a6ea5", "#2e7d5b"] },
+      "fonts": { "body": "Segoe UI, system-ui, sans-serif" },
+      "logo": "assets/logo.svg",
+      "labels": { "workstream": "Value stream", "workstreams": "Value streams" }
+    }
+  ]
+}

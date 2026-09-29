@@ -11,3 +11,6 @@ blob-report/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Real client or employer names for the content guard tests (kept out of git)
+tests/private-names.txt

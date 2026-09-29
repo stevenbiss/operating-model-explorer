@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/workstream.schema.json",
+  "title": "workstream",
+  "description": "A grouping of related processes. A detailed workstream has processes; an outline workstream only has a summary.",
+  "x-edgy": "Capability (grouping)",
+  "type": "object",
+  "required": ["id", "type", "name", "summary", "detail"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Unique id: lower-case letters and numbers joined by hyphens, e.g. presales." },
+    "type": { "enum": ["workstream"], "description": "Always workstream." },
+    "name": { "type": "string", "description": "The workstream's display name." },
+    "summary": { "type": "string", "description": "What this workstream covers." },
+    "parties": { "type": "array", "items": { "type": "string" }, "description": "The ids of the parties involved." },
+    "detail": { "enum": ["detailed", "outline"], "description": "detailed if it has processes, outline if it is only summarised for now." },
+    "change": {
+      "type": "object",
+      "description": "Optional current vs future state.",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+        "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    { "id": "presales", "type": "workstream", "name": "Presales", "summary": "From first conversation to signed proposal.", "parties": ["acme", "globex"], "detail": "detailed" }
+  ]
+}

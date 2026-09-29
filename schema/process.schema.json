@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/process.schema.json",
+  "title": "process",
+  "description": "A process inside one workstream, with its steps in order. It is shown as a swimlane with one lane per role.",
+  "x-edgy": "Process",
+  "type": "object",
+  "required": ["id", "type", "name", "workstream", "steps"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Unique id: lower-case letters and numbers joined by hyphens, e.g. qualify-opportunity." },
+    "type": { "enum": ["process"], "description": "Always process." },
+    "name": { "type": "string", "description": "The process's display name." },
+    "workstream": { "type": "string", "description": "The id of the workstream this process belongs to." },
+    "summary": { "type": "string", "description": "One or two sentences about this process." },
+    "steps": {
+      "type": "array",
+      "description": "The steps, in order. A step flows to the next one in the list unless it has next.",
+      "items": {
+        "type": "object",
+        "x-edgy": "Activity",
+        "required": ["id", "name", "owner"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Id, unique within this process: lower-case letters and numbers joined by hyphens, e.g. scope." },
+          "name": { "type": "string", "description": "The step's display name." },
+          "owner": { "type": "string", "description": "The id of the role that owns this step. The step sits in this role's lane." },
+          "description": { "type": "string", "description": "What happens in this step. Markdown is allowed." },
+          "raci": { "type": "object", "additionalProperties": { "enum": ["R", "A", "C", "I"] }, "description": "Role id to R (responsible), A (accountable), C (consulted) or I (informed), e.g. solution-architect: C." },
+          "inputs": { "type": "array", "items": { "type": "string" }, "x-edgy": "Object", "description": "What this step needs." },
+          "outputs": { "type": "array", "items": { "type": "string" }, "x-edgy": "Object", "description": "What this step produces." },
+          "systems": { "type": "array", "items": { "type": "string" }, "description": "Tools or systems used." },
+          "kpis": { "type": "array", "items": { "type": "string" }, "description": "How this step is measured." },
+          "next": {
+            "type": "array",
+            "description": "The steps that follow. Use a step id, or { to: step-id, label: Yes } for a labelled decision branch. Use [] to end the flow here.",
+            "items": {
+              "type": ["string", "object"],
+              "required": ["to"],
+              "properties": {
+                "to": { "type": "string", "description": "The id of the following step in this process." },
+                "label": { "type": "string", "description": "The branch label, e.g. Yes or No." }
+              },
+              "additionalProperties": false
+            }
+          },
+          "change": {
+            "type": "object",
+            "description": "Optional current vs future state.",
+            "required": ["status"],
+            "properties": {
+              "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+              "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "change": {
+      "type": "object",
+      "description": "Optional current vs future state.",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+        "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": "qualify-opportunity",
+      "type": "process",
+      "name": "Qualify an opportunity",
+      "workstream": "presales",
+      "steps": [
+        { "id": "capture", "name": "Capture the lead", "owner": "account-lead", "outputs": ["Lead record"] },
+        { "id": "go-no-go", "name": "Go / no-go", "owner": "account-lead", "raci": { "solution-architect": "C" }, "next": [{ "to": "scope", "label": "Go" }, { "to": "decline", "label": "No go" }] },
+        { "id": "scope", "name": "Scope the work", "owner": "solution-architect", "next": [] },
+        { "id": "decline", "name": "Decline politely", "owner": "account-lead", "change": { "status": "new", "today": "Leads are left to go cold." } }
+      ]
+    }
+  ]
+}

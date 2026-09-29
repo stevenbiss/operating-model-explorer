@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/persona.schema.json",
+  "title": "persona",
+  "description": "A type of viewer. A persona maps to one or more roles, whose lanes and steps are highlighted, and has an entry point where the viewer starts.",
+  "x-edgy": "People",
+  "type": "object",
+  "required": ["id", "type", "name", "roles", "entry"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Unique id: lower-case letters and numbers joined by hyphens, e.g. partner-lead. Used in links." },
+    "type": { "enum": ["persona"], "description": "Always persona." },
+    "name": { "type": "string", "description": "The persona's display name." },
+    "summary": { "type": "string", "description": "A short description, shown when viewers choose a persona." },
+    "roles": { "type": "array", "items": { "type": "string" }, "description": "The ids of one or more roles this persona plays." },
+    "entry": {
+      "type": "object",
+      "description": "Where this persona starts.",
+      "required": ["view"],
+      "properties": {
+        "view": { "enum": ["overview", "workstream", "process", "role"], "description": "The kind of view to open." },
+        "id": { "type": "string", "description": "The id of the workstream, process or role to open. Not needed for overview." }
+      },
+      "additionalProperties": false
+    },
+    "change": {
+      "type": "object",
+      "description": "Optional current vs future state.",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+        "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    { "id": "partner-lead", "type": "persona", "name": "Partner lead", "summary": "You run the relationship.", "roles": ["account-lead"], "entry": { "view": "process", "id": "qualify-opportunity" } }
+  ]
+}

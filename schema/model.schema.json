@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/model.schema.json",
+  "title": "model",
+  "description": "The operating model itself: its name, purpose and the key messages everyone should take away. Exactly one per folder, in model.md at the top of the folder.",
+  "x-edgy": "Outcome / Purpose",
+  "type": "object",
+  "required": ["id", "type", "name", "purpose", "key_messages"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Unique id: lower-case letters and numbers joined by hyphens, e.g. acme-sample. Also used as the snapshot file name." },
+    "type": { "enum": ["model"], "description": "Always model." },
+    "name": { "type": "string", "description": "The model's display name." },
+    "purpose": { "type": "string", "description": "Why this operating model exists. Markdown is allowed." },
+    "key_messages": { "type": "array", "items": { "type": "string" }, "description": "The shared conclusions every viewer should reach, in order." },
+    "version": { "type": ["string", "number"], "description": "Optional content version, shown in the snapshot footer." },
+    "change": {
+      "type": "object",
+      "description": "Optional current vs future state.",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+        "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": "acme-sample",
+      "type": "model",
+      "name": "Acme + Globex partnership",
+      "purpose": "How Acme and Globex win and deliver joint work.",
+      "key_messages": ["One team, one plan", "Globex owns the solution, Acme owns the client"],
+      "version": "1.0"
+    }
+  ]
+}

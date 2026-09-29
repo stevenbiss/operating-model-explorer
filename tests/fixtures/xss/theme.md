@@ -1,0 +1,23 @@
+---
+type: theme
+name: 'Theme <img src=x onerror="document.body.dataset.pwned=1">'
+labels:
+  model: '<img src=x onerror="document.body.dataset.pwned=1">model'
+  models: '<img src=x onerror="document.body.dataset.pwned=1">models'
+  party: '<img src=x onerror="document.body.dataset.pwned=1">party'
+  parties: '<img src=x onerror="document.body.dataset.pwned=1">parties'
+  team: '<img src=x onerror="document.body.dataset.pwned=1">team'
+  teams: '<img src=x onerror="document.body.dataset.pwned=1">teams'
+  role: '<img src=x onerror="document.body.dataset.pwned=1">role'
+  roles: '<img src=x onerror="document.body.dataset.pwned=1">roles'
+  persona: '<img src=x onerror="document.body.dataset.pwned=1">persona'
+  personas: '<img src=x onerror="document.body.dataset.pwned=1">personas'
+  workstream: '<img src=x onerror="document.body.dataset.pwned=1">workstream'
+  workstreams: '<img src=x onerror="document.body.dataset.pwned=1">workstreams'
+  process: '<img src=x onerror="document.body.dataset.pwned=1">process'
+  processes: '<img src=x onerror="document.body.dataset.pwned=1">processes'
+  step: '<img src=x onerror="document.body.dataset.pwned=1">step'
+  steps: '<img src=x onerror="document.body.dataset.pwned=1">steps'
+  key_message: '<img src=x onerror="document.body.dataset.pwned=1">key_message'
+  key_messages: '<img src=x onerror="document.body.dataset.pwned=1">key_messages'
+---

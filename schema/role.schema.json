@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/role.schema.json",
+  "title": "role",
+  "description": "A role that owns or takes part in process steps. Each role that appears in a process gets its own lane in the swimlane.",
+  "x-edgy": "People",
+  "type": "object",
+  "required": ["id", "type", "name", "party"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Unique id: lower-case letters and numbers joined by hyphens, e.g. account-lead." },
+    "type": { "enum": ["role"], "description": "Always role." },
+    "name": { "type": "string", "description": "The role's display name." },
+    "party": { "type": "string", "description": "The id of the party this role belongs to." },
+    "team": { "type": "string", "description": "Optional id of the team this role belongs to." },
+    "summary": { "type": "string", "description": "One or two sentences about what this role does." },
+    "change": {
+      "type": "object",
+      "description": "Optional current vs future state.",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+        "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    { "id": "account-lead", "type": "role", "name": "Account lead", "party": "acme", "team": "acme-sales", "summary": "Owns the client relationship." }
+  ]
+}
