@@ -60,4 +60,4 @@ When change markers are off, the route to a removed step always resolves to its 
 
 ## Manual checks by the user (29 September 2026)
 - **Load folder + Reload, real browser folder picker: PASS.** The user loaded `examples/acme-sample` using Load folder, edited `roles/account-lead.md` (changing `name`), and clicked Reload. The swimlane lane label updated without re-selecting the folder.
-- **Drag a real folder from the desktop:** still to check.
+- **Drag a real folder from the desktop: PASS.** The user dragged the `examples/acme-sample` folder onto the engine page, and it loaded the same way as Load folder.
