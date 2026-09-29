@@ -5,7 +5,7 @@ Format: 1
 <!--
 A capture sheet holds a whole operating model in one file. Fill in each section, then load the sheet
 in the engine to check it. Comments like this one are ignored: delete them when you're done, or leave them.
-The full format is in docs/capture-sheet.md, and examples/acme-sample/capture-sheet.md is a complete example.
+The full format is in docs/capture-sheet.md, and examples/acme-capture-sheet/capture-sheet.md is a complete example.
 
 Refer to things by name, exactly as they are written in their own table (case and spacing don't matter).
 Optional lines under the title: "ID: my-model" (the snapshot's file name) and "Version: 1.0".

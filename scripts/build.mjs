@@ -3,22 +3,35 @@
 import { build, transform } from 'esbuild';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { schemas } from '../src/model/schemas.js';
 import { contentReference } from '../src/model/reference.js';
 
 const root = new URL('../', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
+const writeIfChanged = (p, text) => read(p) !== text && writeFileSync(new URL(p, root), text);
 
 writeFileSync(new URL('docs/content-reference.md', root), contentReference(schemas));
 
+// One version across the bundle (design D11): package.json is the single source. The engine gets it through
+// esbuild's define; SKILL.md's "Version:" line and plugin.json's "version" are stamped when those files exist.
+const { version } = JSON.parse(read('package.json'));
+if (existsSync(new URL('skills/operating-model-author/SKILL.md', root))) {
+  const p = 'skills/operating-model-author/SKILL.md';
+  if (!/^Version: .*$/m.test(read(p))) throw new Error(`${p} has no "Version:" line for the build to stamp.`);
+  writeIfChanged(p, read(p).replace(/^Version: .*$/m, `Version: ${version}`));
+}
+if (existsSync(new URL('.claude-plugin/plugin.json', root))) {
+  const p = '.claude-plugin/plugin.json';
+  writeIfChanged(p, `${JSON.stringify({ ...JSON.parse(read(p)), version }, null, 2)}\n`);
+}
+
 // The fictional sample folder for "Try the sample" (design D11), as [{ path, b64 }] in <script id="om-sample">.
 // It sits outside the engine script, so exported snapshots (which copy only om-style and om-engine) don't carry it.
-// The folder also holds the same model as capture-sheet.md, which is left out: a model is one format or the other.
 const sampleDir = fileURLToPath(new URL('examples/acme-sample/', root));
 const sample = readdirSync(sampleDir, { recursive: true, withFileTypes: true })
-  .filter((e) => e.isFile() && join(e.parentPath, e.name) !== join(sampleDir, 'capture-sheet.md'))
+  .filter((e) => e.isFile())
   .map((e) => ({ path: relative(sampleDir, join(e.parentPath, e.name)).replace(/\\/g, '/'), b64: readFileSync(join(e.parentPath, e.name)).toString('base64') }));
 
 const js = (
@@ -29,6 +42,7 @@ const js = (
     minify: true,
     write: false,
     charset: 'utf8',
+    define: { OM_VERSION: JSON.stringify(version) },
   })
 ).outputFiles[0].text;
 
@@ -48,6 +62,8 @@ const html = page
   .replace("'om-engine-hash'", () => hash)
   .replace('<style id="om-style"></style>', () => `<style id="om-style">${css.replace(/<\/style/gi, '<\\/style')}</style>`)
   .replace('<script id="om-sample" type="application/json"></script>', () => `<script id="om-sample" type="application/json">${JSON.stringify(sample).replace(/</g, '\\u003c')}</script>`)
+  // The capture sheet format spec for the content reference, also a data block that snapshots don't copy.
+  .replace('<script id="om-sheet-format" type="application/json"></script>', () => `<script id="om-sheet-format" type="application/json">${JSON.stringify(read('docs/capture-sheet.md').replace(/\r\n/g, '\n')).replace(/</g, '\\u003c')}</script>`)
   .replace('<script id="om-engine"></script>', () => `<script id="om-engine">${engine}</script>`);
 
 mkdirSync(new URL('dist/', root), { recursive: true });

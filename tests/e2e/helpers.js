@@ -13,12 +13,13 @@ export const SAMPLE_DIR = join(ROOT, 'examples', 'acme-sample');
 export const fixtureDir = (name) => (name === 'acme-sample' ? SAMPLE_DIR : join(ROOT, 'tests', 'fixtures', name));
 export const fileUrl = (p) => pathToFileURL(p).href;
 
-// A folder on disk -> { 'relative/path': Uint8Array }. The sample folder holds the same model twice (element
-// files and capture-sheet.md), so its folder form leaves the sheet out.
+export const SAMPLE_SHEET_DIR = join(ROOT, 'examples', 'acme-capture-sheet');
+export const SAMPLE_SHEET = join(SAMPLE_SHEET_DIR, 'capture-sheet.md');
+
+// A folder on disk -> { 'relative/path': Uint8Array }.
 export function readFolder(dir) {
   const out = {};
   for (const e of readdirSync(dir, { recursive: true, withFileTypes: true })) {
-    if (dir === SAMPLE_DIR && join(e.parentPath, e.name) === join(SAMPLE_DIR, 'capture-sheet.md')) continue;
     if (e.isFile()) out[relative(dir, join(e.parentPath, e.name)).replace(/\\/g, '/')] = new Uint8Array(readFileSync(join(e.parentPath, e.name)));
   }
   return out;

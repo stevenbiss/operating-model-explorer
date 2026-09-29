@@ -6,6 +6,7 @@ import { formatRoute, parseRoute } from './route.js';
 import { labeller, themeCss } from './theme.js';
 import { swimlaneSvg } from './swimlane.js';
 import { esc } from './esc.js';
+// OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 
 const list = (v) => (Array.isArray(v) ? v : []);
 const store = {
@@ -176,7 +177,7 @@ function shell() {
 </div></div>
 <section class="notice removed-notice" aria-label="Notice" data-testid="removed-notice" hidden><p></p><button type="button" class="btn btn-quiet" data-dismiss-notice data-testid="removed-notice-dismiss">Dismiss</button></section>
 <main id="om-main" tabindex="-1"></main>
-${m.version || M.exported ? `<footer class="foot" data-testid="footer"><div class="bar-in">${m.version ? `<span>Version ${esc(m.version)}</span>` : ''}${M.exported ? `<span>Exported <time datetime="${esc(M.exported)}">${esc(new Date(M.exported).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}</time></span>` : ''}</div></footer>` : ''}
+<footer class="foot" data-testid="footer"><div class="bar-in">${m.version ? `<span>Version ${esc(m.version)}</span>` : ''}${M.exported ? `<span>Exported <time datetime="${esc(M.exported)}">${esc(new Date(M.exported).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }))}</time></span>` : ''}<span data-testid="engine-version">Engine ${OM_VERSION}</span></div></footer>
 <dialog class="sheet km" data-testid="key-messages-dialog" aria-labelledby="om-km-title">
   <div class="sheet-head"><h2 id="om-km-title">${L('key_messages')}</h2><button type="button" class="btn" data-close>Close</button></div>
   ${messagesHtml()}

@@ -476,6 +476,16 @@ main { padding: 36px 24px 72px; }
 .drop-sample p { margin: 0; color: var(--om-muted); font-size: 0.9rem; }
 .drop-sample .btn { color: var(--om-link); border-color: transparent; text-decoration: underline; text-underline-offset: 3px; }
 .drop-note { margin: 14px 0 0; font-size: 0.8rem; color: var(--om-muted); }
+.drop-hint { margin: 8px 0 20px; font-size: 0.85rem; color: var(--om-muted); }
+.ver { font-family: var(--om-font-body); font-size: 0.78rem; font-weight: 500; opacity: 0.85; }
+
+.ref-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; padding-bottom: 14px; border-bottom: 1px solid var(--om-border); }
+.ref-tabs [aria-pressed="true"] { color: var(--om-on-primary); background: var(--om-primary); border-color: var(--om-primary); }
+
+.questions { margin-top: 22px; }
+.questions h3 { margin: 0; font-size: 1.1rem; }
+.questions-note { margin: 4px 0 0; font-size: 0.875rem; color: var(--om-muted); }
+.questions .msg .msg-level { border-color: var(--om-link); background: var(--om-tint); }
 
 .workspace { max-width: 1440px; margin: 0 auto; padding: 28px 24px 72px; }
 .dragging .workspace { outline: 3px dashed var(--om-accent); outline-offset: -8px; border-radius: 16px; }

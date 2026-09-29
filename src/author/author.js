@@ -1,5 +1,5 @@
-// Author mode (author-mode spec, design D5 and D9): load a content folder, a .zip or the bundled sample,
-// show the validation report and a live preview (the real viewer), reload a kept folder, and export a snapshot.
+// Author mode (author-mode spec, design D5 and D9): load a capture sheet, a content folder, a .zip or the bundled
+// sample, show the validation report and a live preview (the real viewer), reload a kept folder, and export a snapshot.
 // Nothing is sent anywhere: files are read in the browser and the snapshot is a Blob download.
 import { loadModel } from '../model/load.js';
 import { readDirectoryHandle, readFileList, readZip } from '../model/read.js';
@@ -9,6 +9,7 @@ import { schemas } from '../model/schemas.js';
 import { renderMarkdown } from '../model/markdown.js';
 import { render } from '../viewer/app.js';
 import { esc } from '../viewer/esc.js';
+// OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 let app;
@@ -22,6 +23,7 @@ export function startAuthor(el) {
   app.addEventListener('click', onClick);
   $('[data-testid="folder-input"]').addEventListener('change', (e) => fromInput(e.target, (f) => readFileList(f), (f) => f[0].webkitRelativePath.split('/')[0]));
   $('[data-testid="zip-input"]').addEventListener('change', (e) => fromInput(e.target, async (f) => readZip(new Uint8Array(await f[0].arrayBuffer())), (f) => f[0].name));
+  $('[data-testid="sheet-input"]').addEventListener('change', (e) => fromInput(e.target, (f) => readFileList(f), (f) => f[0].name));
   document.addEventListener('dragover', onDragOver);
   document.addEventListener('dragleave', (e) => e.relatedTarget === null && app.classList.remove('dragging'));
   document.addEventListener('drop', onDrop);
@@ -30,7 +32,7 @@ export function startAuthor(el) {
 function shell() {
   return `<div class="author">
 <div class="author-bar" role="region" aria-label="Author tools"><div class="bar-in">
-  <p class="author-brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Operating Model Explorer <span class="mode">Author mode</span></p>
+  <p class="author-brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Operating Model Explorer <span class="mode">Author mode</span> <span class="ver" data-testid="author-engine-version">Engine ${OM_VERSION}</span></p>
   <div class="author-actions">
     <p class="source" data-testid="source" hidden></p>
     <button type="button" class="btn" data-act="reload" data-testid="reload" hidden>Reload</button>
@@ -45,21 +47,23 @@ function shell() {
   <div class="start-in">
     <section class="start-copy" aria-labelledby="om-start-title">
       <p class="eyebrow">Author mode</p>
-      <h1 id="om-start-title" tabindex="-1">Turn your content folder into a model anyone can explore</h1>
-      <p class="lead">Load the Markdown files that describe your operating model. The engine checks them, shows you exactly what viewers will see, and exports one HTML file you can email or share.</p>
+      <h1 id="om-start-title" tabindex="-1">Turn your capture sheet into a model anyone can explore</h1>
+      <p class="lead">Load the capture sheet, or the folder of Markdown files, that describes your operating model. The engine checks it, shows you exactly what viewers will see, and exports one HTML file you can email or share.</p>
       <ol class="how">
-        <li><span class="num" aria-hidden="true">1</span><div><strong>Load</strong> a content folder or a .zip of it</div></li>
+        <li><span class="num" aria-hidden="true">1</span><div><strong>Load</strong> a capture sheet, a content folder or a .zip of one</div></li>
         <li><span class="num" aria-hidden="true">2</span><div><strong>Fix</strong> anything the check reports, then reload</div></li>
         <li><span class="num" aria-hidden="true">3</span><div><strong>Export</strong> a snapshot that opens offline</div></li>
       </ol>
     </section>
     <section class="drop" aria-labelledby="om-drop-title" data-testid="drop-zone">
       <span class="drop-icon" aria-hidden="true"></span>
-      <h2 id="om-drop-title">Drop a content folder or .zip here</h2>
+      <h2 id="om-drop-title">Drop a capture sheet, folder or .zip here</h2>
       <p class="drop-or">or choose one</p>
+      <button type="button" class="btn btn-primary btn-lg" data-act="sheet" data-testid="load-capture-sheet" aria-describedby="om-sheet-hint">Load capture sheet</button>
+      <p class="drop-hint" id="om-sheet-hint">One .md file. If it uses a logo or images, load its folder instead.</p>
       <div class="drop-actions">
-        <button type="button" class="btn btn-primary btn-lg" data-act="folder" data-testid="load-folder">Load folder</button>
-        <button type="button" class="btn btn-lg" data-act="zip" data-testid="load-zip">Load .zip</button>
+        <button type="button" class="btn" data-act="folder" data-testid="load-folder">Load folder</button>
+        <button type="button" class="btn" data-act="zip" data-testid="load-zip">Load .zip</button>
       </div>
       <div class="drop-sample"><p>No content yet?</p><button type="button" class="btn btn-quiet" data-act="sample" data-testid="try-sample">Try the sample</button></div>
       <p class="drop-note">Files are read in this browser only. Nothing is uploaded.</p>
@@ -75,8 +79,14 @@ function shell() {
 
 <dialog class="sheet sheet-wide" data-testid="reference-dialog" aria-labelledby="om-ref-title">
   <div class="sheet-head"><h2 id="om-ref-title">Content reference</h2><button type="button" class="btn" data-act="close">Close</button></div>
+  <div class="ref-tabs" role="group" aria-label="Which format">
+    <button type="button" class="btn" data-act="ref-files" aria-pressed="true" data-testid="reference-files">Content files</button>
+    <button type="button" class="btn" data-act="ref-sheet" aria-pressed="false" data-testid="reference-sheet">Capture sheet format</button>
+  </div>
   <div class="prose reference" data-testid="reference"></div>
+  <div class="prose reference" data-testid="sheet-format" hidden></div>
 </dialog>
+<input type="file" accept=".md,text/markdown" hidden data-testid="sheet-input">
 <input type="file" webkitdirectory multiple hidden data-testid="folder-input">
 <input type="file" accept=".zip,application/zip" hidden data-testid="zip-input">
 <div class="vh" aria-live="polite" id="om-author-live" data-testid="author-live"></div>
@@ -163,9 +173,10 @@ function onDrop(e) {
   const file = item.getAsFile();
   const handle = item.getAsFileSystemHandle ? item.getAsFileSystemHandle() : null;
   if (file && /\.zip$/i.test(file.name)) return load(async () => readZip(new Uint8Array(await file.arrayBuffer())), file.name);
+  if (file && /\.md$/i.test(file.name)) return load(() => readFileList([file]), file.name);
   if (!handle) return notice('This browser cannot read a dropped folder. Use "Load folder" or "Load .zip" instead.');
   handle.then(
-    (h) => (h.kind === 'directory' ? load(() => readDirectoryHandle(h), h.name, h) : notice('Drop a content folder or a .zip of one.')),
+    (h) => (h.kind === 'directory' ? load(() => readDirectoryHandle(h), h.name, h) : notice('Drop a capture sheet (.md), a content folder or a .zip of one.')),
     () => notice('That folder could not be read. Use "Load folder" or "Load .zip" instead.'),
   );
 }
@@ -205,10 +216,13 @@ function show(reload) {
 
 function reportHtml(errors, warnings, counts, files, source) {
   const ready = !errors.length;
+  // Open questions from a capture sheet are warnings, listed in their own group (author-mode spec).
+  const questions = warnings.filter((m) => m.openQuestion);
+  const others = [...errors, ...warnings.filter((m) => !m.openQuestion)];
   const item = (m) => {
     const where = [m.line ? `line ${esc(m.line)}` : '', m.element ? `<span class="k">Element</span> ${esc(m.element)}` : '', m.step ? `<span class="k">Step</span> ${esc(m.step)}` : ''].filter(Boolean).join(' · ');
-    return `<li class="msg msg-${esc(m.level)}" data-testid="report-message" data-level="${esc(m.level)}">
-  <span class="msg-level">${m.level === 'error' ? 'Error' : 'Warning'}</span>
+    return `<li class="msg msg-${esc(m.level)}" data-testid="report-message" data-level="${esc(m.level)}"${m.openQuestion ? ' data-open-question' : ''}>
+  <span class="msg-level">${m.level === 'error' ? 'Error' : m.openQuestion ? 'Question' : 'Warning'}</span>
   <div class="msg-body"><p class="msg-where">${m.where ? esc(m.where) : `<code>${esc(m.file)}</code>${where ? ` · ${where}` : ''}`}</p>
   <p class="msg-problem">${esc(m.problem)}</p>
   <p class="msg-fix"><span class="k">How to fix</span> ${esc(m.fix)}</p></div></li>`;
@@ -221,9 +235,14 @@ function reportHtml(errors, warnings, counts, files, source) {
 <div class="status ${ready ? 'status-ready' : 'status-blocked'}" data-testid="${ready ? 'ready' : 'blocked'}">
   <span class="status-icon" aria-hidden="true">${ready ? '✓' : '!'}</span>
   <div><strong>${ready ? 'Ready to export' : `Fix ${count(errors.length, 'error')} to export`}</strong>
-  <p>${ready ? (warnings.length ? "The warnings below are worth a look, but they don't stop the export." : 'No problems found. Check the preview, then export the snapshot.') : 'Errors stop the export. Warnings don\'t. Fix the files, then load or reload them.'}</p></div>
+  <p>${ready ? (warnings.length ? `The ${warnings.length === questions.length ? 'open questions' : 'warnings'} below are worth a look, but they don't stop the export.` : 'No problems found. Check the preview, then export the snapshot.') : 'Errors stop the export. Warnings don\'t. Fix the files, then load or reload them.'}</p></div>
 </div>
-${errors.length + warnings.length ? `<ol class="msgs" data-testid="report-messages" tabindex="0" aria-label="Validation messages">${[...errors, ...warnings].map(item).join('')}</ol>` : ''}`;
+${others.length ? `<ol class="msgs" data-testid="report-messages" tabindex="0" aria-label="Validation messages">${others.map(item).join('')}</ol>` : ''}
+${questions.length ? `<section class="questions" aria-labelledby="om-oq-title" data-testid="open-questions">
+  <h3 id="om-oq-title">Open questions (${questions.length})</h3>
+  <p class="questions-note">From the sheet's Open questions section. They are counted as warnings and don't stop the export. They are never included in the snapshot.</p>
+  <ol class="msgs" tabindex="0" aria-label="Open questions">${questions.map(item).join('')}</ol>
+</section>` : ''}`;
 }
 
 // Design D5: a new document from the doctype, #om-style, #om-engine and a new #om-content. The live DOM
@@ -266,13 +285,23 @@ function onClick(e) {
   if (!act) return;
   const a = act.dataset.act;
   if (a === 'folder') pickFolder();
+  else if (a === 'sheet') $('[data-testid="sheet-input"]').click();
   else if (a === 'zip') $('[data-testid="zip-input"]').click();
+  else if (a === 'ref-files' || a === 'ref-sheet') {
+    const sheet = a === 'ref-sheet';
+    const fmt = $('[data-testid="sheet-format"]');
+    // docs/capture-sheet.md, bundled by the build in #om-sheet-format (outside the engine, so snapshots don't carry it).
+    if (sheet && !fmt.innerHTML) fmt.innerHTML = renderMarkdown(JSON.parse(document.getElementById('om-sheet-format').textContent).replace(/^# Capture sheet format$/m, '').replace(/\[([^\]]+)\]\(#[^)]*\)/g, '$1')); // the dialog has its own title; in-page links would change the preview's route
+    fmt.hidden = !sheet;
+    $('[data-testid="reference"]').hidden = sheet;
+    for (const b of act.parentElement.children) b.setAttribute('aria-pressed', String(b === act));
+  }
   else if (a === 'sample') load(async () => sampleFiles(), 'the sample (Acme + Globex)');
   else if (a === 'reload') reload();
   else if (a === 'export') exportSnapshot();
   else if (a === 'close') act.closest('dialog').close();
   else if (a === 'reference') {
-    const ref = $('.reference');
+    const ref = $('[data-testid="reference"]');
     if (!ref.innerHTML) ref.innerHTML = renderMarkdown(contentReference(schemas).replace(/^# Content reference$|^_Generated .*$/gm, '')); // the dialog has its own title
     $('[data-testid="reference-dialog"]').showModal();
   } else if (a === 'start') {

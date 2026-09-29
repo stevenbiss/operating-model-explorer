@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "npm run build && playwright test",
-    "test:unit": "node --test \"tests/unit/*.test.js\""
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
+    "validate": "node scripts/validate.mjs"
   },
   "dependencies": {
     "fflate": "^0.8.3",

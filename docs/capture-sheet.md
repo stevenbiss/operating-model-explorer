@@ -2,7 +2,7 @@
 
 A capture sheet is one Markdown file that holds a whole operating model. It is the easy way to write a model: fixed section headings, a table for each list of things, and names instead of ids. People can read and comment on it as one document, and the engine loads it directly, just like a content folder.
 
-This page is the full format, **format 1**. For a complete real-size sheet, see `examples/acme-sample/capture-sheet.md`. To start a new one, copy `templates/capture-sheet.md`.
+This page is the full format, **format 1**. For a complete real-size sheet, see `examples/acme-capture-sheet/capture-sheet.md`. To start a new one, copy `templates/capture-sheet.md`.
 
 ## At a glance
 

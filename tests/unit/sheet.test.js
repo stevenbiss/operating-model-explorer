@@ -423,7 +423,7 @@ function byName(m) {
     }
     elements[`${e.type}: ${e.name}`] = x;
   }
-  return { model: { ...m.model, id: undefined }, theme: m.theme, elements, order: Object.fromEntries(Object.entries(m.order).map(([t, ids]) => [t, ids.map(n)])), assets: Object.keys(m.assets) };
+  return { model: m.model, theme: m.theme, elements, order: Object.fromEntries(Object.entries(m.order).map(([t, ids]) => [t, ids.map(n)])), assets: Object.keys(m.assets) };
 }
 
 test('2.1 / 2.17 the Acme capture sheet loads cleanly and gives exactly the sample folder model', () => {
@@ -465,5 +465,5 @@ test('sheetToDocs gives documents in the folder reader\'s shape, each with a whe
 
 test('the sheet, the template and the format spec contain no real company names', () => {
   if (!PRIVATE_NAMES) return;
-  for (const p of ['examples/acme-sample/capture-sheet.md', 'templates/capture-sheet.md', 'docs/capture-sheet.md']) assert.doesNotMatch(read(p), PRIVATE_NAMES, p);
+  for (const p of ['examples/acme-capture-sheet/capture-sheet.md', 'templates/capture-sheet.md', 'docs/capture-sheet.md']) assert.doesNotMatch(read(p), PRIVATE_NAMES, p);
 });

@@ -1,6 +1,7 @@
 # Operating model: Acme + Globex partnership
 
 Format: 1
+ID: acme-sample
 Version: 1.0
 
 ## Purpose
