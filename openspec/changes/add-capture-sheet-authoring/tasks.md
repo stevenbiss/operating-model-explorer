@@ -28,68 +28,68 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`. Node tests cover the command-line validator and the package. Skill trials follow `tests/skill-packs/README.md`, and their results are recorded in `openspec/changes/add-capture-sheet-authoring/reports/skill-trials.md`.
 
 ### capture-sheet
-- [ ] 2.1 Acme capture sheet loads cleanly
-- [ ] 2.2 Missing required section
-- [ ] 2.3 Missing required column
-- [ ] 2.4 Columns in a different order
-- [ ] 2.5 Owner written with different case
-- [ ] 2.6 Unknown name with a suggestion
-- [ ] 2.7 Decision with labelled branches
-- [ ] 2.8 Next points at a missing step
-- [ ] 2.9 Matrix becomes RACI
-- [ ] 2.10 Combined letters rejected
-- [ ] 2.11 Persona starts at a process
-- [ ] 2.12 Theme from the sheet
-- [ ] 2.13 Notes for a workstream
-- [ ] 2.14 Open questions become warnings
-- [ ] 2.15 Not in the snapshot
-- [ ] 2.16 Location in the message
-- [ ] 2.17 Snapshots match (folder export vs sheet export)
-- [ ] 2.18 Blank template loads
+- [x] 2.1 Acme capture sheet loads cleanly
+- [x] 2.2 Missing required section
+- [x] 2.3 Missing required column
+- [x] 2.4 Columns in a different order
+- [x] 2.5 Owner written with different case
+- [x] 2.6 Unknown name with a suggestion
+- [x] 2.7 Decision with labelled branches
+- [x] 2.8 Next points at a missing step
+- [x] 2.9 Matrix becomes RACI
+- [x] 2.10 Combined letters rejected
+- [x] 2.11 Persona starts at a process
+- [x] 2.12 Theme from the sheet
+- [x] 2.13 Notes for a workstream
+- [x] 2.14 Open questions become warnings
+- [x] 2.15 Not in the snapshot
+- [x] 2.16 Location in the message
+- [x] 2.17 Snapshots match (folder export vs sheet export)
+- [x] 2.18 Blank template loads
 
 ### authoring-skill
-- [ ] 2.19 Package contents (Node test)
-- [ ] 2.20 Bundled validator runs on its own (Node test)
-- [ ] 2.21 Core has no Claude-specific content (Node test)
-- [ ] 2.22 Rich context gives a draft first (skill trial: `rich`)
-- [ ] 2.23 Thin context starts an interview (skill trial: `thin`)
-- [ ] 2.24 Contradiction recorded (skill trial: `contradictions`)
-- [ ] 2.25 A/R in the source (skill trial: `contradictions`)
-- [ ] 2.26 New material proposes, not overwrites (skill trial: `revision`)
-- [ ] 2.27 Handover sheet validates (skill trial: `rich`, then `npm run validate`)
-- [ ] 2.28 Sources listed (skill trial: `rich`)
-- [ ] 2.29 Refuses the public repo by default (skill trial)
-- [ ] 2.30 Handover message (skill trial: `rich`)
+- [x] 2.19 Package contents (Node test)
+- [x] 2.20 Bundled validator runs on its own (Node test)
+- [x] 2.21 Core has no Claude-specific content (Node test)
+- [x] 2.22 Rich context gives a draft first (skill trial: `rich`)
+- [x] 2.23 Thin context starts an interview (skill trial: `thin`)
+- [x] 2.24 Contradiction recorded (skill trial: `contradictions`)
+- [x] 2.25 A/R in the source (skill trial: `contradictions`)
+- [x] 2.26 New material proposes, not overwrites (skill trial: `revision`)
+- [x] 2.27 Handover sheet validates (skill trial: `rich`, then `npm run validate`)
+- [x] 2.28 Sources listed (skill trial: `rich`)
+- [x] 2.29 Refuses the public repo by default (skill trial)
+- [x] 2.30 Handover message (skill trial: `rich`)
 
 ### author-mode
-- [ ] 2.31 First open (updated: includes "Load capture sheet")
-- [ ] 2.32 Load a zip (existing test still passes)
-- [ ] 2.33 Load the bundled sample (existing test still passes)
-- [ ] 2.34 Load a capture sheet
-- [ ] 2.35 Keyboard load of a capture sheet
-- [ ] 2.36 Mixed formats rejected
-- [ ] 2.37 Unused file excluded (existing test still passes)
-- [ ] 2.38 Capture-sheet working notes excluded
-- [ ] 2.39 Open questions group
-- [ ] 2.40 Report at 768px
+- [x] 2.31 First open (updated: includes "Load capture sheet")
+- [x] 2.32 Load a zip (existing test still passes)
+- [x] 2.33 Load the bundled sample (existing test still passes)
+- [x] 2.34 Load a capture sheet
+- [x] 2.35 Keyboard load of a capture sheet
+- [x] 2.36 Mixed formats rejected
+- [x] 2.37 Unused file excluded (existing test still passes)
+- [x] 2.38 Capture-sheet working notes excluded
+- [x] 2.39 Open questions group
+- [x] 2.40 Report at 768px
 
 ### content-schema
-- [ ] 2.41 Combined letter in a folder
-- [ ] 2.42 No accountable role
-- [ ] 2.43 Two accountable roles
-- [ ] 2.44 Sample stays clean
-- [ ] 2.45 Clean sheet (Node test of `npm run validate`)
-- [ ] 2.46 Errors fail the command (Node test of `npm run validate`)
+- [x] 2.41 Combined letter in a folder
+- [x] 2.42 No accountable role
+- [x] 2.43 Two accountable roles
+- [x] 2.44 Sample stays clean
+- [x] 2.45 Clean sheet (Node test of `npm run validate`)
+- [x] 2.46 Errors fail the command (Node test of `npm run validate`)
 
 ### bundle, versions and release
-- [ ] 2.47 Engine handed over with the sheet (skill trial: `rich`)
-- [ ] 2.48 Versions match (unit test)
-- [ ] 2.49 Engine shows its version
-- [ ] 2.50 Committed skill folder is current (Node test: rebuild, no diff under `skills/`)
+- [x] 2.47 Engine handed over with the sheet (skill trial: `rich`)
+- [x] 2.48 Versions match (unit test)
+- [x] 2.49 Engine shows its version
+- [x] 2.50 Committed skill folder is current (Node test: rebuild, no diff under `skills/`)
 - [ ] 2.51 Marketplace install works (skill trial: add the marketplace from GitHub after pushing, install, validate the Acme sheet)
 - [ ] 2.52 Release assets (checked after publishing, in 5.2)
-- [ ] 2.53 Newer format
-- [ ] 2.54 Missing format line
+- [x] 2.53 Newer format
+- [x] 2.54 Missing format line
 
 ## 3. Verify
 

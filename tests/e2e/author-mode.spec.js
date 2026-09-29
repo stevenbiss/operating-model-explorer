@@ -16,7 +16,7 @@ test.describe('author-mode', () => {
 
   test('2.47 author-mode › First open', async ({ page }) => {
     await expect(page).toHaveTitle(/author mode/);
-    for (const name of ['Load folder', 'Load .zip', 'Try the sample', 'Content reference']) {
+    for (const name of ['Load capture sheet', 'Load folder', 'Load .zip', 'Try the sample', 'Content reference']) {
       await expect(page.getByRole('button', { name, exact: true })).toBeVisible();
       await expect(page.getByRole('button', { name, exact: true })).toBeEnabled();
     }

@@ -10,7 +10,7 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export const ENGINE_PATH = join(ROOT, 'dist', 'operating-model-explorer.html');
 export const ENGINE_URL = pathToFileURL(ENGINE_PATH).href;
 export const SAMPLE_DIR = join(ROOT, 'examples', 'acme-sample');
-export const fixtureDir = (name) => (name === 'acme-sample' ? SAMPLE_DIR : join(ROOT, 'tests', 'fixtures', name));
+export const fixtureDir = (name) => (name === 'acme-sample' ? SAMPLE_DIR : name === 'acme-capture-sheet' ? join(ROOT, 'examples', 'acme-capture-sheet') : join(ROOT, 'tests', 'fixtures', name));
 export const fileUrl = (p) => pathToFileURL(p).href;
 
 export const SAMPLE_SHEET_DIR = join(ROOT, 'examples', 'acme-capture-sheet');
