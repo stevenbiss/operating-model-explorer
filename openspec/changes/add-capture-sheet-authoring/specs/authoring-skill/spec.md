@@ -7,11 +7,21 @@ A Claude skill that turns a colleague's own background material into a clean, va
 ## ADDED Requirements
 
 ### Requirement: Installable skill package
-The build SHALL produce `dist/operating-model-author.zip`, containing `SKILL.md`, the reference files (the capture sheet format spec, the blank template, the Acme capture sheet and the interview guide) and a single-file validator script that needs no `node_modules`. The same folder SHALL be usable as a Claude Code skill (copied into a `.claude/skills/` folder) and uploadable as a skill in claude.ai.
+The build SHALL produce `dist/operating-model-author.zip`, containing:
+- `SKILL.md`;
+- the reference files: the capture sheet format spec, the blank template, the Acme capture sheet and the interview guide;
+- a single-file validator script that needs no `node_modules`;
+- the **matching engine**, `engine/operating-model-explorer.html`, from the same build.
+
+The same folder SHALL be usable as a Claude Code skill (copied into a `.claude/skills/` folder) and uploadable as a skill in claude.ai. At handover, the skill SHALL give the colleague the bundled engine, for example by copying it next to the capture sheet, so they don't need to find it separately.
 
 #### Scenario: Package contents
 - **WHEN** `npm run build` completes
-- **THEN** `dist/operating-model-author.zip` exists and contains `SKILL.md`, the four reference files and the validator script
+- **THEN** `dist/operating-model-author.zip` exists and contains `SKILL.md`, the four reference files, the validator script and `engine/operating-model-explorer.html`
+
+#### Scenario: Engine handed over with the sheet
+- **WHEN** a skill trial on the "rich" pack finishes
+- **THEN** the chosen output folder contains the capture sheet and `operating-model-explorer.html`, and opening that engine and loading the sheet shows 0 errors
 
 #### Scenario: Bundled validator runs on its own
 - **WHEN** the validator script is copied out of the unzipped package into an empty folder and run against the Acme capture sheet
@@ -83,3 +93,32 @@ When it hands over, the skill SHALL tell the colleague how to load the sheet in 
 #### Scenario: Handover message
 - **WHEN** a skill trial finishes with a valid sheet
 - **THEN** the final message names the sheet's location, the number of open questions, and the steps to load and export it in the engine
+
+### Requirement: One version across the bundle
+The engine, the validator, the skill and the plugin manifest SHALL carry the same version, taken from `package.json`. The engine SHALL show its version in author mode and in the snapshot footer, and the skill SHALL state its version in `SKILL.md`. A build or test SHALL fail if any of them disagree.
+
+#### Scenario: Versions match
+- **WHEN** `npm test` runs after a build
+- **THEN** the versions in `package.json`, `.claude-plugin/plugin.json`, the bundled engine, the validator and `SKILL.md` are all identical
+
+#### Scenario: Engine shows its version
+- **WHEN** the engine is opened in author mode
+- **THEN** its version number is shown, matching `package.json`
+
+### Requirement: Install from GitHub in Claude Code
+The repo SHALL be a Claude Code plugin marketplace. Its root SHALL hold `.claude-plugin/marketplace.json` and `.claude-plugin/plugin.json`, and the skill SHALL be in `skills/operating-model-author/`. Adding the marketplace (`/plugin marketplace add stevenbiss/operating-model-explorer`) and installing the plugin SHALL give a working skill with its engine, validator and references. Because the plugin is installed from the repo's files, the built engine, validator and reference copies inside the skill folder SHALL be committed, and a test SHALL fail if they differ from a fresh build.
+
+#### Scenario: Committed skill folder is current
+- **WHEN** `npm run build` is run on a clean checkout
+- **THEN** it produces no changes to any file under `skills/operating-model-author/`
+
+#### Scenario: Marketplace install works
+- **WHEN** the marketplace is added from GitHub in Claude Code and the plugin is installed (skill trial)
+- **THEN** the operating-model-author skill is available, and its bundled validator reports 0 errors on the Acme capture sheet
+
+### Requirement: Release contents
+Each release SHALL attach, from one build: `operating-model-author.zip` (the main download for AI-assisted authoring and for claude.ai upload), `operating-model-explorer.html` (the standalone engine for authors who don't use AI) and a demo snapshot exported from the Acme capture sheet. The release notes SHALL say which file to use for which purpose, and SHALL list SHA-256 checksums.
+
+#### Scenario: Release assets
+- **WHEN** a release is published
+- **THEN** it has exactly those three files, and the engine inside the zip has the same checksum as the standalone engine attached to the release

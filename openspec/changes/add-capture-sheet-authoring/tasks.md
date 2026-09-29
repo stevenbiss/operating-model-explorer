@@ -15,9 +15,13 @@
 - [ ] 1.11 Add `scripts/validate.mjs` and `npm run validate -- <path>` for a sheet, folder or zip (D7): grouped output, counts, exit code 1 on errors. Verify on the sample sheet, the sample folder and an error fixture
 - [ ] 1.12 Write `docs/interview-guide.md`: question order, draft vs interview, gap/assumption/contradiction checks and tags, RACI coaching (one letter; R vs A), revision rules (propose, don't overwrite), and handover. Keep it free of Claude-specific terms. Verify by review against the authoring-skill spec
 - [ ] 1.13 Write `skills/operating-model-author/SKILL.md` (D8): a trigger description, the workflow (read context, decide draft vs interview, draft, ask, record open questions and sources, validate, hand over), the output-location rule including the public-repo warning, and pointers to `references/`. Verify by review against every authoring-skill requirement
-- [ ] 1.14 Extend `scripts/build.mjs` to bundle the validator into one self-contained file, assemble `dist/skill/operating-model-author/` (SKILL.md, the four references, `scripts/validate.mjs`) and zip it to `dist/operating-model-author.zip`. Verify the zip's contents and that the bundled validator runs from an empty folder
+- [ ] 1.14 Extend `scripts/build.mjs` to generate the skill folder in place (D8, D11): copy the four references to `skills/operating-model-author/references/`, write the bundled self-contained validator to `scripts/validate.mjs`, copy the built engine to `engine/operating-model-explorer.html`, add "generated" notes, then zip the folder to `dist/operating-model-author.zip`. Verify the zip's contents, that the bundled validator runs from an empty folder, and that a second build changes nothing
 - [ ] 1.15 Create the fictional skill trial packs in `tests/skill-packs/` (`rich/`, `thin/`, `contradictions/` with conflicting owners and an `A/R` cell, `revision/`) and `tests/skill-packs/README.md` with the scripted trial checklist per pack (D10). Verify the packs contain no real company names (private-names guard)
-- [ ] 1.16 Update `README.md` (for authors: the capture sheet route and the skill install for Claude Code and claude.ai; for developers: `npm run validate`, the parity test, skill trials) and `docs/authoring-guide.md` (point to the capture sheet as the easy route). Verify the documented commands run as written
+- [ ] 1.16 Version stamping (D11): take the version from `package.json` and stamp it into the engine (shown in author mode and the snapshot footer), the validator's output, a generated line in `SKILL.md` and `.claude-plugin/plugin.json`. Verify with a unit test that all of them match
+- [ ] 1.17 Capture sheet format version (D11): parse `Format: <n>` in `sheet.js`; a newer format is an error naming the minimum engine, and a missing line is a warning. Add `Format: 1` to the template, the Acme sheet and the format spec. Verify with unit tests
+- [ ] 1.18 Add `.claude-plugin/marketplace.json` and `.claude-plugin/plugin.json` at the repo root, following the Ponytail layout (D11), and make SKILL.md tell the colleague to copy the bundled engine next to their sheet at handover. Verify both JSON files parse and name `skills/operating-model-author`
+- [ ] 1.19 Add a release notes template (`docs/release-notes-template.md`: which file to use when, install steps for Claude Code and claude.ai, and a checksums placeholder) and a small checksum step in the build that writes `dist/SHA256SUMS`. Verify the checksum of the engine inside the zip equals that of the standalone engine
+- [ ] 1.20 Update `README.md` (for authors: the capture sheet route, and installing the skill from GitHub via `/plugin marketplace add stevenbiss/operating-model-explorer` or by uploading the zip to claude.ai; for developers: `npm run validate`, the parity test, skill trials) and `docs/authoring-guide.md` (point to the capture sheet as the easy route). Verify the documented commands run as written
 
 ## 2. Test
 
@@ -77,6 +81,16 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [ ] 2.45 Clean sheet (Node test of `npm run validate`)
 - [ ] 2.46 Errors fail the command (Node test of `npm run validate`)
 
+### bundle, versions and release
+- [ ] 2.47 Engine handed over with the sheet (skill trial: `rich`)
+- [ ] 2.48 Versions match (unit test)
+- [ ] 2.49 Engine shows its version
+- [ ] 2.50 Committed skill folder is current (Node test: rebuild, no diff under `skills/`)
+- [ ] 2.51 Marketplace install works (skill trial: add the marketplace from GitHub after pushing, install, validate the Acme sheet)
+- [ ] 2.52 Release assets (checked after publishing, in 5.2)
+- [ ] 2.53 Newer format
+- [ ] 2.54 Missing format line
+
 ## 3. Verify
 
 - [ ] 3.1 html-verifier checks every requirement across the four specs against the engine, a sheet-exported snapshot and the skill package, with evidence, reviews the skill-trial report, and returns VERIFIED. Report saved to `openspec/changes/add-capture-sheet-authoring/reports/html-verifier.md`
@@ -88,5 +102,6 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 Build `dist/operating-model-author.zip` and export `examples/acme-sample/capture-sheet.md` to a demo snapshot. Verify both, then install the skill in Claude Code and run one smoke trial
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [ ] 5.1 Build `dist/operating-model-author.zip` and export `examples/acme-sample/capture-sheet.md` to a demo snapshot. Verify both, commit the generated skill folder, push, then install the skill from GitHub through the Claude Code marketplace and run one smoke trial
+- [ ] 5.2 Bump the version to 1.1.0 across the bundle, tag it, and publish the release with `gh release create`: attach `operating-model-author.zip`, `operating-model-explorer.html` and the demo snapshot, with notes from the template and checksums. Verify by downloading the assets and checking their checksums (2.52)
+- [ ] 5.3 dist/operating-model-explorer.html built, self-contained, and README updated

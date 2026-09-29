@@ -113,3 +113,14 @@ The repo SHALL provide `templates/capture-sheet.md`, a blank capture sheet with 
 #### Scenario: Blank template loads
 - **WHEN** `templates/capture-sheet.md` is loaded unchanged
 - **THEN** the report lists what is missing (errors for the empty required sections) without crashing, and the guidance comments do not appear anywhere in the preview
+
+### Requirement: Format version
+A capture sheet SHALL declare its format version on a `Format: <n>` line under the title. The engine and the validator SHALL know which format versions they support. A sheet with a newer format SHALL be an error naming the format and the minimum engine version needed. A sheet with no `Format:` line SHALL be treated as the current format, with a warning suggesting the line be added. The blank template, the Acme sheet and every sheet the skill writes SHALL include the line.
+
+#### Scenario: Newer format
+- **WHEN** a sheet declaring `Format: 99` is loaded
+- **THEN** the report shows an error saying this engine supports up to the current format and a newer engine is needed, and export is disabled
+
+#### Scenario: Missing format line
+- **WHEN** a sheet with no `Format:` line is loaded
+- **THEN** it loads as the current format, and the report shows a warning suggesting the `Format:` line be added
