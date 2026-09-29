@@ -59,3 +59,10 @@ The persona control SHALL be keyboard operable and labelled for screen readers. 
 #### Scenario: Keyboard switch
 - **WHEN** a keyboard user opens the persona control, selects a persona with the arrow keys and presses Enter
 - **THEN** the persona changes, and a live region announces the new persona name
+
+### Requirement: Only changes and change markers move together
+Turning on "Only changes" SHALL also turn change markers on, and SHALL announce "Only changes shown. Change markers turned on." to assistive technology. Turning change markers off SHALL also turn "Only changes" off.
+
+#### Scenario: Only changes turns markers on
+- **WHEN** change markers are off and the viewer turns on "Only changes"
+- **THEN** change markers turn on, removed steps owned by the persona are listed with a "Removed" badge, and the change is announced

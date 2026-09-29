@@ -1,10 +1,9 @@
-# Spec Delta
+# explorer-views Specification
 
 ## Purpose
-
 The views viewers use to explore an operating model at four zoom levels (model overview, workstreams, process swimlanes and step detail), moving freely between them while the shared key messages stay one action away.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: L0 model overview
 The overview SHALL show the model's name, its purpose (rendered narrative), its parties, its workstreams at a glance, and its key messages.
@@ -101,3 +100,38 @@ At viewport widths below 768px, the swimlane SHALL be presented as a vertical, o
 #### Scenario: Mobile swimlane
 - **WHEN** a process is opened at 375px wide
 - **THEN** the steps appear as a vertical list in flow order, each labelled with its role and party, and the page does not scroll horizontally
+
+### Requirement: Element pages
+Parties, teams and personas SHALL each have a page showing their name, summary and related elements: a party's teams and roles, a team's roles, and a persona's roles and entry point. Search results and links for these types SHALL open that page.
+
+#### Scenario: Open a party from search
+- **WHEN** the viewer searches for a party name and opens the result
+- **THEN** a page shows the party's name, its summary, and links to its teams and roles
+
+### Requirement: Wide swimlanes scroll within their own area
+When a swimlane is wider than the viewport, it SHALL scroll horizontally inside its own container, never the page. Lane headers SHALL stay visible while it scrolls. A visible "More steps" cue SHALL show while steps lie off-screen to the right. A step that receives keyboard focus, or is selected, SHALL be scrolled fully into view clear of the lane headers.
+
+#### Scenario: More steps cue
+- **WHEN** a process whose swimlane is wider than a 1024px viewport is opened
+- **THEN** the page does not scroll horizontally, the lane headers stay visible, and a "More steps" cue is shown
+
+### Requirement: Change state in the URL
+Whether change markers are on, and whether "Only changes" is on, SHALL be part of the URL, so a link reproduces the same view.
+
+#### Scenario: Link with change markers
+- **WHEN** a snapshot is opened with a URL that has change markers turned on
+- **THEN** change markers are on and badges are shown
+
+### Requirement: Removed steps are never shown while change markers are off
+With change markers off, a link or route to a removed step SHALL open its process instead, with a dismissible notice saying the step was removed and how to show changes. The notice SHALL be announced to assistive technology. Turning change markers off while a removed step is open SHALL do the same, and Back SHALL NOT return to the hidden step.
+
+#### Scenario: Link to a removed step with markers off
+- **WHEN** a snapshot is opened at a removed step's route without change markers on
+- **THEN** its process is shown without that step, together with the notice "… was removed in this model. Turn on Show changes to see it."
+
+### Requirement: Removed roles and elements stay reachable
+Roles, teams, parties and other elements marked removed SHALL open normally. When change markers are on, they SHALL show a "Removed" badge and their "Today" text.
+
+#### Scenario: Removed role profile
+- **WHEN** change markers are on and the viewer opens the profile of a removed role
+- **THEN** the profile opens and shows a "Removed" badge

@@ -1,10 +1,9 @@
-# Spec Delta
+# content-schema Specification
 
 ## Purpose
-
 Defines what an operating model is made of and how authors write it down: a folder of Markdown files, each with a structured header, checked against a published schema. This is the contract between the engine, human authors and future AI authoring tools.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Content folder layout
 A model SHALL be a folder containing exactly one `model.md` at its root and, optionally, `theme.md` and the subfolders `parties/`, `teams/`, `roles/`, `personas/`, `workstreams/`, `processes/` and `assets/` (images). The engine SHALL identify each element by its header `type`, not by its folder. The folders are a convention for authors.
@@ -97,3 +96,10 @@ Every validation message SHALL state the file, the element (and step, if relevan
 - **WHEN** a model with one error and one warning is loaded
 - **THEN** the report shows "1 error, 1 warning", each with a file name and a suggested fix
 - **AND** the Export control is disabled until the error is fixed
+
+### Requirement: Steps owned by removed roles
+A step that is not removed, but whose owner is a removed role, SHALL produce a warning naming the step and the role. Export SHALL remain enabled.
+
+#### Scenario: Live step with a removed owner
+- **WHEN** a role is marked removed and still owns a step that is not removed
+- **THEN** the validation report shows a warning naming that step and role, and export remains enabled
