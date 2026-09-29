@@ -22,6 +22,7 @@
 - [x] 1.18 Add `.claude-plugin/marketplace.json` and `.claude-plugin/plugin.json` at the repo root, following the Ponytail layout (D11), and make SKILL.md tell the colleague to copy the bundled engine next to their sheet at handover. Verify both JSON files parse and name `skills/operating-model-author`
 - [x] 1.19 Add a release notes template (`docs/release-notes-template.md`: which file to use when, install steps for Claude Code and claude.ai, and a checksums placeholder) and a small checksum step in the build that writes `dist/SHA256SUMS`. Verify the checksum of the engine inside the zip equals that of the standalone engine
 - [x] 1.20 Update `README.md` (for authors: the capture sheet route, and installing the skill from GitHub via `/plugin marketplace add stevenbiss/operating-model-explorer` or by uploading the zip to claude.ai; for developers: `npm run validate`, the parity test, skill trials) and `docs/authoring-guide.md` (point to the capture sheet as the easy route). Verify the documented commands run as written
+- [x] 1.21 Apply the skill-trial findings (reports/skill-trials.md F1–F6): automatic id suffix for cross-type name clashes plus a sheet-worded error for explicit id clashes (sheet.js), then the SKILL.md, interview-guide and trial README wording fixes. Rebuild the skill folder. Verify with a unit test for F1 and a re-run of the affected trials
 
 ## 2. Test
 
@@ -90,6 +91,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [ ] 2.52 Release assets (checked after publishing, in 5.2)
 - [x] 2.53 Newer format
 - [x] 2.54 Missing format line
+- [x] 2.55 Same name for a workstream and a process
 
 ## 3. Verify
 

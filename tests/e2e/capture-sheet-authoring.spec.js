@@ -1,4 +1,4 @@
-// Change add-capture-sheet-authoring, Test tasks 2.1–2.18, 2.31–2.44, 2.49, 2.53 and 2.54, on
+// Change add-capture-sheet-authoring, Test tasks 2.1–2.18, 2.31–2.44, 2.49, 2.53 to 2.55, on
 // dist/operating-model-explorer.html via file:// and on snapshots exported through the real Export button.
 // Existing tests that still cover this change: 2.32 = author-mode.spec.js "2.48 author-mode › Load a zip",
 // 2.33 = "2.49 author-mode › Load the bundled sample", 2.37 = "2.54 author-mode › Unused file excluded".
@@ -284,6 +284,19 @@ test.describe('capture-sheet (author mode)', () => {
     await expect(page.getByTestId('export')).toBeEnabled();
     await skipPrompt(page);
     await expect(pv(page).getByTestId('model-name')).toHaveText('Tiny partnership');
+  });
+
+  test('2.55 capture-sheet › Same name for a workstream and a process', async ({ page }) => {
+    await loadSheet(page, join(fixtureDir('sheet-same-name'), 'capture-sheet.md'));
+    await expect(counts(page)).toHaveText('0 errors, 0 warnings');
+    await expect(page.getByTestId('export')).toBeEnabled();
+    await skipPrompt(page);
+    await go(page, '#/w/win-the-work');
+    await expect(pv(page).locator('main h1')).toHaveText('Win the work');
+    await expect(pv(page).locator('main .eyebrow').first()).toHaveText('Workstream');
+    await go(page, '#/p/win-the-work-process');
+    await expect(pv(page).locator('main h1')).toHaveText('Win the work');
+    await expect(pv(page).locator('main .eyebrow').first()).toHaveText('Process · Win the work'); // the process, in the workstream of the same name
   });
 });
 

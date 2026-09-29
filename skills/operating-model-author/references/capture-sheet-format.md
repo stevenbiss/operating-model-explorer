@@ -13,6 +13,7 @@ This page is the full format, **format 1**. For a complete real-size sheet, see 
 - Each part of the model has a `##` section with a fixed heading, such as `## Roles` or `## Process: Build the proposal`.
 - Lists of things (parties, teams, roles, workstreams, steps, personas, the RACI matrix) are Markdown tables. Columns are found by their header, in any order, ignoring case and spaces.
 - Things refer to each other **by name**. Names match ignoring case, spaces and punctuation, so `solution  Architect` finds "Solution architect".
+- Different kinds of thing may share a name, such as a workstream and a process both called "Win the work". Every id must still be unique across the whole model, so the engine appends the kind to the id of the one that comes **later** in the sheet (parties, teams, roles, workstreams, personas, then processes, each in table order): the process gets the id `win-the-work-process`. There is no message, and the names stay as written. An id you set yourself (an `ID` column or `ID:` line) is never changed: if it is the same as the id of something earlier in the sheet, the report shows an error naming both places.
 - HTML comments (`<!-- like this -->`) are ignored everywhere, so you can leave guidance in the sheet.
 - **Open questions** and **Sources** are working notes. They are never included in an exported snapshot.
 
@@ -317,7 +318,7 @@ A `Next` that points to a step that doesn't exist in the process is an error nam
 Presales is where the partnership is **won or lost**. Both parties work from one bid plan.
 ```
 
-An unknown name is an error, with a suggestion when one is close.
+An unknown name is an error, with a suggestion when one is close. So is a name shared by two kinds of thing, because the engine can't tell which one the notes are for: rename one of them, or put the text in that process's `### Notes`.
 
 ## Theme
 

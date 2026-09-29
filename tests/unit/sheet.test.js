@@ -202,6 +202,30 @@ test('two elements of the same type with the same name are an error', () => {
   assert.match(m.problem, /already a party called "Acme Corp"/);
 });
 
+test('2.55 a workstream and a process with the same name: no message, the later one gets its type appended to its id', () => {
+  const text = BASE.replace('| Presales | Winning work.', '| Win the work | Winning work.').replace('## Process: Build the proposal\n\nWorkstream: Presales', '## Process: Win the work\n\nWorkstream: win the WORK');
+  const r = load(text);
+  assert.deepEqual(r.messages, []);
+  assert.equal(r.model.elements['win-the-work'].type, 'workstream');
+  assert.equal(r.model.elements['win-the-work-process'].name, 'Win the work');
+  assert.equal(r.model.elements['win-the-work-process'].workstream, 'win-the-work');
+  // References by name find the right one: a persona starting at the process, and one at the workstream.
+  const personas = load(`${text}\n## Personas\n\n| Persona | Roles | Starts at |\n|---|---|---|\n| P | Account lead | Process: Win the work |\n| W | Account lead | Workstream: Win the work |\n`);
+  assert.deepEqual(personas.messages, []);
+  assert.deepEqual(personas.model.elements.p.entry, { view: 'process', id: 'win-the-work-process' });
+  assert.deepEqual(personas.model.elements.w.entry, { view: 'workstream', id: 'win-the-work' });
+});
+
+test('an explicit ID that clashes with another id is an error naming both, in sheet terms', () => {
+  const r = load(BASE.replace('Workstream: Presales', 'Workstream: Presales\nID: presales'));
+  const m = only(r.messages);
+  assert.equal(m.level, 'error');
+  assert.equal(m.where, 'Process: Build the proposal');
+  assert.match(m.problem, /"presales", and so does Workstreams › row 1 \(Presales\)/);
+  assert.match(m.fix, /different id: an ID column in its table, or an "ID:" line/);
+  assert.doesNotMatch(m.problem + m.fix, /capture-sheet\.md|two files/);
+});
+
 // ---------- processes ----------
 
 test('2.7 decision with labelled branches, by number and by name', () => {

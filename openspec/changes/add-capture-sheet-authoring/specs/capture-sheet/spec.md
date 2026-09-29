@@ -29,7 +29,7 @@ Parties, teams, roles, workstreams, process steps, RACI and personas SHALL be wr
 - **THEN** it loads exactly as it does with the columns in the order `Role | Party | Summary`
 
 ### Requirement: Things are referred to by name
-Authors SHALL refer to parties, teams, roles, workstreams, processes and steps by their names, not ids. The engine SHALL derive each id from its name, in lowercase and hyphenated. An optional `ID` column, or an `ID:` line under the title, MAY set an id explicitly. Name matching SHALL ignore case, extra spaces and punctuation. An unknown name SHALL be an error naming the section and row, with a "Did you mean …?" suggestion when a close match exists. Two elements of the same type with the same name SHALL be an error.
+Authors SHALL refer to parties, teams, roles, workstreams, processes and steps by their names, not ids. The engine SHALL derive each id from its name, in lowercase and hyphenated. An optional `ID` column, or an `ID:` line under the title, MAY set an id explicitly. Name matching SHALL ignore case, extra spaces and punctuation. An unknown name SHALL be an error naming the section and row, with a "Did you mean …?" suggestion when a close match exists. Two elements of the same type with the same name SHALL be an error. When elements of different types would derive the same id (for example a workstream and a process both called "Win the work"), the engine SHALL keep the names as written and make the ids unique by appending the type (e.g. `win-the-work-process`), with no message. A clash between ids an author set explicitly SHALL be an error, worded in capture-sheet terms and naming both sections.
 
 #### Scenario: Owner written with different case
 - **WHEN** a step's owner is written as `solution  Architect` and a role named "Solution architect" exists
@@ -38,6 +38,10 @@ Authors SHALL refer to parties, teams, roles, workstreams, processes and steps b
 #### Scenario: Unknown name with a suggestion
 - **WHEN** a step's owner is `Sol architect` and only "Solution architect" is close
 - **THEN** the report shows an error naming the process, the step row and the name, with "Did you mean Solution architect?"
+
+#### Scenario: Same name for a workstream and a process
+- **WHEN** a sheet has a workstream and a process both named "Win the work"
+- **THEN** it loads with no errors, and both appear under that name in the preview
 
 ### Requirement: Process sections
 Each `## Process: <name>` section SHALL contain a `Workstream:` line, an optional `Summary:` line, and a step table with the columns `#`, `Step` and `Owner`. It MAY also have the optional columns `Description`, `Inputs`, `Outputs`, `Systems`, `KPIs`, `Next`, `Change` and `Today`. Lists in a cell (inputs, outputs, systems, KPIs) SHALL be separated by semicolons. `Next` SHALL accept step numbers or names, with optional labels (e.g. `Go: 4; No go: 5`). An empty `Next` SHALL mean the following row, and `End` SHALL mean the flow stops at that step. An optional `### Notes` subsection SHALL become the process's narrative.

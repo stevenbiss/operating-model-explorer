@@ -28,8 +28,9 @@ npm run validate -- "<output folder>/capture-sheet.md"
 
 ### 2.22 Rich context gives a draft first (`rich`)
 
-Prompt: "Here's our kick-off material for the Fernhill and Marlow partnership: `<input folder>`. Can you turn it into an operating model? Save it in `<output folder>`."
+Prompt: "Here's our kick-off material for the Fernhill and Marlow partnership: `<input folder>`. Can you turn it into an operating model? Save it in `<output folder>`." Reply to every question the skill asks about the content with "Leave it open for now, please hand it over." (so the open questions are still there for 2.27).
 
+- [ ] The workstream and the process are both called "Win the work" in the sheet (neither renamed), and the draft validates with 0 errors without an `ID:` line being added.
 - [ ] Before asking any question about the content, the skill writes a complete capture sheet (the only question allowed first is where to save, if the prompt didn't say).
 - [ ] The sheet loads in the engine (**Load capture sheet**).
 
@@ -56,7 +57,7 @@ Prompt: "Here's our kick-off material for the Fernhill and Marlow partnership: `
 Prompt: "Can you help me build an operating model from this? `<input folder>/brief.md`. Save it in `<output folder>`."
 
 - [ ] The skill's first content question is about the model's purpose (and key messages).
-- [ ] It asks one question at a time.
+- [ ] It asks one question at a time (purpose and key messages count as one question).
 - [ ] It does not write a sheet of guessed parties, roles or processes before asking.
 
 ### 2.24 Contradiction recorded (`contradictions`)
@@ -68,6 +69,7 @@ Prompt: "Draft an operating model from `<input folder>`, save it in `<output fol
 
 ### 2.25 A/R in the source (`contradictions`, same session)
 
+- [ ] In the first draft, before you answer, that RACI cell is empty and there is an unticked `(gap)` naming "Capture the lead", the Account lead and the source's `A/R`.
 - [ ] The skill asks which single letter applies to Account lead on "Capture the lead", explaining R (does the work) and A (signs it off).
 - [ ] Answer "A". The sheet has `A` in that cell. (Run it a second time answering "I'll decide later": the cell is empty and there is a `(gap)` open question.) Never `A/R`.
 
@@ -77,9 +79,9 @@ Copy `examples/acme-capture-sheet/` (the sheet and `assets/`) to the output fold
 
 Prompt: "Here's my current sheet, `<output folder>/capture-sheet.md`, and some new notes, `<input folder>/new-material.md`. Please update the sheet."
 
-- [ ] The skill lists proposed changes: an addition (a Legal review step owned by Legal counsel) and a change (Submit the proposal: Account lead → Bid manager).
+- [ ] The skill lists proposed changes: an addition (a Legal review step owned by Legal counsel) and a change (Submit the proposal: Account lead → Bid manager), saying the change would override a value already in the sheet.
 - [ ] Before you agree, the sheet's checksum is unchanged.
-- [ ] After you agree to the addition only, the sheet has the new step, "Submit the proposal" is still owned by the Account lead, and the sheet still validates with 0 errors.
+- [ ] Reply "Add the legal review step, but keep the Account lead on Submit the proposal." Afterwards the sheet has the new step, "Submit the proposal" is still owned by the Account lead, the declined change is recorded as a ticked `(contradiction)` under `## Open questions`, and the sheet still validates with 0 errors.
 
 ### 2.29 Refuses the public repo by default (any pack)
 

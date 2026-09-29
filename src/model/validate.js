@@ -145,8 +145,10 @@ export function validate(docs) {
     }
     if (header.type === 'theme' || typeof header.id !== 'string') continue;
     const first = byId.get(header.id);
-    if (first) add({ level: 'error', file, ...whereOf(doc), element: header.id, problem: `The id "${header.id}" is also used by ${first.file}.`, fix: 'Ids must be unique across the whole model. Change the id in one of the two files.' });
-    else byId.set(header.id, { file, type: header.type, name: header.name, removed: removed(header) });
+    // In a capture sheet both are in the same file, so name the other section or row instead.
+    if (first && doc.where && first.where && first.file === file) add({ level: 'error', file, ...whereOf(doc), element: header.id, problem: `This has the id "${header.id}", and so does ${first.where}.`, fix: 'Ids must be unique across the whole model. Give one of them a different id: an ID column in its table, or an "ID:" line under its heading.' });
+    else if (first) add({ level: 'error', file, ...whereOf(doc), element: header.id, problem: `The id "${header.id}" is also used by ${first.file}.`, fix: 'Ids must be unique across the whole model. Change the id in one of the two files.' });
+    else byId.set(header.id, { file, where: doc.where, type: header.type, name: header.name, removed: removed(header) });
   }
 
   const idsOf = (type) => [...byId].filter(([, v]) => v.type === type).map(([id]) => id);

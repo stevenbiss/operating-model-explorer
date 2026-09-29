@@ -183,14 +183,19 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
 
   // ---------- names ----------
   const names = Object.fromEntries(Object.keys(WORD).map((t) => [t, new Map()]));
+  const taken = new Set();
   function register(type, name, id, where) {
     const key = nameKey(name);
     if (names[type].has(key)) {
       say('error', where, `There is already a ${WORD[type]} called "${names[type].get(key).name}".`, `Give each ${WORD[type]} its own name, or remove one of them.`);
       return undefined;
     }
-    names[type].set(key, { id: id || toId(name), name });
-    return names[type].get(key).id;
+    // A derived id that is already taken (e.g. a process named like its workstream) gets its type appended.
+    // Explicit ids are kept as written; a clash between them is reported by validate().
+    if (!id) id = taken.has(toId(name)) ? `${toId(name)}-${type}` : toId(name);
+    taken.add(id);
+    names[type].set(key, { id, name });
+    return id;
   }
   // A name -> its id. An unknown name is an error with a suggestion; its id is then derived from the name.
   function find(type, raw, where, what) {

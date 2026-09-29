@@ -21,7 +21,7 @@ Read everything before asking anything. Then decide:
 
 ### Question order
 
-1. **Purpose and key messages.** Why does this operating model exist? What are the two to five things every viewer should take away?
+1. **Purpose and key messages.** Why does this operating model exist? What are the two to five things every viewer should take away? These two go together, so count them as one question.
 2. **Parties.** Which organisations take part, and what does each one bring?
 3. **Roles.** Which roles do the work, and which party (and team, if any) does each belong to?
 4. **Workstreams.** How does the work group together, from start to finish? Which ones should be mapped in detail now, and which are an outline for later?
@@ -67,9 +67,11 @@ A capture sheet's RACI matrix has **one letter per cell**:
 
 Source material often has combined letters such as `A/R`, `R/A` or `R, A`. The format doesn't allow them, because a combined letter hides the question the model is meant to answer: who does the work, and who signs it off?
 
+- **In a draft, leave the cell empty** until the author has chosen (a combined letter is an error), and add a `(gap)` open question naming the step, the role and the letters the source gives. Never copy the combined letter into the sheet.
 - **Ask the author to choose one letter.** Explain the difference: R if this role does the work, A if it signs the work off. If the same role does both, it's usually A, and the owner already counts as R.
 - **Don't choose for them**, even when one answer looks obvious.
-- **If they want to decide later**, leave the cell empty and add a `(gap)` open question naming the step and the role.
+- **When they choose**, put that one letter in the cell and tick the `(gap)` with their answer.
+- **If they want to decide later**, leave the cell empty and the `(gap)` open question unticked.
 - The same applies to a step with **no A** or **two As**: ask, or record a `(gap)`.
 
 ## 5. Revising an existing sheet
@@ -78,8 +80,10 @@ When the author brings new material for a sheet that already exists, the sheet h
 
 1. **Compare, don't rewrite.** Read the new material against the current sheet.
 2. **Propose a change list** before touching the file, grouped as additions, changes and removals. For each change, show the current value, the proposed value and the source.
-3. **Wait for agreement.** Apply only the changes the author accepts. For changes they want to think about, add an open question instead.
-4. **Never overwrite a confirmed value** (anything the author set or agreed) without their agreement, even if the new material disagrees. Treat the disagreement as a contradiction.
+3. **Flag changes to confirmed values.** When the new material disagrees with a value the author already set or agreed, list it under Changes like any other change and say that it would override their decision. Don't apply it silently, and don't only record it as a contradiction: the author should see it as a change they can accept or decline.
+4. **Wait for agreement.** Apply only the changes the author accepts.
+   - **Declined:** keep the current value, and record the decision as a ticked `(contradiction)` under `## Open questions` naming both values, the source and "kept as is".
+   - **Want to think about it:** keep the current value, and add an unticked `(contradiction)` naming both values and the source.
 5. Add the new material to `## Sources`.
 
 ```markdown
@@ -89,7 +93,7 @@ Additions
 - Build the proposal: a new step "Legal review" after "Review the proposal", owned by Legal counsel (source: legal checklist).
 
 Changes
-- Build the proposal › Submit the proposal: owner Account lead → Bid manager (source: new process slide). The sheet's current owner was confirmed earlier, so this needs your agreement.
+- Build the proposal › Submit the proposal: owner Account lead → Bid manager (source: new process slide). You confirmed the current owner earlier, so this would override your decision: accept or decline?
 
 Removals
 - None.
