@@ -57,3 +57,7 @@ When change markers are off, the route to a removed step always resolves to its 
   2. Long party names are truncated in the band header.
   3. A bad YAML header also produces a follow-on "unknown owner" error.
 - **Still open for the user:** (b) the manual checks of Reload with a real folder and real folder drag-and-drop; (c) `dist/` is gitignored.
+
+## Manual checks by the user (29 September 2026)
+- **Load folder + Reload, real browser folder picker: PASS.** The user loaded `examples/acme-sample` using Load folder, edited `roles/account-lead.md` (changing `name`), and clicked Reload. The swimlane lane label updated without re-selecting the folder.
+- **Drag a real folder from the desktop:** still to check.
