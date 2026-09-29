@@ -44,3 +44,16 @@ When change markers are off, the route to a removed step always resolves to its 
   3. axe reports one moderate "region" finding.
   These are passed to html-qa and the next fix loop.
 - **Still open for the user:** (b) the manual checks of real folder pick + Reload and real folder drag-and-drop; (c) `dist/` is gitignored.
+
+## Round 4 (regression after the QA fix loop): VERIFIED
+- **All requirements MET:** all five specs and shared/html-deliverable, checked against the engine and 6 self-exported snapshots, including a stress model with `&`, quotes and markup in names.
+- **Removed roles and teams** open normally, with no dead end. Removed steps stay hidden everywhere while markers are off.
+- **Escaping:** nothing is double-escaped.
+- **Accessibility:** axe found 0 serious or critical issues and 0 `region` findings.
+- **Console and network:** zero errors, zero network requests.
+- **3.2:** passes.
+- **New minor issues (not blocking):**
+  1. After "Next", the step may sit below the fold, because the page doesn't scroll vertically.
+  2. Long party names are truncated in the band header.
+  3. A bad YAML header also produces a follow-on "unknown owner" error.
+- **Still open for the user:** (b) the manual checks of Reload with a real folder and real folder drag-and-drop; (c) `dist/` is gitignored.

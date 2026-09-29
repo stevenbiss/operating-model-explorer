@@ -4,7 +4,7 @@ An engine that turns an operating model, written as a folder of Markdown files, 
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** in development (change `add-engine-v1`). The build (tasks 1.1–1.16), the Playwright scenario tests (2.1–2.61) and verification (3.1–3.2) are complete. QA (4.1) is in progress.
+**Status:** v1 complete (change `add-engine-v1`): built, tested (105 Playwright scenario tests and 70 unit tests), verified and QA-approved. The engine is `dist/operating-model-explorer.html`, and a demo snapshot of the fictional sample is `dist/acme-sample.html` (`npm run build` regenerates the engine; export the demo from the engine with Try the sample, then Export snapshot). Known minor follow-ups are listed in `openspec/changes/add-engine-v1/reports/`.
 
 ## For authors
 

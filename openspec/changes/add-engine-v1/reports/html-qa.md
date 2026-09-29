@@ -32,3 +32,14 @@ None.
 
 ### Orchestrator decision for fix loop (QA 1)
 Fix B1, including the hash-based CSP, and minors 1, 2, 3, 5, 6, 7 and the `esc` duplication from 8. For minor 3, drop the redirects for removed roles and elements. The spec only requires hiding removed steps, so their pages open normally with a "Removed" badge. Also add a validation warning when a step that is not removed is owned by a removed role. Minor 4 and the rest of 8 are deferred. After the fix, re-run the tester, the verifier and QA.
+
+## Round 2: SHIP
+- **B1 fixed.** Payloads were placed in every content field and in all 18 labels, including markup, quote-breaking text, SVG contexts and `javascript:`/`data:`/`vbscript:` links. On about 56 routes each, in the preview and the snapshot at 1280 and 375, nothing was injected and no handlers ran. The CSP blocks an `onerror` handler, an SVG `onload` handler, a `javascript:` link and an inline script injected directly into the page, and the engine hash is identical in the engine and in snapshots. Normal content with `&`, quotes and apostrophes is not double-escaped.
+- **Accessibility:** axe, including the `region` rule, found 0 violations across 94 scans (engine and snapshots, 1280/768/375, light and dark, dialogs included). The keyboard walkthrough passes.
+- **Round 1 minors 1, 2, 3, 5 and 6** are confirmed fixed.
+- **Console, network and performance:** zero console errors and zero external requests. With 4x CPU throttling, LCP is 152 ms and the longest interaction task is 94 ms. The file is 285 KB.
+- **Remaining minors (deferred, not blocking):**
+  1. Loading the sample in author mode causes a one-off 494 ms long task.
+  2. In `swimlane.js`, the width of the `pill` badge is calculated from the escaped text rather than the displayed text.
+  3. The font-name filter in `themeCss` allows quotes, so an unbalanced quote breaks only that one font declaration.
+  4. The README Status line needs updating (done at packaging).

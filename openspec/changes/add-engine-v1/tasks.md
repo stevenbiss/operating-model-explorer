@@ -103,9 +103,9 @@ Playwright tests in `tests/`, run against `dist/operating-model-explorer.html` a
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate (accessibility, console/network, performance, security including no `eval`/`new Function`, responsiveness, visual polish, `/code-review`, Ponytail audit) returns SHIP; report saved to `openspec/changes/add-engine-v1/reports/html-qa.md`
+- [x] 4.1 html-qa final gate (accessibility, console/network, performance, security including no `eval`/`new Function`, responsiveness, visual polish, `/code-review`, Ponytail audit) returns SHIP; report saved to `openspec/changes/add-engine-v1/reports/html-qa.md`
 
 ## 5. Package
 
-- [ ] 5.1 Export `examples/acme-sample/` to `dist/acme-sample.html` as the demo snapshot, and verify it opens offline in viewer mode
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 Export `examples/acme-sample/` to `dist/acme-sample.html` as the demo snapshot, and verify it opens offline in viewer mode
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
