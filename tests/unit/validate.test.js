@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
 import { closest } from '../../src/model/validate.js';
-import { files, MODEL, readFolder, SAMPLE } from './helpers.js';
+import { files, MODEL, readFolder, SAMPLE, withoutAccountable } from './helpers.js';
 
-const run = (obj) => loadModel(files({ 'model.md': MODEL, ...obj })).messages;
+const run = (obj) => withoutAccountable(loadModel(files({ 'model.md': MODEL, ...obj })).messages);
 const only = (msgs) => {
   assert.equal(msgs.length, 1, JSON.stringify(msgs, null, 2));
   return msgs[0];
@@ -162,4 +162,61 @@ test('a step that stays but is owned by a removed role is a warning; a removed s
   assert.deepEqual([m.level, m.file, m.element, m.step], ['warning', 'processes/p.md', 'qualify', 'a']);
   assert.match(m.problem, /owned by the role "account-lead", which is marked as removed/);
   assert.ok(m.fix);
+});
+
+// ---------- RACI rules (content-schema › One RACI letter per cell, One accountable role per step) ----------
+
+const NAMED = {
+  ...ROLES,
+  'roles/al.md': '---\nid: account-lead\ntype: role\nname: Account lead\nparty: acme\n---\n',
+  'roles/bm.md': '---\nid: bid-manager\ntype: role\nname: Bid manager\nparty: acme\n---\n',
+};
+const raciRun = (raci) =>
+  loadModel(files({ 'model.md': MODEL, ...NAMED, 'processes/p.md': `---\nid: qualify\ntype: process\nname: Q\nworkstream: presales\nsteps:\n  - {id: capture, name: Capture the lead, owner: account-lead, raci: ${raci}}\n---\n` })).messages;
+
+test('2.41 combined letter in a folder: an error naming the step and the role, with the R-or-A fix', () => {
+  for (const v of ['A/R', 'RA', 'a, r', 'R+A']) {
+    const m = only(raciRun(`{account-lead: "${v}"}`));
+    assert.deepEqual([m.level, m.file, m.step], ['error', 'processes/p.md', 'capture'], v);
+    assert.match(m.problem, /Account lead/);
+    assert.match(m.problem, /"Capture the lead"/);
+    assert.equal(m.fix, 'Choose one letter: R if Account lead does the work, or A if Account lead signs the work off.');
+    assert.doesNotMatch(m.problem, /not an allowed value/);
+  }
+});
+
+test('a single wrong letter still gets the generic allowed-values message', () => {
+  const msgs = raciRun('{account-lead: A, bid-manager: X}');
+  assert.equal(msgs.length, 1);
+  assert.match(msgs[0].problem, /not an allowed value/);
+});
+
+test('2.42 no accountable role: a warning naming the step, asking who signs it off', () => {
+  const m = only(raciRun('{bid-manager: C}'));
+  assert.deepEqual([m.level, m.step], ['warning', 'capture']);
+  assert.match(m.problem, /No role is accountable \(A\) for the step "Capture the lead"/);
+  assert.match(m.fix, /signs this step off/);
+  // The owner with no letter counts as R, not A.
+  assert.equal(only(raciRun('{}')).level, 'warning');
+});
+
+test('2.43 two accountable roles: a warning naming the step and both roles', () => {
+  const m = only(raciRun('{account-lead: A, bid-manager: A}'));
+  assert.equal(m.level, 'warning');
+  assert.match(m.problem, /"Capture the lead"/);
+  assert.match(m.problem, /Account lead and Bid manager/);
+});
+
+test('exactly one A: no RACI messages', () => {
+  assert.deepEqual(raciRun('{account-lead: A, bid-manager: C}'), []);
+});
+
+test('2.44 the sample: every step has exactly one A, and no messages', () => {
+  const { model, messages } = loadModel(readFolder(SAMPLE));
+  assert.deepEqual(messages, []);
+  for (const p of model.order.process) for (const s of model.elements[p].steps) assert.equal(Object.values(s.raci).filter((l) => l === 'A').length, 1, s.id);
+});
+
+test('validator: a model document that is not model.md counts as the model (one model document)', () => {
+  assert.deepEqual(loadModel(files({ 'overview.md': MODEL })).messages, []);
 });

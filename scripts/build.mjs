@@ -15,9 +15,10 @@ writeFileSync(new URL('docs/content-reference.md', root), contentReference(schem
 
 // The fictional sample folder for "Try the sample" (design D11), as [{ path, b64 }] in <script id="om-sample">.
 // It sits outside the engine script, so exported snapshots (which copy only om-style and om-engine) don't carry it.
+// The folder also holds the same model as capture-sheet.md, which is left out: a model is one format or the other.
 const sampleDir = fileURLToPath(new URL('examples/acme-sample/', root));
 const sample = readdirSync(sampleDir, { recursive: true, withFileTypes: true })
-  .filter((e) => e.isFile())
+  .filter((e) => e.isFile() && join(e.parentPath, e.name) !== join(sampleDir, 'capture-sheet.md'))
   .map((e) => ({ path: relative(sampleDir, join(e.parentPath, e.name)).replace(/\\/g, '/'), b64: readFileSync(join(e.parentPath, e.name)).toString('base64') }));
 
 const js = (

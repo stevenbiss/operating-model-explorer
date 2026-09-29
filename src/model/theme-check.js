@@ -40,8 +40,9 @@ export function checkTheme(docs, assets) {
   const doc = docs.find((d) => d.header && d.header.type === 'theme');
   if (!doc) return [];
   const { file, header: t } = doc;
+  const at = { file, ...(doc.where && { where: doc.where }) };
   const out = [];
-  const err = (problem, fix) => out.push({ level: 'error', file, problem, fix });
+  const err = (problem, fix) => out.push({ level: 'error', ...at, problem, fix });
 
   if (typeof t.logo === 'string') {
     if (isUrl(t.logo)) err(`The logo "${t.logo}" is a web address. The logo must be an image file in the assets/ folder, so the model works offline.`, 'Put the image in the assets/ folder and write its path, e.g. "assets/logo.svg".');
@@ -62,7 +63,7 @@ export function checkTheme(docs, assets) {
     const [has, missing, guess] = set(one) ? [one, many, pluralOf(labels[one].trim())] : [many, one, singularOf(labels[many].trim())];
     out.push({
       level: 'warning',
-      file,
+      ...at,
       problem: `The label "${has}" is renamed to "${labels[has].trim()}", but "${missing}" is not, so the viewer will still use the default word for it.`,
       fix: `Add "${missing}: ${guess}" under labels (or the right word, if that isn't it).`,
     });
@@ -78,7 +79,7 @@ export function checkTheme(docs, assets) {
     if (ratio < 4.5) {
       out.push({
         level: 'warning',
-        file,
+        ...at,
         problem: `The ${fg} colour ${a} on the ${bg} colour ${b} (${use}) has a contrast ratio of ${Math.min(Number(ratio.toFixed(2)), 4.49).toFixed(2)}:1, below the WCAG AA minimum of 4.5:1.`,
         fix: `Make the ${fg} colour darker or the ${bg} colour lighter (or the other way round), so the ratio is at least 4.5:1.`,
       });

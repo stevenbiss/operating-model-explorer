@@ -105,12 +105,12 @@ test.describe('persona-lens (exported sample)', () => {
     await expect(groups.locator('h2')).toHaveText(['Qualify an opportunity', 'Build the proposal']);
     const rows = await page.getByTestId('me-step').evaluateAll((lis) => lis.map((li) => ({ name: li.querySelector('a').textContent, href: li.querySelector('a').getAttribute('href'), letter: li.querySelector('abbr') && li.querySelector('abbr').textContent })));
     expect(rows).toEqual([
-      { name: 'Capture the lead', href: '#/p/qualify-opportunity/s/capture-lead?persona=acme-account-lead', letter: 'R' },
+      { name: 'Capture the lead', href: '#/p/qualify-opportunity/s/capture-lead?persona=acme-account-lead', letter: 'A' },
       { name: 'Assess solution fit', href: '#/p/qualify-opportunity/s/assess-fit?persona=acme-account-lead', letter: 'C' },
       { name: 'Go or no-go', href: '#/p/qualify-opportunity/s/go-no-go?persona=acme-account-lead', letter: 'A' },
-      { name: 'Decline politely', href: '#/p/qualify-opportunity/s/decline?persona=acme-account-lead', letter: 'R' },
+      { name: 'Decline politely', href: '#/p/qualify-opportunity/s/decline?persona=acme-account-lead', letter: 'A' },
       { name: 'Review the proposal', href: '#/p/build-proposal/s/review-proposal?persona=acme-account-lead', letter: 'A' },
-      { name: 'Submit the proposal', href: '#/p/build-proposal/s/submit-proposal?persona=acme-account-lead', letter: 'R' },
+      { name: 'Submit the proposal', href: '#/p/build-proposal/s/submit-proposal?persona=acme-account-lead', letter: 'A' },
     ]);
     await page.getByTestId('me-step').filter({ hasText: 'Review the proposal' }).getByRole('link').click();
     await expect(page.getByTestId('step-detail').locator('h2')).toHaveText('Review the proposal');

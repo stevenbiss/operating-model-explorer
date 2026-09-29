@@ -1,7 +1,8 @@
 import { schemas } from './schemas.js';
 import { check } from './schema-check.js';
 
-// Every message: { level: 'error'|'warning', file, element?, step?, line?, problem, fix } in plain English.
+// Every message: { level: 'error'|'warning', file, where?, element?, step?, line?, problem, fix } in plain English.
+// `where` is set for capture sheets (a section and row), and is shown instead of the file.
 
 const TYPES = Object.keys(schemas);
 const WORDS = { string: 'text', array: 'a list', object: 'a group of fields', number: 'a number', integer: 'a whole number', boolean: 'true or false', null: 'empty' };
@@ -42,6 +43,15 @@ export function closest(word, candidates) {
   return bestScore < 0 || bestScore <= Math.max(2, Math.floor(word.length / 2)) ? best : undefined;
 }
 
+// More than one RACI letter in a cell, e.g. "A/R" or "RA" (design D6).
+export const COMBINED = /^[RACI]{2,}$|[/,+&]/i;
+
+// A document's location, and a step's row when the document came from a capture sheet.
+const whereOf = (doc, i) => {
+  const w = (i !== undefined && doc.stepWhere && doc.stepWhere[i]) || doc.where;
+  return w ? { where: w } : {};
+};
+
 const fieldName = (path) => path.reduce((acc, p) => (typeof p === 'number' ? `${acc} item ${p + 1}` : acc ? `${acc}.${p}` : p), '');
 
 function wordIssue(issue, doc) {
@@ -53,7 +63,7 @@ function wordIssue(issue, doc) {
     step = s && typeof s.id === 'string' ? s.id : `step ${path[1] + 1}`;
     path = path.slice(2);
   }
-  const at = { file: doc.file, element: typeof header.id === 'string' ? header.id : undefined, step };
+  const at = { file: doc.file, ...whereOf(doc, path === issue.path ? undefined : issue.path[1]), element: typeof header.id === 'string' ? header.id : undefined, step };
   const subject = path.length ? `"${fieldName(path)}"` : step ? 'This step' : 'The header';
   switch (issue.keyword) {
     case 'required': {
@@ -88,7 +98,8 @@ export function validate(docs) {
   const add = (m) => messages.push(m);
   const typed = [];
 
-  if (!docs.some((d) => d.file === 'model.md')) {
+  // Exactly one model document: model.md in a folder, or the title of a capture sheet.
+  if (!docs.some((d) => d.file === 'model.md' || (d.header && d.header.type === 'model'))) {
     add({ level: 'error', file: 'model.md', problem: 'No model.md found at the top of the folder.', fix: 'Add a model.md file at the top level of the folder, with "type: model" in its header.' });
   }
 
@@ -115,7 +126,11 @@ export function validate(docs) {
     if (file === 'model.md' && header.type !== 'model') {
       add({ level: 'error', file, element, problem: `model.md should describe the model, but its type is "${header.type}".`, fix: 'Set "type: model" in model.md, and move this content to its own file.' });
     }
-    for (const issue of check(header, schemas[header.type])) add(wordIssue(issue, doc));
+    for (const issue of check(header, schemas[header.type])) {
+      if (doc.where && issue.keyword === 'required') continue; // the capture sheet reader reports empty cells itself
+      if (issue.keyword === 'enum' && issue.path[2] === 'raci' && COMBINED.test(String(issue.actual).trim())) continue; // worded below
+      add(wordIssue(issue, doc));
+    }
     typed.push(doc);
   }
 
@@ -125,17 +140,18 @@ export function validate(docs) {
   for (const doc of typed) {
     const { file, header } = doc;
     if (header.type === 'model' || header.type === 'theme') {
-      if (single[header.type]) add({ level: 'error', file, element: header.id, problem: `There is already a ${header.type} in ${single[header.type]}.`, fix: `Keep only one ${header.type} file, and remove or merge the other.` });
+      if (single[header.type]) add({ level: 'error', file, ...whereOf(doc), element: header.id, problem: `There is already a ${header.type} in ${single[header.type]}.`, fix: `Keep only one ${header.type} file, and remove or merge the other.` });
       else single[header.type] = file;
     }
     if (header.type === 'theme' || typeof header.id !== 'string') continue;
     const first = byId.get(header.id);
-    if (first) add({ level: 'error', file, element: header.id, problem: `The id "${header.id}" is also used by ${first.file}.`, fix: 'Ids must be unique across the whole model. Change the id in one of the two files.' });
-    else byId.set(header.id, { file, type: header.type, removed: removed(header) });
+    if (first) add({ level: 'error', file, ...whereOf(doc), element: header.id, problem: `The id "${header.id}" is also used by ${first.file}.`, fix: 'Ids must be unique across the whole model. Change the id in one of the two files.' });
+    else byId.set(header.id, { file, type: header.type, name: header.name, removed: removed(header) });
   }
 
   const idsOf = (type) => [...byId].filter(([, v]) => v.type === type).map(([id]) => id);
-  const ref = (at, label, value, type, pool = idsOf(type)) => {
+  const nameOf = (id) => (byId.get(id) && typeof byId.get(id).name === 'string' ? byId.get(id).name : id);
+  const checkRef = (at, label, value, type, pool = idsOf(type)) => {
     if (typeof value !== 'string' || pool.includes(value)) return;
     const other = type !== 'step' && byId.get(value);
     const problem = other
@@ -148,7 +164,9 @@ export function validate(docs) {
 
   for (const doc of typed) {
     const h = doc.header;
-    const at = { file: doc.file, element: typeof h.id === 'string' ? h.id : undefined };
+    const at = { file: doc.file, ...whereOf(doc), element: typeof h.id === 'string' ? h.id : undefined };
+    // A capture sheet refers by name, and its reader has already matched and reported every name.
+    const ref = doc.where ? () => {} : checkRef;
     switch (h.type) {
       case 'team':
         ref(at, 'party', h.party, 'party');
@@ -170,11 +188,12 @@ export function validate(docs) {
         break;
       case 'process': {
         ref(at, 'workstream', h.workstream, 'workstream');
-        const steps = list(h.steps).filter((s) => s && typeof s === 'object');
-        const stepIds = steps.map((s) => s.id).filter((id) => typeof id === 'string');
+        const steps = list(h.steps);
+        const stepIds = steps.map((s) => s && s.id).filter((id) => typeof id === 'string');
         const seen = new Set();
-        for (const s of steps) {
-          const sat = { ...at, step: typeof s.id === 'string' ? s.id : undefined };
+        steps.forEach((s, i) => {
+          if (!s || typeof s !== 'object') return;
+          const sat = { ...at, ...whereOf(doc, i), step: typeof s.id === 'string' ? s.id : undefined };
           if (seen.has(s.id)) add({ level: 'error', ...sat, problem: `Two steps in this process use the id "${s.id}".`, fix: 'Give each step in a process its own id.' });
           seen.add(s.id);
           ref(sat, 'owner', s.owner, 'role');
@@ -184,10 +203,30 @@ export function validate(docs) {
           }
           if (s.raci && typeof s.raci === 'object') for (const r of Object.keys(s.raci)) ref(sat, 'RACI role', r, 'role');
           for (const n of list(s.next)) ref(sat, 'next step', typeof n === 'string' ? n : n && n.to, 'step', stepIds);
-        }
+          raciChecks(s, sat);
+        });
         break;
       }
     }
   }
   return messages;
+
+  // One letter per cell, and exactly one A per step (design D6). The owner counts as R when it has no letter.
+  function raciChecks(s, sat) {
+    const raci = s.raci && typeof s.raci === 'object' && !Array.isArray(s.raci) ? s.raci : {};
+    const step = typeof s.name === 'string' ? s.name : s.id;
+    let combined = false;
+    for (const [r, v] of Object.entries(raci)) {
+      if (typeof v !== 'string' || !COMBINED.test(v.trim())) continue;
+      combined = true;
+      const who = nameOf(r);
+      add({ level: 'error', ...sat, problem: `${who} has "${v}" on the step "${step}". A role can have only one RACI letter per step.`, fix: `Choose one letter: R if ${who} does the work, or A if ${who} signs the work off.` });
+    }
+    if (combined) return;
+    const accountable = Object.keys(raci).filter((r) => raci[r] === 'A');
+    if (!accountable.length) add({ level: 'warning', ...sat, problem: `No role is accountable (A) for the step "${step}".`, fix: 'Who signs this step off? Mark that role A in the RACI.' });
+    else if (accountable.length > 1) {
+      add({ level: 'warning', ...sat, problem: `The step "${step}" has more than one accountable role (A): ${new Intl.ListFormat('en').format(accountable.map(nameOf))}.`, fix: 'Keep A for the one role that signs the step off, and change the others to R, C or I.' });
+    }
+  }
 }

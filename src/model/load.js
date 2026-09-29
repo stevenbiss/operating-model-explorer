@@ -3,6 +3,7 @@ import { schemas } from './schemas.js';
 import { validate } from './validate.js';
 import { checkTheme, isUrl } from './theme-check.js';
 import { imageRefs, markdownTexts } from './markdown.js';
+import { isSheet, sheetToDocs } from './sheet.js';
 
 const ELEMENT_TYPES = ['party', 'team', 'role', 'persona', 'workstream', 'process'];
 const decoder = new TextDecoder();
@@ -20,27 +21,51 @@ export function normalisePaths(files) {
   return list.sort((a, b) => a.path.localeCompare(b.path, 'en', { numeric: true }));
 }
 
-// files: [{ path, data: Uint8Array }] -> { model, messages }. Pure: works in Node and the browser.
+// files: [{ path, data: Uint8Array }] -> { model, messages, meta? }. Pure: works in Node and the browser.
+// A folder of element files, or one capture sheet (a single file, or a folder with a sheet and assets/; design D3).
+// meta ({ openQuestions, sources }) is only set for a capture sheet, and never goes into the model.
 export function loadModel(files) {
-  const docs = [];
+  const texts = [];
   const assets = {};
   for (const f of normalisePaths(files)) {
     if (f.path.startsWith('assets/')) assets[f.path] = f.data;
-    else if (f.path.toLowerCase().endsWith('.md')) docs.push({ file: f.path, ...parseFile(decoder.decode(f.data)) });
+    else if (f.path.toLowerCase().endsWith('.md')) texts.push({ file: f.path, text: decoder.decode(f.data) });
   }
-  return { model: buildModel(docs, assets), messages: [...validate(docs), ...checkTheme(docs, assets), ...checkImages(docs, assets)] };
+  const sheets = texts.filter((f) => isSheet(f.text));
+  if (!sheets.length) return checked(texts.map((f) => ({ file: f.file, ...parseFile(f.text) })), assets);
+
+  const [sheet] = sheets;
+  const { docs, messages, meta } = sheetToDocs(sheet.text, sheet.file);
+  const mixed = [];
+  for (const f of sheets.slice(1)) mixed.push({ level: 'error', file: f.file, problem: `There is more than one capture sheet: ${sheet.file} and ${f.file}.`, fix: 'A model is one capture sheet. Keep one, and remove or merge the others.' });
+  const element = texts.find((f) => !sheets.includes(f) && !parseFile(f.text).none);
+  if (element) {
+    mixed.push({
+      level: 'error',
+      file: element.file,
+      problem: `This has both a capture sheet (${sheet.file}) and element files such as ${element.file}. A model is either one capture sheet or a folder of element files, not both.`,
+      fix: `Keep one format: remove the element files to use the capture sheet, or remove ${sheet.file} to use the files.`,
+    });
+  }
+  const out = checked(docs, assets);
+  return { ...out, messages: [...mixed, ...messages, ...out.messages], meta };
 }
+
+const checked = (docs, assets) => ({ model: buildModel(docs, assets), messages: [...validate(docs), ...checkTheme(docs, assets), ...checkImages(docs, assets)] });
 
 // Images in Markdown text must be files in assets/, so they can be embedded.
 export function checkImages(docs, assets) {
   const out = [];
-  for (const { file, header, body } of docs) {
+  for (const doc of docs) {
+    const { file, header, body } = doc;
     if (!header || typeof header !== 'object') continue;
     const element = typeof header.id === 'string' ? header.id : undefined;
     for (const { text, step } of markdownTexts({ ...header, body })) {
       for (const src of imageRefs(text)) {
         if (assets[src]) continue;
-        const at = { level: 'error', file, element, step };
+        const i = step && Array.isArray(header.steps) ? header.steps.findIndex((s) => s && s.id === step) : -1;
+        const where = (doc.stepWhere && doc.stepWhere[i]) || doc.where;
+        const at = { level: 'error', file, ...(where && { where }), element, step };
         out.push(
           isUrl(src)
             ? { ...at, problem: `The image "${src}" is a web address. Images must be files in the assets/ folder, so the model works offline.`, fix: 'Put the image in the assets/ folder and write its path, e.g. ![Plan](assets/plan.png).' }

@@ -209,7 +209,7 @@ function reportHtml(errors, warnings, counts, files, source) {
     const where = [m.line ? `line ${esc(m.line)}` : '', m.element ? `<span class="k">Element</span> ${esc(m.element)}` : '', m.step ? `<span class="k">Step</span> ${esc(m.step)}` : ''].filter(Boolean).join(' · ');
     return `<li class="msg msg-${esc(m.level)}" data-testid="report-message" data-level="${esc(m.level)}">
   <span class="msg-level">${m.level === 'error' ? 'Error' : 'Warning'}</span>
-  <div class="msg-body"><p class="msg-where"><code>${esc(m.file)}</code>${where ? ` · ${where}` : ''}</p>
+  <div class="msg-body"><p class="msg-where">${m.where ? esc(m.where) : `<code>${esc(m.file)}</code>${where ? ` · ${where}` : ''}`}</p>
   <p class="msg-problem">${esc(m.problem)}</p>
   <p class="msg-fix"><span class="k">How to fix</span> ${esc(m.fix)}</p></div></li>`;
   };

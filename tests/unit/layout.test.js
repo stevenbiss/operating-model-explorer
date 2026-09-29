@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
 import { flow } from '../../src/model/layout.js';
-import { files, MODEL, readFolder, SAMPLE } from './helpers.js';
+import { files, MODEL, readFolder, SAMPLE, withoutAccountable } from './helpers.js';
 
 const sample = loadModel(readFolder(SAMPLE)).model;
 const ranks = (f) => Object.fromEntries(Object.entries(f.nodes).map(([id, n]) => [id, n.rank]));
@@ -21,7 +21,7 @@ function mini(steps) {
       'processes/p.md': `---\nid: p\ntype: process\nname: P\nworkstream: w\nsteps:\n${steps}---\n`,
     }),
   );
-  assert.deepEqual(m.messages, []);
+  assert.deepEqual(withoutAccountable(m.messages), []);
   return m.model;
 }
 const step = (id, owner, extra = '') => `  - id: ${id}\n    name: ${id}\n    owner: ${owner}\n${extra}`;

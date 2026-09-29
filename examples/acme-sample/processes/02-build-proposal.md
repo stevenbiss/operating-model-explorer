@@ -9,6 +9,8 @@ steps:
     name: Plan the bid
     owner: bid-manager
     description: Break the bid into tasks and agree who writes what.
+    raci:
+      bid-manager: A
     inputs: [Bid plan]
     outputs: [Task list]
   - id: design-solution
@@ -16,12 +18,15 @@ steps:
     owner: solution-architect
     description: Write the solution and the delivery approach.
     raci:
+      solution-architect: A
       delivery-manager: C
     outputs: [Solution design]
   - id: price-solution
     name: Price the solution
     owner: pricing-analyst
     description: Build the price from the design and check the margin.
+    raci:
+      pricing-analyst: A
     inputs: [Solution design]
     outputs: [Price model]
     systems: [Pricing tool]
@@ -31,8 +36,8 @@ steps:
     description: Read the whole proposal as the client would.
     raci:
       account-lead: A
-      delivery-manager: C
       solution-architect: C
+      delivery-manager: C
     next:
       - to: submit-proposal
         label: Approved
@@ -43,6 +48,7 @@ steps:
     owner: account-lead
     description: Send the proposal to the client and confirm it arrived.
     raci:
+      account-lead: A
       legal-counsel: C
       partner-manager: I
     kpis: [Submitted on or before the deadline]
@@ -50,6 +56,8 @@ steps:
     name: Courier printed copies
     owner: bid-manager
     description: Print and courier bound copies to the client.
+    raci:
+      bid-manager: A
     change:
       status: removed
       today: Every proposal was printed and couriered, even when the client asked for email.

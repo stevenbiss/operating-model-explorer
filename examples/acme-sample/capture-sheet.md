@@ -1,0 +1,150 @@
+# Operating model: Acme + Globex partnership
+
+Format: 1
+Version: 1.0
+
+## Purpose
+
+How **Acme** and **Globex** find, win and deliver joint work for their clients, with one plan and clear ownership on both sides.
+
+## Key messages
+
+- One team, one plan. Clients see a single Acme + Globex team, not two suppliers.
+- Acme owns the client relationship. Globex owns the solution.
+- Decide early. Every opportunity gets a go or no-go within five working days.
+
+## About this model
+
+This is a **fictional** sample model. Acme and Globex are made-up companies. Use it to
+see how the engine works, and copy it as a starting point for your own model.
+
+## Parties
+
+| Party | Summary |
+|---|---|
+| Acme Corp | The client-facing partner. Acme owns the relationship and the contract. |
+| Globex | The solution partner. Globex designs, prices and builds the solution. |
+
+## Teams
+
+| Team | Party | Summary |
+|---|---|---|
+| Acme Delivery | Acme Corp | Runs projects once they are won. |
+| Acme Sales | Acme Corp | Finds opportunities and runs bids. |
+| Globex Solutions | Globex | Solution design and pricing. |
+
+## Roles
+
+| Role | Party | Team | Summary | Change | Today |
+|---|---|---|---|---|---|
+| Account lead | Acme Corp | Acme Sales | Owns the client relationship and the final go or no-go. | | |
+| Bid manager | Acme Corp | Acme Sales | Runs the bid plan and keeps everyone to the deadline. | | |
+| Delivery manager | Acme Corp | Acme Delivery | Makes sure what we sell can be delivered. | | |
+| Legal counsel | Acme Corp | | Checks contract terms before anything is sent. | | |
+| Partner manager | Globex | | Looks after the Acme relationship on the Globex side. | | |
+| Pricing analyst | Globex | Globex Solutions | Builds the price and checks the margin. | New | The account lead priced each bid in a spreadsheet. |
+| Solution architect | Globex | Globex Solutions | Designs the solution and tests it against the client's needs. | | |
+
+## Workstreams
+
+| Workstream | Summary | Parties | Detail |
+|---|---|---|---|
+| Presales | From the first client conversation to a submitted proposal. | Acme Corp; Globex | Detailed |
+| Delivery | Running the project once it is won. To be detailed in a later version. | Acme Corp; Globex | Outline |
+
+## Notes: Presales
+
+Presales is where the partnership is **won or lost**. Both parties work from one bid plan.
+
+## Process: Qualify an opportunity
+
+Workstream: Presales
+Summary: Decide quickly and together whether an opportunity is worth pursuing.
+
+| # | Step | Owner | Description | Inputs | Outputs | Systems | KPIs | Next | Change | Today |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Capture the lead | Account lead | Log the opportunity as soon as the client mentions it. | | Lead record | CRM | Leads logged within 1 day | | | |
+| 2 | Assess solution fit | Solution architect | Check whether Globex can build what the client needs. | Lead record | Fit assessment | | | | | |
+| 3 | Go or no-go | Account lead | Decide together whether to bid. | Fit assessment | | | Decision within 5 working days | Go: 5; No go: 4 | | |
+| 4 | Decline politely | Account lead | Tell the client why, and what would change the answer. | | | | | End | New | Opportunities without a fit were left to go cold, with no reply to the client. |
+| 5 | Kick off the bid | Bid manager | Agree the bid team, the plan and the deadline. | | Bid plan | Shared bid workspace | | | Changed | Kick-off happened by email, and Globex joined a week later. |
+
+### RACI
+
+| Step | Account lead | Solution architect | Partner manager | Bid manager | Delivery manager |
+|---|---|---|---|---|---|
+| 1 | A | | | | |
+| 2 | C | A | I | | |
+| 3 | A | | C | I | |
+| 4 | A | | | | |
+| 5 | | C | | A | I |
+
+### Notes
+
+#### Why this matters
+
+Most lost bids were lost **before they started**. This process makes sure that:
+
+- every lead is logged the same day
+- Globex sees the lead before anyone promises a solution
+- the client always gets an answer
+
+## Process: Build the proposal
+
+Workstream: Presales
+Summary: Design, price and review the proposal, then send it to the client.
+
+| # | Step | Owner | Description | Inputs | Outputs | Systems | KPIs | Next | Change | Today |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Plan the bid | Bid manager | Break the bid into tasks and agree who writes what. | Bid plan | Task list | | | | | |
+| 2 | Design the solution | Solution architect | Write the solution and the delivery approach. | | Solution design | | | | | |
+| 3 | Price the solution | Pricing analyst | Build the price from the design and check the margin. | Solution design | Price model | Pricing tool | | | | |
+| 4 | Review the proposal | Account lead | Read the whole proposal as the client would. | | | | | Approved: 5; Needs rework: 2 | | |
+| 5 | Submit the proposal | Account lead | Send the proposal to the client and confirm it arrived. | | | | Submitted on or before the deadline | | | |
+| 6 | Courier printed copies | Bid manager | Print and courier bound copies to the client. | | | | | | Removed | Every proposal was printed and couriered, even when the client asked for email. |
+
+### RACI
+
+| Step | Account lead | Bid manager | Solution architect | Pricing analyst | Delivery manager | Legal counsel | Partner manager |
+|---|---|---|---|---|---|---|---|
+| 1 | | A | | | | | |
+| 2 | | | A | | C | | |
+| 3 | | | | A | | | |
+| 4 | A | | C | | C | | |
+| 5 | A | | | | | C | I |
+| 6 | | A | | | | | |
+
+### Notes
+
+#### How we build proposals
+
+1. **Plan** the bid together.
+2. **Design** first, then **price** from the design.
+3. **Review** as the client would, and loop back if it needs rework.
+
+## Personas
+
+| Persona | Roles | Starts at | Summary |
+|---|---|---|---|
+| Acme account lead | Account lead | Process: Qualify an opportunity | You own the client. Start with how an opportunity is qualified. |
+| Acme delivery manager | Delivery manager | Role: Delivery manager | You deliver what is sold. Start with where you are consulted. |
+| Globex solution team | Solution architect; Pricing analyst | Workstream: Presales | You design and price the solution. Start with the whole presales value stream. |
+
+## Theme
+
+Name: Acme + Globex
+Primary colour: #0b1f4d
+Accent colour: #b34700
+Background colour: #ffffff
+Surface colour: #f4f5f7
+Text colour: #1a1a1a
+Palette: #3a6ea5; #2e7d5b; #8a4f9e; #9c6b00
+Body font: Segoe UI, system-ui, sans-serif
+Heading font: Georgia, serif
+Logo: assets/logo.svg
+Label workstream: Value stream
+Label workstreams: Value streams
+
+## Sources
+
+- Fictional sample, written for the engine's documentation.
