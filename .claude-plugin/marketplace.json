@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "operating-model-explorer",
+  "description": "Operating Model Explorer: write an operating model as one capture sheet and explore it as an interactive HTML snapshot.",
+  "owner": {
+    "name": "Steven Biss",
+    "url": "https://github.com/stevenbiss"
+  },
+  "plugins": [
+    {
+      "name": "operating-model-author",
+      "description": "Turns decks, notes and RACI tables into a validated capture sheet, and hands it over with the matching engine.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

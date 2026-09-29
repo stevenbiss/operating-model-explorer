@@ -2,6 +2,19 @@
 
 This guide is for colleagues writing an operating model for the Operating Model Explorer. You need a text editor and a browser. You don't need to install anything.
 
+## The easy route: a capture sheet
+
+Most authors should write a **capture sheet** instead of the folder described below: one Markdown file with fixed headings, a table for each list of things and a RACI matrix per process, where everything is referred to by name rather than by id. It is easier to write, and clients can review it as one document.
+
+- Start from `templates/capture-sheet.md`. The format is in [capture-sheet.md](capture-sheet.md), and `examples/acme-capture-sheet/capture-sheet.md` is a complete fictional example.
+- In the engine, choose **Load capture sheet**. If the sheet uses a logo or fonts from an `assets/` folder, choose **Load folder** on the folder holding both.
+- To check it without a browser, run `npm run validate -- <path to the sheet>` in this repo.
+- To have an AI assistant draft the sheet from your decks, notes and RACI tables, install the **operating-model-author** skill (see the README). It follows the [interview guide](interview-guide.md), which you can also use on your own or with another assistant.
+
+The rest of this guide describes the folder format, for authors who want one file per element.
+
+## Content folders
+
 The quickest start is to copy `examples/acme-sample/` and change it. It's a fictional model (Acme and Globex are made-up companies) that uses every feature. For the exact fields of each type, see the [content reference](content-reference.md).
 
 ## How it works

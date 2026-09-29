@@ -1,0 +1,10 @@
+{
+  "name": "operating-model-author",
+  "version": "1.0.0",
+  "description": "Turns a colleague's background material into a validated operating model capture sheet for the Operating Model Explorer, with the matching engine and validator bundled.",
+  "author": {
+    "name": "Steven Biss",
+    "url": "https://github.com/stevenbiss"
+  },
+  "repository": "https://github.com/stevenbiss/operating-model-explorer"
+}
