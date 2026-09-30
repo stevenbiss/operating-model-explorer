@@ -1,0 +1,11 @@
+---
+id: globex
+name: Globex
+version: "2026.1"
+updated: 2026-03-01
+colours:
+  primary: red
+marks:
+  mark: mark.svg
+---
+Fictional usage notes for Globex. Keep the mark square.

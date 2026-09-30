@@ -9,6 +9,8 @@ steps:
     name: Capture the lead
     owner: account-lead
     description: Log the opportunity as soon as the client mentions it.
+    raci:
+      account-lead: A
     outputs: [Lead record]
     systems: [CRM]
     kpis: [Leads logged within 1 day]
@@ -18,6 +20,7 @@ steps:
     description: Check whether Globex can build what the client needs.
     raci:
       account-lead: C
+      solution-architect: A
       partner-manager: I
     inputs: [Lead record]
     outputs: [Fit assessment]
@@ -40,6 +43,8 @@ steps:
     name: Decline politely
     owner: account-lead
     description: Tell the client why, and what would change the answer.
+    raci:
+      account-lead: A
     next: []
     change:
       status: new
@@ -50,6 +55,7 @@ steps:
     description: Agree the bid team, the plan and the deadline.
     raci:
       solution-architect: C
+      bid-manager: A
       delivery-manager: I
     outputs: [Bid plan]
     systems: [Shared bid workspace]

@@ -29,7 +29,7 @@ test('2.50 committed skill folder is current: a build changes nothing under skil
 test('2.19 package contents: the zip holds SKILL.md, the four references, the validator and the matching engine', () => {
   const zip = unzipSync(readFileSync(join(ROOT, 'dist/operating-model-author.zip')));
   const names = Object.keys(zip).map((p) => p.replace(/^operating-model-author\//, '')).sort();
-  assert.deepEqual(names, ['SKILL.md', 'engine/operating-model-explorer.html', ...REFERENCES.map((r) => `references/${r}`), 'references/assets/logo.svg', 'scripts/validate.mjs'].sort());
+  assert.deepEqual(names, ['SKILL.md', 'engine/operating-model-explorer.html', ...REFERENCES.map((r) => `references/${r}`), ...['acme', 'globex'].flatMap((b) => [`references/brands/${b}/brand.md`, `references/brands/${b}/mark.svg`]), 'scripts/validate.mjs'].sort());
   // The zip is the committed folder, and its engine is the standalone engine, byte for byte (1.19).
   for (const [p, data] of Object.entries(zip)) assert.ok(Buffer.from(data).equals(readFileSync(join(ROOT, 'skills', p))), p);
   assert.ok(Buffer.from(zip['operating-model-author/engine/operating-model-explorer.html']).equals(readFileSync(join(ROOT, 'dist/operating-model-explorer.html'))));

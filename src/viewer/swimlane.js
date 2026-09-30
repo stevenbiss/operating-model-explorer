@@ -50,7 +50,7 @@ const pill = (x, y, text, cls) => {
   return { w, svg: `<g class="pill ${cls}"><rect x="${x}" y="${y}" width="${w}" height="18" rx="9"/><text x="${x + w / 2}" y="${y + 12.5}" text-anchor="middle">${text}</text></g>` };
 };
 
-// ctx: { m, L, f (flow), color(partyId), mine(role) -> bool, cue(step) -> text|null, badge(change) -> text|null,
+// ctx: { m, L, f (flow), dp(partyId) -> ' data-party="n"', mark(partyId) -> <img> or initials HTML, mine(role) -> bool, cue(step) -> text|null, badge(change) -> text|null,
 //        stepLabel(step) -> accessible name, roleHref(id), label, selected }
 // L, cue, stepLabel, roleHref and label return HTML-safe text; everything taken from the model is escaped here.
 export function swimlaneSvg(ctx) {
@@ -96,20 +96,24 @@ export function swimlaneSvg(ctx) {
     const top = laneTop[n.step.owner] + PAD_T + n.slot * (NH + 16);
     return { x, y: top, cx: x + NW / 2, cy: top + NH / 2, bottom: top + NH, laneBottom: laneTop[n.step.owner] + lh(n.step.owner) };
   };
-  const partyName = (p) => (p && el[p] ? esc(wrap(el[p].name, 20, 1)[0]) : `No ${ctx.L.lower('party')}`);
+  const partyName = (p) => (p && el[p] ? esc(wrap(el[p].name, 17, 1)[0]) : `No ${ctx.L.lower('party')}`);
 
   // Backgrounds: party rows and lanes in the body (bg); their left-hand header cells in the sticky column (headBg).
+  // A party's mark is an HTML <img> laid over its header cell (marks), never SVG markup (design D5).
   let bg = '';
   let headBg = '';
+  let marks = '';
   for (const b of bands) {
-    const band = (w) => `<g class="band" style="--party:${ctx.color(b.party)}"><rect class="band-bg" x="0" y="${b.y}" width="${w}" height="${PARTY_H}"/>`;
-    bg += `${band(FULL)}</g>`;
-    headBg += `${band(HEAD)}<circle cx="18" cy="${b.y + PARTY_H / 2}" r="5" class="band-dot"/><text class="band-name" x="32" y="${b.y + PARTY_H / 2 + 4.5}">${partyName(b.party)}</text></g>`;
+    const band = (w) => `<g class="band"${ctx.dp(b.party)}><rect class="band-bg" x="0" y="${b.y}" width="${w}" height="${PARTY_H}"/>`;
+    bg += `${band(FULL)}<line class="band-line" x1="0" x2="${FULL}" y1="${b.y + PARTY_H - 1}" y2="${b.y + PARTY_H - 1}"/></g>`;
+    const m = ctx.mark(b.party);
+    headBg += `${band(HEAD)}<text class="band-name" x="${m ? 42 : 18}" y="${b.y + PARTY_H / 2 + 4.5}">${partyName(b.party)}</text></g>`;
+    if (m) marks += `<span class="band-mark" style="top:${b.y + (PARTY_H - 22) / 2}px">${m}</span>`;
   }
   const laneParty = Object.fromEntries(f.groups.flatMap((g) => g.lanes.map((r) => [r, g.party])));
   f.lanes.forEach((r, i) => {
     const h = lh(r);
-    const g = `<g class="lane${i % 2 ? ' alt' : ''}${persona ? (ctx.mine(r) ? ' mine' : ' dim') : ''}" style="--party:${ctx.color(laneParty[r])}">`;
+    const g = `<g class="lane${i % 2 ? ' alt' : ''}${persona ? (ctx.mine(r) ? ' mine' : ' dim') : ''}"${ctx.dp(laneParty[r])}>`;
     const line = (w) => `<line class="lane-line" x1="0" x2="${w}" y1="${laneTop[r] + h}" y2="${laneTop[r] + h}"/>`;
     bg += `${g}<rect class="lane-bg" x="0" y="${laneTop[r]}" width="${FULL}" height="${h}"/>${line(FULL)}</g>`;
     headBg += `${g}<rect class="lane-head" x="0" y="${laneTop[r]}" width="${HEAD}" height="${h}"/>${line(HEAD)}</g>`;
@@ -173,7 +177,7 @@ export function swimlaneSvg(ctx) {
     }
     const lines = wrap(s.name, 21, pills.length ? 2 : 3);
     const ty = p.y + (pills.length ? 24 : NH / 2 - (lines.length - 1) * 8.5 + 5);
-    nodes += `<g class="${cls}" role="button" tabindex="0" data-step="${esc(id)}" data-testid="step-${esc(id)}" aria-label="${ctx.stepLabel(s)}"${s.id === ctx.selected ? ' aria-current="step"' : ''} style="--party:${ctx.color(s.party)}">` +
+    nodes += `<g class="${cls}" role="button" tabindex="0" data-step="${esc(id)}" data-testid="step-${esc(id)}" aria-label="${ctx.stepLabel(s)}"${s.id === ctx.selected ? ' aria-current="step"' : ''}${ctx.dp(s.party)}>` +
       `<rect class="ring" x="${p.x - 5}" y="${p.y - 5}" width="${NW + 10}" height="${NH + 10}" rx="14"/>` +
       `<rect class="box" x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="10"/>` +
       `<line class="stripe" x1="${p.x + 6}" x2="${p.x + 6}" y1="${p.y + 12}" y2="${p.bottom - 12}"/>` +
@@ -199,12 +203,12 @@ export function swimlaneSvg(ctx) {
     heads += `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
   }
 
-  // Two SVGs in a row: the steps, then the lane headers, which CSS shows first and keeps stuck to the left
-  // edge while the steps scroll. The headers come second in the DOM so Tab reaches the steps first.
+  // Two SVGs in a row: the steps, then the lane headers (with the party marks over them), which CSS shows first and
+  // keeps stuck to the left edge while the steps scroll. The headers come second in the DOM so Tab reaches the steps first.
   const body = width - HEAD;
   return `<div class="swim-row"><svg class="swimlane" width="${body}" height="${height}" viewBox="${HEAD} 0 ${body} ${height}" preserveAspectRatio="xMinYMin meet" role="group" aria-label="${ctx.label}">` +
     '<defs><marker id="om-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>' +
     '<marker id="om-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.8"/></marker></defs>' +
     `<g aria-hidden="true">${bg}${raci}${edges}${labels}</g>${nodes}</svg>` +
-    `<svg class="swimlane lane-heads" width="${HEAD}" height="${height}" viewBox="0 0 ${HEAD} ${height}" role="group" aria-label="${ctx.L('roles')}"><g aria-hidden="true">${headBg}</g>${heads}</svg></div>`;
+    `<div class="lane-heads"><svg class="swimlane" width="${HEAD}" height="${height}" viewBox="0 0 ${HEAD} ${height}" role="group" aria-label="${ctx.L('roles')}"><g aria-hidden="true">${headBg}</g>${heads}</svg>${marks ? `<div class="band-marks" aria-hidden="true">${marks}</div>` : ''}</div></div>`;
 }

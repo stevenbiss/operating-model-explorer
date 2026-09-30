@@ -24,6 +24,15 @@
   --om-shadow: rgb(15 23 42 / 0.22);
 }
 
+/* Party colours (add-party-brands D4): --p-band (a party's own colour), --p-band-text (the ink on it) and --p-tint
+   (the colour at 10% on the surface, under frame text), set per party on [data-party="<n>"] by the viewer's party CSS.
+   "none" (a lane or step with no party) and any missing value fall back to the neutral frame. */
+:root, [data-party="none"] {
+  --p-band: var(--om-border);
+  --p-band-text: var(--om-text);
+  --p-tint: color-mix(in srgb, var(--om-text) 4%, var(--om-surface));
+}
+
 @media (prefers-color-scheme: dark) {
   :root, #om-preview {
     --om-bg: #0f1419;
@@ -82,7 +91,29 @@ a:hover { text-decoration-thickness: 2px; }
   display: flex; align-items: center; gap: 12px; min-width: 0;
   color: inherit; text-decoration: none; font-family: var(--om-font-heading); font-weight: 650; font-size: 1.05rem; letter-spacing: -0.01em;
 }
-.brand img { height: 34px; width: auto; flex: none; }
+
+/* The header lockup (D6): the model name, then every party's mark at one height, in party order. */
+.ident { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; min-width: 0; }
+.lockup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-left: 16px; border-left: 1px solid color-mix(in srgb, var(--om-on-primary) 35%, transparent); --mk: 28px; }
+@media (max-width: 479px) {
+  .lockup { flex-basis: 100%; padding-left: 0; border-left: 0; }
+}
+
+/* A party mark: an <img> of the brand's SVG on a light tile, so any mark reads on any surface; or, without a brand,
+   the party's initials on its colour. Always square, sized by --mk. */
+.mk {
+  display: inline-grid; place-items: center; flex: none; width: var(--mk, 22px); height: var(--mk, 22px); padding: calc(var(--mk, 22px) * 0.12);
+  border-radius: calc(var(--mk, 22px) * 0.22); background: #ffffff; box-shadow: 0 0 0 1px rgb(15 23 42 / 0.12); object-fit: contain;
+}
+.mk-init {
+  padding: 0; background: var(--p-band); color: var(--p-band-text); box-shadow: none;
+  font: 700 calc(var(--mk, 22px) * 0.42) / 1 var(--om-font-body); letter-spacing: 0.02em;
+}
+/* A party's name with its mark, e.g. after a step's owner or in a page's eyebrow. */
+.ptag { display: inline-flex; align-items: center; gap: 6px; vertical-align: middle; --mk: 20px; }
+.owner .ptag { margin-left: 8px; padding: 2px 10px 2px 3px; border-radius: 999px; background: var(--p-tint); font-weight: 600; }
+.owner .ptag .mk { margin-left: 4px; }
+.eyebrow .ptag { --mk: 18px; letter-spacing: inherit; }
 
 .top-tools, .sub-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; min-width: 0; }
 
@@ -198,13 +229,13 @@ main { padding: 36px 24px 72px; }
 .card h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; font-size: 1.15rem; color: var(--om-link); }
 .card p { margin: 0 0 14px; color: var(--om-muted); }
 .card .card-meta { margin: auto 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.85rem; }
-.card-party { border-left: 4px solid var(--party); }
-.dot { display: inline-block; width: 10px; height: 10px; flex: none; border-radius: 50%; background: var(--party); }
-.dots { display: flex; gap: 4px; margin-left: auto; }
+.card-party { border-left: 4px solid var(--p-band); }
+.card-party h3 { --mk: 32px; gap: 12px; }
+.dots { display: flex; gap: 4px; margin-left: auto; --mk: 20px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
 .chip {
-  display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 0.9rem;
+  --mk: 20px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px; font-size: 0.9rem;
   color: var(--om-text); text-decoration: none; background: var(--om-surface);
   border: 1px solid var(--om-border); border-radius: 999px;
 }
@@ -245,6 +276,9 @@ main { padding: 36px 24px 72px; }
 .lane-bar h2 { margin: 0; font-size: 1rem; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; list-style: none; font-size: 0.8rem; color: var(--om-muted); }
 .legend li { display: flex; align-items: center; gap: 8px; }
+.swatch { width: 18px; height: 12px; flex: none; border-radius: 3px; background: var(--p-band); }
+.party-head h1 { display: flex; align-items: center; gap: 16px; --mk: 48px; }
+.party-head { padding-left: 20px; border-left: 6px solid var(--p-band); }
 .raci-key {
   display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
   border: 1px dashed var(--om-line); font-size: 11px; font-weight: 700;
@@ -277,15 +311,19 @@ main { padding: 36px 24px 72px; }
 .swim-row { display: flex; width: max-content; min-width: 100%; }
 .swim-row svg { display: block; flex: none; }
 .swim-row .swimlane:first-child { flex: 1 0 auto; }
-.lane-heads { order: -1; position: sticky; left: 0; z-index: 1; box-shadow: 6px 0 10px -8px var(--om-shadow); }
+.lane-heads { order: -1; position: sticky; left: 0; z-index: 1; flex: none; box-shadow: 6px 0 10px -8px var(--om-shadow); }
+.band-mark { position: absolute; left: 12px; --mk: 22px; line-height: 0; }
+.band-mark .mk-init { box-shadow: 0 0 0 1.5px var(--p-band-text); }
 
 .swimlane text { font-family: var(--om-font-body); fill: var(--om-text); }
-.band-bg { fill: color-mix(in srgb, var(--party) 16%, var(--om-surface)); }
-.band-dot { fill: var(--party); }
-.band-name { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+/* A party's row: its colour in the sticky header cell, with its mark and name; a tint and a rule in its colour across the body. */
+.band-bg { fill: var(--p-tint); }
+.lane-heads .band-bg { fill: var(--p-band); }
+.band-line { stroke: var(--p-band); stroke-width: 2; }
+.swimlane .band-name { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--p-band-text); }
 .lane-bg { fill: var(--om-surface); }
 .lane.alt .lane-bg { fill: color-mix(in srgb, var(--om-text) 2.5%, var(--om-surface)); }
-.lane-head { fill: color-mix(in srgb, var(--party) 7%, var(--om-surface)); }
+.lane-head { fill: var(--p-tint); }
 .lane.mine .lane-bg { fill: color-mix(in srgb, var(--om-accent) 7%, var(--om-surface)); }
 .lane.mine .lane-head { fill: color-mix(in srgb, var(--om-accent) 15%, var(--om-surface)); }
 .lane-line { stroke: var(--om-border); }
@@ -310,8 +348,8 @@ main { padding: 36px 24px 72px; }
 }
 
 .node { cursor: pointer; outline: none; }
-.node .box { fill: var(--om-surface); stroke: color-mix(in srgb, var(--party) 55%, var(--om-border)); stroke-width: 1.5; filter: drop-shadow(0 1px 2px var(--om-shadow)); }
-.node .stripe { stroke: var(--party); stroke-width: 4; stroke-linecap: round; }
+.node .box { fill: var(--om-surface); stroke: color-mix(in srgb, var(--p-band) 55%, var(--om-border)); stroke-width: 1.5; filter: drop-shadow(0 1px 2px var(--om-shadow)); }
+.node .stripe { stroke: var(--p-band); stroke-width: 4; stroke-linecap: round; }
 .swimlane .node-name { font-size: 13.5px; font-weight: 600; }
 .node .ring { fill: none; stroke: transparent; stroke-width: 3; }
 .node:hover .box { stroke: var(--om-link); }
@@ -336,19 +374,19 @@ main { padding: 36px 24px 72px; }
 .flow-item {
   display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; padding: 14px;
   color: var(--om-text); text-decoration: none; background: var(--om-surface);
-  border: 1px solid var(--om-border); border-left: 4px solid var(--party); border-radius: 12px;
+  border: 1px solid var(--om-border); border-left: 4px solid var(--p-band); border-radius: 12px;
 }
 .fi-num {
   display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
-  font-size: 0.85rem; font-weight: 700; background: color-mix(in srgb, var(--party) 18%, var(--om-surface));
+  font-size: 0.85rem; font-weight: 700; background: var(--p-tint);
 }
 .fi-body { display: grid; gap: 4px; min-width: 0; }
 .fi-name { font-weight: 700; color: var(--om-link); }
 .fi-lane, .fi-next { font-size: 0.85rem; color: var(--om-muted); }
 .flow-item .tags { margin: 2px 0; }
-.flow-list .mine .flow-item { border-color: var(--om-accent); border-left-color: var(--party); box-shadow: inset 0 0 0 1px var(--om-accent); }
+.flow-list .mine .flow-item { border-color: var(--om-accent); border-left-color: var(--p-band); box-shadow: inset 0 0 0 1px var(--om-accent); }
 .flow-list .dim .flow-item { background: color-mix(in srgb, var(--om-text) 3%, var(--om-bg)); }
-.flow-list .selected .flow-item { border-color: var(--om-link); border-left-color: var(--party); box-shadow: 0 0 0 2px var(--om-link); }
+.flow-list .selected .flow-item { border-color: var(--om-link); border-left-color: var(--p-band); box-shadow: 0 0 0 2px var(--om-link); }
 
 /* step detail */
 .detail {

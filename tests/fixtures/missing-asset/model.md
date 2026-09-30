@@ -1,9 +1,12 @@
 ---
-id: tiny
+id: brand-test
 type: model
-name: Tiny model
-purpose: A small **test** model with two parties.
+name: Brand test
+purpose: A small **test** model for party brands.
 key_messages:
-  - Keep it small.
-  - Test everything.
+  - Each party keeps its own identity.
 ---
+
+The plan at a glance:
+
+![Plan](assets/missing.png)

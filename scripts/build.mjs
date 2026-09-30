@@ -88,8 +88,11 @@ for (const [src, to] of [
   ['examples/acme-capture-sheet/capture-sheet.md', 'example-capture-sheet.md'],
   ['docs/interview-guide.md', 'interview-guide.md'],
 ]) writeIfChanged(`${skill}references/${to}`, note(src) + read(src));
-// The example sheet's logo, so the example validates from references/ as it does from examples/.
-writeIfChanged(`${skill}references/assets/logo.svg`, bytes('examples/acme-capture-sheet/assets/logo.svg'));
+// The example sheet's brand packs, so the example validates from references/ as it does from examples/.
+for (const e of readdirSync(new URL('examples/acme-capture-sheet/brands/', root), { recursive: true, withFileTypes: true }).filter((x) => x.isFile())) {
+  const p = relative(fileURLToPath(new URL('examples/acme-capture-sheet/', root)), join(e.parentPath, e.name)).replace(/\\/g, '/');
+  writeIfChanged(`${skill}references/${p}`, bytes(`examples/acme-capture-sheet/${p}`));
+}
 
 // The validator as one self-contained file: js-yaml, markdown-it and fflate inlined, so it needs only Node.
 const validator = (

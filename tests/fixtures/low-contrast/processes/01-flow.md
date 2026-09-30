@@ -4,14 +4,14 @@ type: process
 name: Main flow
 workstream: main-ws
 steps:
-  - id: start
-    name: Start the work
-    owner: account-lead
+  - id: step-acme
+    name: Acme Corp does its part
+    owner: acme-lead
     raci:
-      account-lead: A
-  - id: design
-    name: Design the answer
-    owner: solution-architect
+      acme-lead: A
+  - id: step-greyco
+    name: Grey Co does its part
+    owner: greyco-lead
     raci:
-      solution-architect: A
+      greyco-lead: A
 ---

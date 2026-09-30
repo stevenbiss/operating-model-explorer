@@ -3,7 +3,7 @@
 import { renderInline, renderMarkdown, useImages } from '../model/markdown.js';
 import { flow, isRemoved, nextOf, prevOf } from '../model/layout.js';
 import { formatRoute, parseRoute } from './route.js';
-import { DEFAULT_PALETTE, labeller } from './theme.js';
+import { labeller, partyCss } from './theme.js';
 import { swimlaneSvg } from './swimlane.js';
 import { esc } from './esc.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
@@ -32,7 +32,6 @@ const narrow = matchMedia('(max-width: 767px)');
 let M; // snapshot
 let E; // elements by id
 let L; // label lookup; every output is already HTML-escaped (theme.js)
-const palette = DEFAULT_PALETTE;
 let route = null;
 let root;
 let main;
@@ -62,18 +61,35 @@ const hasChanges = () =>
   Object.values(E).some((x) => x.change && STATUS[x.change.status]) ||
   M.order.process.some((p) => E[p].steps.some((s) => s.change && STATUS[s.change.status]));
 const detailed = () => M.order.process.filter((p) => !(E[E[p].workstream] && E[E[p].workstream].detail === 'outline'));
-const color = (p) => {
-  const i = M.order.party.indexOf(p);
-  return i < 0 ? 'var(--om-muted)' : palette[i % palette.length];
+// Party identity (party-brands spec, design D4/D5). A party's colours come from the CSS for data-party="<its position>"
+// (partyCss); "none" is the neutral fallback. Marks are only ever <img> data URIs, never inline SVG, so nothing in one runs.
+const dp = (p) => ` data-party="${is(p, 'party') ? M.order.party.indexOf(p) : 'none'}"`;
+const MARK_URI = /^data:image\/(svg\+xml|png|jpeg|gif|webp);base64,[a-z0-9+/=]+$/i;
+const markOf = (p) => {
+  const b = is(p, 'party') && E[p].brand;
+  const src = typeof b === 'string' && M.marks && Object.hasOwn(M.marks, b) && M.marks[b];
+  return typeof src === 'string' && MARK_URI.test(src) ? src : null;
 };
+// Up to two initials, for a party without a brand: "Client Team" -> "CT".
+const initials = (name) => String(name).split(/\s+/).map((w) => (w.match(/[\p{L}\p{N}]/u) || [''])[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?';
+// The party's mark, or its initials on the party colour. named: false when the party's name is shown right beside it.
+const mark = (p, named = true) => {
+  if (!is(p, 'party')) return '';
+  const src = markOf(p);
+  const name = esc(E[p].name);
+  if (src) return `<img class="mk"${dp(p)} src="${esc(src)}" alt="${named ? name : ''}">`;
+  return `<span class="mk mk-init"${dp(p)} ${named ? `role="img" aria-label="${name}"` : 'aria-hidden="true"'}>${esc(initials(E[p].name))}</span>`;
+};
+// A party's name with its mark and colour, e.g. after a step's owner.
+const partyTag = (p) => (is(p, 'party') ? `<span class="ptag"${dp(p)}>${mark(p, false)}${esc(E[p].name)}</span>` : '');
 const badgeText = (change, force) => ((route.changes || force) && change && STATUS[change.status]) || null;
 const badge = (change, force) => {
   const t = badgeText(change, force);
   return t ? `<span class="badge badge-${change.status}" data-testid="badge">${t}</span>` : '';
 };
 const today = (x) => (route.changes && x.change && x.change.today ? `<div class="today" data-testid="today"><h3>Today</h3><p>${esc(x.change.today)}</p></div>` : '');
-const partyChip = (p) => (is(p, 'party') ? `<a class="chip" href="${href({ view: 'element', id: p })}" style="--party:${color(p)}"><span class="dot" aria-hidden="true"></span>${esc(E[p].name)}</a>` : '');
-const roleChip = (r) => `<a class="chip${mine(r) ? ' mine' : ''}" href="${href({ view: 'role', id: r })}" style="--party:${color(E[r] && E[r].party)}"><span class="dot" aria-hidden="true"></span>${esc(nameOf(r))}${mine(r) ? ` <span class="cue">Your ${L.lower('role')}</span>` : ''}</a>`;
+const partyChip = (p) => (is(p, 'party') ? `<a class="chip"${dp(p)} href="${href({ view: 'element', id: p })}">${mark(p, false)}${esc(E[p].name)}</a>` : '');
+const roleChip = (r) => `<a class="chip${mine(r) ? ' mine' : ''}"${dp(E[r] && E[r].party)} href="${href({ view: 'role', id: r })}">${mark(E[r] && E[r].party)}${esc(nameOf(r))}${mine(r) ? ` <span class="cue">Your ${L.lower('role')}</span>` : ''}</a>`;
 
 // How the persona's roles take part in a step, as HTML-safe text: "Your step", "You: C" or null.
 function cue(s) {
@@ -148,9 +164,10 @@ function personaButtons(testid = 'persona-door') {
 function shell() {
   const m = M.model || {};
   const personas = M.order.persona;
-  return `<a class="skip" href="#om-main" data-skip>Skip to content</a>
+  return `<style data-testid="party-css">${partyCss(M.partyColours)}</style>
+<a class="skip" href="#om-main" data-skip>Skip to content</a>
 <header class="topbar"><div class="bar-in">
-  <a class="brand" data-testid="brand" href="#/"><span class="brand-name">${esc(m.name)}</span></a>
+  <div class="ident"><a class="brand" data-testid="brand" href="#/"><span class="brand-name">${esc(m.name)}</span></a>${lockup()}</div>
   <div class="top-tools">
     <div class="progress" data-testid="progress"><span class="meter" aria-hidden="true"><span></span></span><span class="progress-text"></span>
       <button type="button" class="btn btn-key" data-open-km data-testid="key-messages-button">${L('key_messages')}</button></div>
@@ -180,6 +197,13 @@ function shell() {
   <button type="button" class="btn btn-quiet" data-close data-testid="persona-skip">Explore without ${L.a('persona')}</button>
 </dialog>
 <div class="vh" aria-live="polite" data-testid="announcer" id="om-live"></div>`;
+}
+
+// The header lockup (design D6): every party's mark at the same height, in party order, when at least one party has a brand.
+function lockup() {
+  const parties = M.order.party;
+  if (!parties.some(markOf)) return '';
+  return `<span class="lockup" role="group" aria-label="${L('parties')}" data-testid="lockup">${parties.map((p) => mark(p)).join('')}</span>`;
 }
 
 function messagesHtml() {
@@ -448,8 +472,9 @@ function view() {
 
 const notFound = () => `<div class="page"><h1 tabindex="-1">Not found</h1><p>This link doesn't match anything in the ${L.lower('model')}.</p><p><a href="${href({ view: 'overview' })}">Go to the overview</a></p></div>`;
 
-const head = (eyebrow, x, extra = '') =>
-  `<header class="page-head"><p class="eyebrow">${eyebrow}</p><h1 tabindex="-1">${esc(x.name)}</h1>${badge(x.change) || extra ? `<div class="tags">${badge(x.change)}${extra}</div>` : ''}${x.summary ? `<p class="lead">${esc(x.summary)}</p>` : ''}${today(x)}${x.body ? `<div class="prose">${renderMarkdown(x.body)}</div>` : ''}</header>`;
+// party: on a party's own page, its mark beside the name and its colour on the heading.
+const head = (eyebrow, x, extra = '', party = null) =>
+  `<header class="page-head${party ? ' party-head' : ''}"${party ? dp(party) : ''}><p class="eyebrow">${eyebrow}</p><h1 tabindex="-1">${party ? mark(party, false) : ''}${esc(x.name)}</h1>${badge(x.change) || extra ? `<div class="tags">${badge(x.change)}${extra}</div>` : ''}${x.summary ? `<p class="lead">${esc(x.summary)}</p>` : ''}${today(x)}${x.body ? `<div class="prose">${renderMarkdown(x.body)}</div>` : ''}</header>`;
 
 function overview() {
   const m = M.model || {};
@@ -475,15 +500,15 @@ function wsCard(w) {
     <h3>${esc(w.name)}</h3>
     <p>${esc(w.summary)}</p>
     <p class="card-meta">${outline ? '<span class="tag">Outline only</span>' : `<span>${plural(n, 'process', 'processes')}</span>`}${badge(w.change)}
-    <span class="dots">${list(w.parties).filter((p) => is(p, 'party')).map((p) => `<span class="dot" style="--party:${color(p)}" title="${esc(E[p].name)}"></span>`).join('')}</span></p>
+    <span class="dots">${list(w.parties).filter((p) => is(p, 'party')).map((p) => mark(p)).join('')}</span></p>
   </a></li>`;
 }
 
 function partyCard(id) {
   const p = E[id];
   const roles = M.order.role.filter((r) => E[r].party === id).length;
-  return `<li><a class="card card-party" href="${href({ view: 'element', id })}" style="--party:${color(id)}" data-testid="party-card-${esc(id)}">
-    <h3><span class="dot" aria-hidden="true"></span>${esc(p.name)}</h3><p>${esc(p.summary)}</p><p class="card-meta"><span>${plural(roles, 'role', 'roles')}</span>${badge(p.change)}</p></a></li>`;
+  return `<li><a class="card card-party"${dp(id)} href="${href({ view: 'element', id })}" data-testid="party-card-${esc(id)}">
+    <h3>${mark(id, false)}${esc(p.name)}</h3><p>${esc(p.summary)}</p><p class="card-meta"><span>${plural(roles, 'role', 'roles')}</span>${badge(p.change)}</p></a></li>`;
 }
 
 function rolesIn(processIds) {
@@ -527,7 +552,7 @@ function processView(p) {
   F = flow(M, p.id, { showRemoved: route.changes });
   const w = E[p.workstream];
   const lane = narrow.matches ? flowList() : swimlaneSvg({
-    m: M, L, f: F, color, selected: sel && sel.id, label: `${esc(p.name)}: ${L.lower('steps')} by ${L.lower('role')}`,
+    m: M, L, f: F, dp, mark: (p) => mark(p, false), selected: sel && sel.id, label: `${esc(p.name)}: ${L.lower('steps')} by ${L.lower('role')}`,
     mine: persona() ? mine : null, cue, badge: (c) => badgeText(c), stepLabel, roleHref: (r) => href({ view: 'role', id: r }),
   });
   return `<div class="page page-wide">
@@ -551,6 +576,7 @@ function legend() {
   <li><svg width="44" height="12" aria-hidden="true"><path class="edge" d="M2 6H34" marker-end="url(#om-arrow)"/></svg>Handoff within ${L.a('party')}</li>
   <li><svg width="44" height="12" aria-hidden="true"><path class="edge cross" d="M2 6H34" marker-end="url(#om-open)"/></svg>Handoff between ${L.lower('parties')}</li>
   <li><span class="raci-key" aria-hidden="true">C</span>Consulted or informed (RACI)</li>
+  ${F.groups.filter((g) => is(g.party, 'party')).map((g) => `<li data-testid="legend-party"${dp(g.party)}><span class="swatch" aria-hidden="true"></span>${esc(E[g.party].name)}</li>`).join('')}
   ${persona() ? '<li><span class="cue">Your lane</span> Emphasised for you; everything else stays open</li>' : ''}
 </ul>`;
 }
@@ -562,7 +588,7 @@ function flowList() {
       const c = persona() ? cue(s) : null;
       const nx = nextOf(F, id);
       const r = E[s.owner];
-      return `<li class="${[s.id === route.step && 'selected', persona() && (c ? 'mine' : 'dim')].filter(Boolean).join(' ')}" style="--party:${color(s.party)}">
+      return `<li class="${[s.id === route.step && 'selected', persona() && (c ? 'mine' : 'dim')].filter(Boolean).join(' ')}"${dp(s.party)}>
   <a class="flow-item" href="${stepHref(s)}" data-step="${esc(id)}" data-testid="step-${esc(id)}"${s.id === route.step ? ' aria-current="step"' : ''}>
     <span class="fi-num" aria-hidden="true">${i + 1}</span>
     <span class="fi-body"><span class="fi-name">${esc(s.name)}</span>
@@ -591,7 +617,7 @@ function stepDetail(s) {
     <a class="btn btn-quiet close" href="${href({ view: 'process', id: s.process })}" data-testid="close-detail" aria-label="Close ${L.lower('step')} detail">Close</a></div>
   <h2 id="om-detail-title" tabindex="-1">${esc(s.name)}</h2>
   ${badge(s.change) || c ? `<div class="tags">${badge(s.change)}${c ? `<span class="cue">${c}</span>` : ''}</div>` : ''}
-  <p class="owner"><span class="k">Owner</span> ${r ? `<a href="${href({ view: 'role', id: s.owner })}">${esc(r.name)}</a>` : esc(s.owner)}${is(s.party, 'party') ? ` · ${esc(E[s.party].name)}` : ''}</p>
+  <p class="owner" data-testid="owner"><span class="k">Owner</span> ${r ? `<a href="${href({ view: 'role', id: s.owner })}">${esc(r.name)}</a>` : esc(s.owner)}${partyTag(s.party)}</p>
   ${s.description ? `<div class="prose">${renderMarkdown(s.description)}</div>` : ''}
   ${today(s)}
   ${raci.length ? `<div class="field"><h3>RACI</h3><table class="raci-table"><tbody>${raci.map(([role, l]) => `<tr${mine(role) ? ' class="mine"' : ''}><th scope="row">${is(role, 'role') ? `<a href="${href({ view: 'role', id: role })}">${esc(E[role].name)}</a>` : esc(role)}${mine(role) ? ' <span class="cue">You</span>' : ''}</th><td>${letterHtml(l)}</td></tr>`).join('')}</tbody></table></div>` : ''}
@@ -610,7 +636,7 @@ function stepsFor(roles, filter = () => true) {
 }
 
 function role(r) {
-  const party = is(r.party, 'party') ? `<a href="${href({ view: 'element', id: r.party })}">${esc(E[r.party].name)}</a>` : '';
+  const party = is(r.party, 'party') ? `<a class="ptag"${dp(r.party)} href="${href({ view: 'element', id: r.party })}">${mark(r.party, false)}${esc(E[r.party].name)}</a>` : '';
   const team = is(r.team, 'team') ? ` · <a href="${href({ view: 'element', id: r.team })}">${esc(E[r.team].name)}</a>` : '';
   const groups = stepsFor([r.id], visible);
   return `<div class="page">
@@ -623,9 +649,9 @@ ${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ vi
 function element(x) {
   const roles = x.type === 'persona' ? list(x.roles).filter((r) => is(r, 'role')) : M.order.role.filter((r) => E[r][x.type] === x.id);
   const teams = x.type === 'party' ? M.order.team.filter((t) => E[t].party === x.id) : [];
-  const parent = x.type === 'team' && is(x.party, 'party') ? ` · <a href="${href({ view: 'element', id: x.party })}">${esc(E[x.party].name)}</a>` : '';
+  const parent = x.type === 'team' && is(x.party, 'party') ? ` · <a class="ptag"${dp(x.party)} href="${href({ view: 'element', id: x.party })}">${mark(x.party, false)}${esc(E[x.party].name)}</a>` : '';
   return `<div class="page">
-${head(`${L(x.type)}${parent}`, x)}
+${head(`${L(x.type)}${parent}`, x, '', x.type === 'party' ? x.id : null)}
 ${teams.length ? `<section class="section"><h2>${L('teams')}</h2><p class="chips">${teams.map((t) => `<a class="chip" href="${href({ view: 'element', id: t })}">${esc(E[t].name)}</a>`).join('')}</p></section>` : ''}
 ${roles.length ? `<section class="section"><h2>${L('roles')}</h2><p class="chips">${roles.map(roleChip).join('')}</p></section>` : ''}
 ${x.type === 'persona' ? `<p><button type="button" class="btn btn-primary" data-persona-choice="${esc(x.id)}">View as ${esc(x.name)}</button></p>` : ''}

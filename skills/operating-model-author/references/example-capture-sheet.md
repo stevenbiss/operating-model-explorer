@@ -23,10 +23,10 @@ see how the engine works, and copy it as a starting point for your own model.
 
 ## Parties
 
-| Party | Summary |
-|---|---|
-| Acme Corp | The client-facing partner. Acme owns the relationship and the contract. |
-| Globex | The solution partner. Globex designs, prices and builds the solution. |
+| Party | Summary | Brand |
+|---|---|---|
+| Acme Corp | The client-facing partner. Acme owns the relationship and the contract. | acme |
+| Globex | The solution partner. Globex designs, prices and builds the solution. | globex |
 
 ## Teams
 

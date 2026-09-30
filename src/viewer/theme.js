@@ -1,5 +1,7 @@
-// The theme's terminology lookup (design D7: the theme is labels only; the frame is always the engine's own).
+// The theme's terminology lookup (design D7: the theme is labels only; the frame is always the engine's own),
+// and the party colours' CSS (D4).
 import { esc } from './esc.js';
+import { HEX } from '../model/colour.js';
 
 export const DEFAULT_LABELS = {
   model: 'Model', models: 'Models', party: 'Party', parties: 'Parties', team: 'Team', teams: 'Teams',
@@ -7,8 +9,15 @@ export const DEFAULT_LABELS = {
   process: 'Process', processes: 'Processes', step: 'Step', steps: 'Steps', key_message: 'Key message', key_messages: 'Key messages',
 };
 
-// ponytail: party colours by position until batch 2 of add-party-brands replaces this with model.partyColours (task 1.4).
-export const DEFAULT_PALETTE = ['#2f6f9f', '#2e7d5b', '#8a4f9e', '#b0671a', '#b03a48', '#4d6b2e'];
+// Party colours as custom properties on [data-party="<n>"] (n: the party's position), light and dark, from the colours
+// resolved once per model (model/colour.js resolvePartyColours). Anything that isn't a hex colour is dropped.
+export function partyCss(colours) {
+  const hex = (v) => (HEX.test(v) ? v : 'initial');
+  const rules = ([band, text, tint]) => (Array.isArray(colours) ? colours : [])
+    .map((c, i) => `[data-party="${i}"]{--p-band:${hex(c[band])};--p-band-text:${hex(c[text])};--p-tint:${hex(c[tint])}}`)
+    .join('');
+  return `${rules(['band', 'bandText', 'tint'])}@media (prefers-color-scheme: dark){${rules(['darkBand', 'darkBandText', 'darkTint'])}}`;
+}
 
 // L('workstreams') -> "Value streams"; L.lower('workstream') -> "value stream" (keeps acronyms such as "CRM team").
 // Every output is HTML-escaped, so it goes into markup as it is and must not be escaped again.

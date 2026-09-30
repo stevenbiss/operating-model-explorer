@@ -424,12 +424,14 @@ test('ID and Version lines under the title', () => {
 
 // ---------- loading (1.6) ----------
 
-test('a sheet loads on its own, or from a folder or zip with assets/ alongside', () => {
+test('a sheet loads on its own, or from a folder or zip with brands/ alongside', () => {
+  // On its own, the sheet can't see its brand packs: one error per brand, with the load-the-folder hint (party-brands spec).
   const single = loadModel([{ path: 'capture-sheet.md', data: readFileSync(SAMPLE_SHEET) }]);
-  assert.deepEqual(single.messages, []);
+  assert.deepEqual(single.messages.map((m) => [m.level, m.element]), [['error', 'acme-corp'], ['error', 'globex']]);
+  for (const m of single.messages) assert.match(m.fix, /Load the sheet's folder/);
   const folder = loadModel(readSampleSheet());
   assert.deepEqual(folder.messages, []);
-  assert.ok(folder.model.assets['assets/logo.svg']);
+  assert.ok(folder.model.assets['brands/acme/mark.svg']);
   const zip = loadModel(readZip(zipSync(Object.fromEntries(readSampleSheet().map((f) => [`my-model/${f.path}`, f.data])))));
   assert.deepEqual(zip.messages, []);
   const other = loadModel([...readSampleSheet(), ...files({ 'README.md': '# Read me\n' })]);
