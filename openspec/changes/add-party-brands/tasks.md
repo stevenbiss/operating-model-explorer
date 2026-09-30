@@ -19,49 +19,49 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`. Node tests cover the model and colour logic. Skill trials follow `tests/skill-packs/README.md`, and their results go in `reports/skill-trials.md`.
 
 ### party-brands
-- [ ] 2.1 Valid pack
-- [ ] 2.2 Missing mark
-- [ ] 2.3 Invalid colour
-- [ ] 2.4 Id doesn't match its folder
-- [ ] 2.5 Unknown brand
-- [ ] 2.6 Unused pack left out
-- [ ] 2.7 Sheet loaded without its brands
-- [ ] 2.8 Swimlane bands
-- [ ] 2.9 Party card
-- [ ] 2.10 Light brand colour
-- [ ] 2.11 Dark mode (party-brands)
-- [ ] 2.12 Two similar reds
-- [ ] 2.13 Distinct colours
-- [ ] 2.14 Brand close to "Removed"
-- [ ] 2.15 Unbranded party
-- [ ] 2.16 Equal marks
-- [ ] 2.17 Lockup on a phone
-- [ ] 2.18 Versions recorded, notes excluded
-- [ ] 2.19 Hostile SVG mark
+- [x] 2.1 Valid pack
+- [x] 2.2 Missing mark
+- [x] 2.3 Invalid colour
+- [x] 2.4 Id doesn't match its folder
+- [x] 2.5 Unknown brand
+- [x] 2.6 Unused pack left out
+- [x] 2.7 Sheet loaded without its brands
+- [x] 2.8 Swimlane bands
+- [x] 2.9 Party card
+- [x] 2.10 Light brand colour
+- [x] 2.11 Dark mode (party-brands)
+- [x] 2.12 Two similar reds
+- [x] 2.13 Distinct colours
+- [x] 2.14 Brand close to "Removed"
+- [x] 2.15 Unbranded party
+- [x] 2.16 Equal marks
+- [x] 2.17 Lockup on a phone
+- [x] 2.18 Versions recorded, notes excluded
+- [x] 2.19 Hostile SVG mark
 
 ### theming
-- [ ] 2.20 Labels applied
-- [ ] 2.21 Custom colours applied (now: ignored with a warning)
-- [ ] 2.22 Logo shown (now: ignored; lockup shown)
-- [ ] 2.23 No theme file (existing test still passes)
-- [ ] 2.24 Dark mode (theming; existing test still passes)
-- [ ] 2.25 Remote font rejected (now: retired-key warning, nothing fetched)
-- [ ] 2.26 Remote mark rejected
-- [ ] 2.27 Missing asset (narrative image)
+- [x] 2.20 Labels applied
+- [x] 2.21 Custom colours applied (now: ignored with a warning)
+- [x] 2.22 Logo shown (now: ignored; lockup shown)
+- [x] 2.23 No theme file (existing test still passes)
+- [x] 2.24 Dark mode (theming; existing test still passes)
+- [x] 2.25 Remote font rejected (now: retired-key warning, nothing fetched)
+- [x] 2.26 Remote mark rejected
+- [x] 2.27 Missing asset (narrative image)
 
 ### content-schema
-- [ ] 2.28 Minimal valid model (existing test still passes)
-- [ ] 2.29 Missing model file (existing test still passes)
-- [ ] 2.30 Brand packs are not elements
+- [x] 2.28 Minimal valid model (existing test still passes)
+- [x] 2.29 Missing model file (existing test still passes)
+- [x] 2.30 Brand packs are not elements
 
 ### capture-sheet
-- [ ] 2.31 Theme from the sheet (labels only)
-- [ ] 2.32 Retired theme line
-- [ ] 2.33 Brands from the sheet's folder
+- [x] 2.31 Theme from the sheet (labels only)
+- [x] 2.32 Retired theme line
+- [x] 2.33 Brands from the sheet's folder
 
 ### authoring-skill
-- [ ] 2.34 Packs copied, not altered (skill trial)
-- [ ] 2.35 Brand not in the library (skill trial)
+- [x] 2.34 Packs copied, not altered (skill trial)
+- [x] 2.35 Brand not in the library (skill trial)
 
 ## 3. Verify
 

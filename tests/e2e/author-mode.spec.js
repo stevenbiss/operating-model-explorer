@@ -116,13 +116,20 @@ test.describe('author-mode', () => {
     await context.setOffline(true);
     const page = await context.newPage();
     await page.goto(fileUrl(snap.path));
-    // Viewer mode with the theme, and no author controls.
+    // Viewer mode with the engine's neutral frame and the party lockup (add-party-brands: themes no longer set the
+    // frame colour or a logo), and no author controls.
     await expect(page.locator('#om-content')).toHaveCount(1);
     await expect(page.getByTestId('persona-prompt')).toBeVisible();
     await page.getByTestId('persona-skip').click();
     await expect(page.getByTestId('model-name')).toHaveText('Acme + Globex partnership');
-    expect(await page.locator('.topbar').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(11, 31, 77)');
-    await expect(page.getByTestId('logo')).toBeVisible();
+    expect(await page.locator('.topbar').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(31, 58, 95)');
+    await expect(page.getByTestId('logo')).toHaveCount(0);
+    const marks = page.getByTestId('lockup').locator('img.mk');
+    expect(await marks.evaluateAll((els) => els.map((e) => e.alt))).toEqual(['Acme Corp', 'Globex']);
+    for (const m of await marks.all()) {
+      await expect(m).toBeVisible();
+      expect(await m.evaluate((img) => img.complete && img.naturalWidth > 0 && img.src.startsWith('data:image/svg+xml;base64,')), 'mark decoded offline').toBe(true);
+    }
     for (const id of ['start', 'workspace', 'report', 'export', 'reload', 'load-folder', 'load-zip', 'try-sample', 'content-reference', 'zip-input', 'folder-input']) await expect(page.getByTestId(id)).toHaveCount(0);
     await expect(page.locator('.author, .author-bar, #om-sample')).toHaveCount(0);
     // Footer: version and export date.

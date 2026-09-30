@@ -82,7 +82,14 @@ test.describe('html-deliverable: exported sample', () => {
     await expect(page.getByTestId('step-detail')).toContainText('Kick off the bid');
     await page.getByTestId('key-messages-button').click();
     await expect(page.getByTestId('key-messages-dialog')).toBeVisible();
-    await expect(page.getByTestId('logo')).toBeVisible();
+    // The party marks (add-party-brands; the theme logo is retired) are embedded, and decode offline.
+    await expect(page.getByTestId('logo')).toHaveCount(0);
+    const marks = page.getByTestId('lockup').locator('img.mk');
+    await expect(marks).toHaveCount(2);
+    for (const m of await marks.all()) {
+      await expect(m).toBeVisible();
+      expect(await m.evaluate((img) => img.complete && img.naturalWidth > 0 && img.src.startsWith('data:image/svg+xml;base64,')), 'mark decoded offline').toBe(true);
+    }
     expect(sink.requests).toEqual([]);
     expect(snap.html).toContain("default-src 'none'");
     expect(snap.html).not.toMatch(/<script[^>]+src=|<link[^>]+href=|<img[^>]+src="https?:|@import|url\((['"])?https?:/i);

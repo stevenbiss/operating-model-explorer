@@ -3,21 +3,24 @@
 // Existing tests that still cover this change: 2.32 = author-mode.spec.js "2.48 author-mode › Load a zip",
 // 2.33 = "2.49 author-mode › Load the bundled sample", 2.37 = "2.54 author-mode › Unused file excluded".
 // Node tests: 2.19–2.21 and 2.50 in tests/unit/skill.test.js, 2.45–2.46 in validate-cli.test.js, 2.48 in version.test.js.
+// Change add-party-brands: 2.31 (modified "Theme from the sheet", labels only) and 2.32 (Retired theme line) are here;
+// 2.33 is in party-brands.spec.js.
 //
-// "Load capture sheet" reads one file, so a sheet with a logo reports the missing asset when loaded alone. Where the
-// scenario needs 0 errors, the Acme sheet is loaded as its folder (or a zip with assets/); single-file loads use
-// tests/fixtures/sheet-tiny, which has no logo.
+// "Load capture sheet" reads one file, so a sheet whose Parties table names brands reports each brand missing when
+// loaded alone (add-party-brands). Where the scenario needs 0 errors, the Acme sheet is loaded as its folder (or a zip
+// with its brands/ folder); single-file loads use tests/fixtures/sheet-tiny, which names no brands.
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { zipSync } from 'fflate';
-import { test, expect, openEngine, loadZip, loadFolder, skipPrompt, go, messages, fixtureDir, useSnapshot, openSnapshot, noHorizontalScroll, fileUrl, SAMPLE_SHEET, SAMPLE_SHEET_DIR } from './helpers.js';
+import { test, expect, openEngine, loadZip, loadFolder, skipPrompt, go, messages, fixtureDir, useSnapshot, openSnapshot, noHorizontalScroll, fileUrl, readFolder, SAMPLE_SHEET, SAMPLE_SHEET_DIR } from './helpers.js';
 
 const text = (p) => readFileSync(p, 'utf8');
 const BASE = text(join(fixtureDir('sheet-tiny'), 'capture-sheet.md'));
 const ACME = text(SAMPLE_SHEET);
 const QUESTIONS = text(join(fixtureDir('sheet-open-questions'), 'capture-sheet.md'));
-const LOGO = new Uint8Array(readFileSync(join(SAMPLE_SHEET_DIR, 'assets', 'logo.svg')));
+// The Acme sheet's brands/ folder (brand packs), zipped next to a sheet text by loadSheetZip.
+const BRANDS = Object.fromEntries(Object.entries(readFolder(join(SAMPLE_SHEET_DIR, 'brands'))).map(([p, d]) => [`brands/${p}`, d]));
 const { version } = JSON.parse(text(new URL('../../package.json', import.meta.url)));
 const AXE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 
@@ -35,9 +38,11 @@ async function loadSheet(page, sheet, name = 'capture-sheet.md') {
   await expect(page.getByTestId('report')).toBeVisible();
 }
 
-// A sheet text plus the Acme assets/ folder, through "Load .zip".
+// A sheet text plus the Acme brands/ folder, through "Load .zip".
 async function loadSheetZip(page, sheet, name = 'acme-capture-sheet') {
-  const buffer = Buffer.from(zipSync({ [`${name}/capture-sheet.md`]: new TextEncoder().encode(sheet), [`${name}/assets/logo.svg`]: LOGO }));
+  const files = { [`${name}/capture-sheet.md`]: new TextEncoder().encode(sheet) };
+  for (const [p, d] of Object.entries(BRANDS)) files[`${name}/${p}`] = d;
+  const buffer = Buffer.from(zipSync(files));
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: 'Load .zip' }).click();
   await (await chooser).setFiles({ name: `${name}.zip`, mimeType: 'application/zip', buffer });
@@ -201,18 +206,35 @@ test.describe('capture-sheet (author mode)', () => {
     await expect(page.getByTestId('export')).toBeDisabled();
   });
 
-  test('2.12 capture-sheet › Theme from the sheet', async ({ page }) => {
+  // add-party-brands 2.31 (modified scenario): the Theme section is labels only. Was "2.12 … Theme from the sheet",
+  // which asserted the sheet's colour on the header and its logo; both are retired.
+  test('2.31 capture-sheet › Theme from the sheet', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
     await loadAcmeFolder(page);
     await expect(counts(page)).toHaveText('0 errors, 0 warnings');
+    await expect(messages(page)).toHaveCount(0); // so no theme messages
     await skipPrompt(page);
-    expect(await pv(page).locator('.topbar').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(11, 31, 77)');
-    const logo = pv(page).getByTestId('logo');
-    await expect(logo).toBeVisible();
-    expect(await logo.evaluate((img) => img.complete && img.naturalWidth > 0), 'logo image decoded').toBe(true);
     await expect(pv(page).locator('#om-ws-h')).toHaveText('Value streams');
     await go(page, '#/w/presales');
     await expect(pv(page).locator('main .eyebrow').first()).toHaveText('Value stream');
     expect(await pv(page).innerText()).not.toMatch(/workstream/i);
+    // Labels only: the frame is the engine's own, and there is no logo.
+    expect(await pv(page).locator('.topbar').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(31, 58, 95)');
+    await expect(pv(page).getByTestId('logo')).toHaveCount(0);
+  });
+
+  test('2.32 capture-sheet › Retired theme line', async ({ page }) => {
+    await loadSheetZip(page, edit(ACME, 'Label workstreams: Value streams\n', 'Label workstreams: Value streams\nPrimary colour: #0b1f4d\n'));
+    await expect(counts(page)).toHaveText('0 errors, 1 warning');
+    const m = msg(page, 'Primary colour: #0b1f4d');
+    await expect(m).toHaveCount(1);
+    await expect(m).toHaveAttribute('data-level', 'warning');
+    await expect(m).toContainText('is ignored');
+    await expect(m).toContainText('Party colours now come from brand packs');
+    await expect(m.locator('.msg-where')).toContainText('Theme');
+    await expect(page.getByTestId('export')).toBeEnabled();
+    await skipPrompt(page);
+    expect(await pv(page).locator('.topbar').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(31, 58, 95)');
   });
 
   test('2.13 capture-sheet › Notes for a workstream', async ({ page }) => {
