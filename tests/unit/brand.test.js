@@ -84,13 +84,18 @@ test('a missing optional mark (mono or full) is a warning, not an error, so expo
   }
 });
 
-test('a mark that does not look like SVG: a warning; SVG with a BOM, whitespace or an XML declaration is fine', () => {
-  for (const text of ['<!DOCTYPE html><html><body>not a mark</body></html>', 'PNG\r\n', '']) {
+test('a mark that does not look like SVG: a warning; SVG with a BOM, whitespace, comments, a DOCTYPE or an XML declaration is fine', () => {
+  for (const text of ['<!DOCTYPE html><html><body>not a mark</body></html>', '<!-- svg --><html><svg></svg></html>', '<!DOCTYPE svg><p>no</p>', 'PNG\r\n', '']) {
     const m = only(folder('globex', { ...globex(), 'brands/globex/mark.svg': text }).messages);
     assert.equal(m.level, 'warning');
     assert.match(m.problem, /doesn't look like an SVG file: it doesn't start with <svg or <\?xml/);
   }
-  for (const text of [`﻿${MARK}`, `\n  ${MARK}`, `<?xml version="1.0"?>\n${MARK}`]) assert.deepEqual(folder('globex', { ...globex(), 'brands/globex/mark.svg': text }).messages, []);
+  for (const text of [
+    `﻿${MARK}`, `\n  ${MARK}`, `<?xml version="1.0"?>\n${MARK}`,
+    `<!-- Generator: Design Tool 1.0 -->\n${MARK}`,
+    `﻿\n<!-- one -->\n<!--\n two\n-->\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n${MARK}`,
+    `<!DOCTYPE svg [ <!ENTITY a "b"> ]>${MARK}`,
+  ]) assert.deepEqual(folder('globex', { ...globex(), 'brands/globex/mark.svg': text }).messages, []);
 });
 
 test('a brands/__proto__/ folder is an ordinary pack folder: no prototype pollution, and lookups use own keys', () => {

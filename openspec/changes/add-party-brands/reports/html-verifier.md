@@ -31,3 +31,17 @@
 - The retired theme data is stripped from snapshots.
 - The Sources example is fixed.
 - The private-names guard is extended to `openspec/` so names in planning documents are caught.
+
+## Round 2: NOT VERIFIED (one PARTIAL)
+- **The round-1 PARTIAL is MET.** Only labels are embedded from the theme, and the retired values are absent.
+- **Everything else is MET.** Across 19 snapshots, 3,456 text/background pairs have a minimum contrast of 4.51. axe finds nothing, and there are no console errors or requests. The regression pass is clean. 3.2 passes: 0 matches across the repo and its full history.
+- **PARTIAL: party-brands › Party identity where the party appears.** The swimlane legend shows the colour and name, but not the mark, which the spec requires.
+- **Minor findings:**
+  - The mobile step list shows the party colour and name, but no mark.
+  - Unbranded parties whose names start with the same words get identical initials ("PO").
+
+### Orchestrator decision
+- Add marks to the legend items.
+- Add a mark next to the party name in the mobile step list, for consistency.
+- The identical initials for similarly named unbranded parties are deferred. Names and colours still differ, and the remedy is to give those parties brands.
+- QA round-2 MINOR 1 (long word in a party-page heading) and MINOR 3 (an SVG with a leading comment or DOCTYPE) are fixed in the same round.

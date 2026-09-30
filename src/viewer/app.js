@@ -576,7 +576,7 @@ function legend() {
   <li><svg width="44" height="12" aria-hidden="true"><path class="edge" d="M2 6H34" marker-end="url(#om-arrow)"/></svg>Handoff within ${L.a('party')}</li>
   <li><svg width="44" height="12" aria-hidden="true"><path class="edge cross" d="M2 6H34" marker-end="url(#om-open)"/></svg>Handoff between ${L.lower('parties')}</li>
   <li><span class="raci-key" aria-hidden="true">C</span>Consulted or informed (RACI)</li>
-  ${F.groups.filter((g) => is(g.party, 'party')).map((g) => `<li data-testid="legend-party"${dp(g.party)}><span class="swatch" aria-hidden="true"></span>${esc(E[g.party].name)}</li>`).join('')}
+  ${F.groups.filter((g) => is(g.party, 'party')).map((g) => `<li data-testid="legend-party"${dp(g.party)}><span class="swatch" aria-hidden="true"></span>${mark(g.party, false)}${esc(E[g.party].name)}</li>`).join('')}
   ${persona() ? '<li><span class="cue">Your lane</span> Emphasised for you; everything else stays open</li>' : ''}
 </ul>`;
 }
@@ -592,7 +592,7 @@ function flowList() {
   <a class="flow-item" href="${stepHref(s)}" data-step="${esc(id)}" data-testid="step-${esc(id)}"${s.id === route.step ? ' aria-current="step"' : ''}>
     <span class="fi-num" aria-hidden="true">${i + 1}</span>
     <span class="fi-body"><span class="fi-name">${esc(s.name)}</span>
-    <span class="fi-lane">${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? ` · ${esc(E[s.party].name)}` : ''}</span>
+    <span class="fi-lane">${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? ` · <span class="ptag">${mark(s.party, false)}${esc(E[s.party].name)}</span>` : ''}</span>
     ${badge(s.change) || c ? `<span class="tags">${badge(s.change)}${c ? `<span class="cue">${c}</span>` : ''}</span>` : ''}
     <span class="fi-next">${nx.length ? `Next: ${nx.map((e) => `${esc(F.nodes[e.to].step.name)}${e.label ? ` (${esc(e.label)})` : ''}`).join(', ')}` : 'End of the flow'}</span></span>
   </a></li>`;

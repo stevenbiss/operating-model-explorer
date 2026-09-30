@@ -152,6 +152,11 @@ test.describe('party-brands (author mode)', () => {
       const item = pv(page).locator(`[data-testid="legend-party"][data-party="${b.i}"]`);
       await expect(item).toHaveText(b.name);
       expect(await colourOf(page, item.locator('.swatch'), 'backgroundColor')).toBe(rgbKey(b.colour));
+      // ...and the mark, decorative because the name is beside it.
+      const legendMark = item.locator('img.mk');
+      await expect(legendMark).toHaveAttribute('src', b.mark);
+      await expect(legendMark).toHaveAttribute('alt', '');
+      expect(await legendMark.evaluate((img) => img.complete && img.naturalWidth > 0), `${b.name} legend mark decoded`).toBe(true);
     }
     // The owner chip in the step detail shows Acme's mark and name.
     const tag = pv(page).getByTestId('owner').locator('.ptag');
@@ -303,6 +308,13 @@ test.describe('party-brands (author mode)', () => {
     await expect(bandMark).toHaveText('CT');
     expect(await colourOf(page, pv(page).locator('.lane-heads .band[data-party="1"] .band-bg'), 'fill'), 'band in the neutral').toBe(colour);
     await expect(pv(page).locator('.lane-heads .band[data-party="1"] .band-name')).toHaveText('Client Team');
+    // The legend shows the initials beside the name (hidden from assistive tech, since the name is read), and Globex's mark.
+    const legendInit = pv(page).locator('[data-testid="legend-party"][data-party="1"] .mk-init');
+    await expect(legendInit).toHaveText('CT');
+    await expect(legendInit).toHaveAttribute('aria-hidden', 'true');
+    expect(await colourOf(page, legendInit, 'backgroundColor'), 'legend initials in the neutral').toBe(colour);
+    await expect(pv(page).locator('[data-testid="legend-party"][data-party="1"]')).toHaveText('CTClient Team');
+    await expect(pv(page).locator('[data-testid="legend-party"][data-party="0"] img.mk')).toHaveAttribute('src', fixtureMark('brand-unbranded', 'globex'));
   });
 
   test('2.30 content-schema › Brand packs are not elements', async ({ page, browser }, info) => {
@@ -405,6 +417,52 @@ test.describe('party-brands (phone)', () => {
       }
     });
   }
+});
+
+// Verifier round 2: on a phone, each step in the list shows its party's mark beside the party name.
+test.describe('party-brands (phone step list marks)', () => {
+  const snap = useSnapshot('brand-unbranded');
+
+  test('party-brands › Party identity where the party appears: marks in the phone step list', { tag: '@mobile-only' }, async ({ page }) => {
+    await openSnapshot(page, snap, '#/p/flow');
+    await expect(page.getByTestId('swimlane')).toHaveAttribute('data-layout', 'list');
+    const branded = page.getByTestId('step-step-globex').locator('.fi-lane .ptag');
+    await expect(branded).toHaveText('Globex');
+    const img = branded.locator('img.mk');
+    await expect(img).toHaveAttribute('src', fixtureMark('brand-unbranded', 'globex'));
+    await expect(img).toHaveAttribute('alt', '');
+    expect(await img.evaluate((i) => i.complete && i.naturalWidth > 0), 'mark decoded').toBe(true);
+    const unbranded = page.getByTestId('step-step-client-team').locator('.fi-lane .ptag');
+    await expect(unbranded).toHaveText('CTClient Team');
+    await expect(unbranded.locator('.mk-init')).toHaveAttribute('aria-hidden', 'true');
+    // Beside the name: the mark and the name share a row.
+    for (const tag of [branded, unbranded]) {
+      const [mb, tb] = [await tag.locator('.mk').boundingBox(), await tag.boundingBox()];
+      expect(mb.y >= tb.y - 1 && mb.y + mb.height <= tb.y + tb.height + 1, 'mark beside the party name').toBe(true);
+    }
+    expect(await noHorizontalScroll(page)).toBe(true);
+  });
+});
+
+// QA round 2, MINOR 1: a 34-character single word as a party name must not cause horizontal scroll on a phone.
+test.describe('party-brands (long single-word name)', () => {
+  const WORD = 'Supercalifragilisticexpialidocious';
+  const snap = useSnapshot(variant('brand-unbranded', 'brand-long-word', { 'parties/02-client-team.md': (s) => s.replace('name: Client Team', `name: ${WORD}`) }));
+
+  test('party-brands › A long single-word party name wraps, with no horizontal scroll', { tag: '@mobile-only' }, async ({ page }) => {
+    expect(WORD).toHaveLength(34);
+    const vw = page.viewportSize().width;
+    for (const hash of ['#/e/client-team', '#/e/client-team-lead', '#/p/flow', '#/p/flow/s/step-client-team', '']) {
+      await openSnapshot(page, snap, hash);
+      await skipPrompt(page);
+      expect(await noHorizontalScroll(page), `no horizontal page scroll at ${hash || 'overview'}`).toBe(true);
+    }
+    await openSnapshot(page, snap, '#/e/client-team');
+    const h1 = page.locator('.party-head h1');
+    await expect(h1).toContainText(WORD);
+    const b = await h1.boundingBox();
+    expect(b.x >= 0 && b.x + b.width <= vw, 'the heading fits the screen').toBe(true);
+  });
 });
 
 // QA round 1, MAJOR 2 and 3: twenty parties, with long names ("Partner Organisation 1 Holdings").

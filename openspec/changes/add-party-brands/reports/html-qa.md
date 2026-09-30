@@ -33,3 +33,29 @@ Markup in brand fields and in the Brand cell was escaped. All 19 odd mark paths 
 
 ### Orchestrator decision
 One fix round covers MAJOR 1–3, MINOR 1–5, 7 and 9 (missing optional marks become warnings, and the name maps are merged), plus the yellow-in-dark rule (shift lightness before hue) and the verifier decisions. MINOR 6 and 10 are deferred. MINOR 8 is handled at release.
+
+## Round 2: SHIP
+- **The three MAJOR findings from round 1 are fixed:**
+  - Only labels are embedded from the theme; the retired values are absent from the file.
+  - 20 parties show at 375 with no horizontal scroll.
+  - Long band names are readable.
+- **The round-1 MINOR findings 1–5 and 9 are fixed.** Across 3,900 random models:
+  - Every clash that can't be resolved is labelled "unresolved".
+  - All 4,834 warnings quote the author's own colour.
+- **Adjusting lightness before hue:** yellow stays yellow in dark mode. The largest hue drift across 10 yellows was 0.4°.
+- **Contrast:** 20,916 pairs from the model sweep and 3,968 pairs measured in the browser, all at 4.5:1 or above.
+- **Distinguishability:** no pair was too close without being reported, and 0 of 25,200 pairs failed under colour-blindness simulation.
+- **Security:** the hostile brand-pack battery is still inert, and the CSP is still hash-only.
+- **Other checks:**
+  - axe finds 0 serious, critical or region issues.
+  - The console is clean.
+  - Performance is unchanged.
+  - The skill wording is in place.
+- **New MINOR findings:**
+  1. A long single word in a party name causes horizontal scroll on the party page at 375.
+  2. Band names that wrap badly can overflow the 196px header cell.
+  3. An SVG that starts with a comment or DOCTYPE gets a false "not SVG" warning.
+
+### Orchestrator decision
+- MINOR 1 (it breaks the no-horizontal-scroll standard) and MINOR 3 are fixed before release.
+- MINOR 2 is deferred. The legend always shows the full name.
