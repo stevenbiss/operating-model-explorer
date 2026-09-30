@@ -13,7 +13,7 @@ A brand pack SHALL be a folder `brands/<id>/` inside the model folder, containin
 - `version` and `updated` (a date);
 - `colours.primary`, and optionally `colours.secondary` and `colours.dark`, each a hex colour;
 - `marks.mark`: a required square SVG in the pack folder;
-- optionally `marks.mono` and `marks.full`.
+- optionally `marks.mono` and `marks.full`. A missing optional mark SHALL be a warning, not an error.
 
 The Markdown body holds usage notes. A pack SHALL NOT define fonts. A `fonts` field SHALL produce a warning saying brand fonts are not used.
 
@@ -51,6 +51,7 @@ A party SHALL be able to name a brand pack by id: with a `brand:` field in a par
 ### Requirement: Party identity where the party appears
 Wherever a party appears, the viewer SHALL show that party's colour and mark together with its name:
 - party cards on the overview,
+- workstream cards (the marks of the parties involved),
 - party bands and lane tints in the swimlane,
 - owner chips in step details,
 - the swimlane legend,
@@ -67,10 +68,10 @@ Colour SHALL never be the only cue: the party's name or mark SHALL always accomp
 - **THEN** each party card shows that party's mark and colour next to its name
 
 ### Requirement: Readable brand colours
-The engine SHALL derive what it draws from each brand colour: lane tints, band colours, and the text colour used on them. All text on a brand-coloured surface SHALL meet WCAG AA contrast (4.5:1), whatever the brand colour. In dark mode, the engine SHALL use the pack's `colours.dark` when it is given, and otherwise derive a variant, still meeting AA.
+The engine SHALL derive what it draws from each brand colour: lane tints, band colours, and the text colour used on them. All text on a brand-coloured surface SHALL meet WCAG AA contrast (4.5:1), whatever the brand colour. In dark mode, the engine SHALL use the pack's `colours.dark` when it is given, and otherwise derive a variant, still meeting AA. Whenever the engine must adjust a brand colour, it SHALL change lightness before hue, so the brand stays recognisable.
 
 #### Scenario: Light brand colour
-- **WHEN** a party's primary colour is `#ffd400` (a light yellow)
+- **WHEN** a party's primary colour is `#ffd23f` (a light yellow)
 - **THEN** text on that party's band is dark, and its contrast is at least 4.5:1
 
 #### Scenario: Dark mode
@@ -81,7 +82,7 @@ The engine SHALL derive what it draws from each brand colour: lane tints, band c
 The engine SHALL check that every pair of party colours in a model is clearly different, including under simulated common colour-vision deficiencies (protanopia, deuteranopia, tritanopia). When two parties' colours are too close, the later party SHALL use its secondary colour if that resolves the clash, and otherwise a shifted shade. The report SHALL show a warning naming both parties and saying which colour was changed. Export SHALL remain enabled.
 
 #### Scenario: Two similar reds
-- **WHEN** two parties' primary colours are `#e10600` and `#d40511`, and the second pack has a blue secondary colour
+- **WHEN** two parties' primary colours are `#d6281e` and `#c92d25`, and the second pack has a blue secondary colour
 - **THEN** the second party is drawn in its secondary colour, and the report warns that its primary was too close to the first party's
 
 #### Scenario: Distinct colours

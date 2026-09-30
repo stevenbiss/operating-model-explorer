@@ -68,6 +68,12 @@ Algorithm, for each scheme (light, then dark):
 
 This is deterministic: the same model always gives the same colours. It's pure, so it's unit-tested without a browser. It runs in `buildModel`, and its result is embedded in the snapshot, so the viewer never recomputes it.
 
+### D3a. Fix-round decisions (after verify and QA round 1)
+- Adjustments shift **lightness before hue** in light and dark, so brands stay recognisable. Hue shifts are used only when lightness alone can't clear a clash.
+- Clashes that no candidate resolves are reported as **unresolved**, naming both parties.
+- Warnings quote the author's own colour, and mention the derived value only as an explanation.
+- Fixture colours are arbitrary (e.g. `#d6281e` and `#c92d25`), never real brands' colours.
+
 ### D4. Applying colours in the viewer
 `themeCss` becomes `partyCss`. For each party index, it emits custom properties on `[data-party="<n>"]`: `--p-band`, `--p-band-text` and `--p-tint`, with a `@media (prefers-color-scheme: dark)` block for the dark values. Views set `data-party` on cards, bands, lanes, chips, legend items and page headers. The swimlane SVG uses the same properties through `style` attributes. `partyColour(i)` and the palette are removed.
 
