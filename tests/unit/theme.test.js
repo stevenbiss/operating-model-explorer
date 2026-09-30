@@ -1,70 +1,65 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
-import { contrast } from '../../src/model/theme-check.js';
 import { toSnapshot } from '../../src/model/snapshot.js';
-import { article, labeller, themeCss, DEFAULT_PALETTE } from '../../src/viewer/theme.js';
+import { article, labeller } from '../../src/viewer/theme.js';
 import { formatRoute, parseRoute } from '../../src/viewer/route.js';
 import { files, MODEL, readFolder, SAMPLE } from './helpers.js';
 
 const withTheme = (header, extra = {}) => loadModel(files({ 'model.md': MODEL, 'theme.md': `---\ntype: theme\n${header}---\n`, ...extra }));
 
-test('contrast uses the WCAG formula', () => {
-  assert.equal(contrast('#000000', '#ffffff').toFixed(0), '21');
-  assert.equal(contrast('#999999', '#ffffff').toFixed(2), '2.85');
+// Theme keys retired by add-party-brands (theming spec › Theme file, design D7).
+test('2.21 custom colours: "colors" is ignored with one warning saying party colours now come from brand packs', () => {
+  const msgs = withTheme('colors:\n  primary: "#0b1f4d"\n  text: "#999999"\n  palette: ["#3a6ea5"]\n').messages;
+  assert.equal(msgs.length, 1, 'one warning per retired key, and no contrast check');
+  const [m] = msgs;
+  assert.deepEqual([m.level, m.file], ['warning', 'theme.md']);
+  assert.match(m.problem, /"colors", which is retired, so it is ignored/);
+  assert.match(m.problem, /Party colours now come from brand packs/);
+  assert.match(m.fix, /^Remove "colors" from theme\.md\. .*brand pack/);
 });
 
-test('low-contrast theme: a warning naming both colours, the ratio and the minimum', () => {
-  const [m, ...rest] = withTheme('colors:\n  text: "#999999"\n  background: "#ffffff"\n').messages;
+test('2.22 logo: ignored with a warning, even when the file is missing or a web address', () => {
+  for (const logo of ['assets/logo.svg', 'assets/missing.png', 'https://example.com/logo.png']) {
+    const [m, ...rest] = withTheme(`logo: ${logo}\n`).messages;
+    assert.equal(rest.length, 0, logo);
+    assert.equal(m.level, 'warning');
+    assert.match(m.problem, /"logo", which is retired.*party marks from brand packs/);
+  }
+});
+
+test('2.25 remote font: a retired-key warning, not an error, and no font reaches the snapshot', () => {
+  const r = withTheme('fonts:\n  body: https://fonts.example.com/brand.woff2\n  heading: assets/brand.woff2\n', { 'assets/brand.woff2': 'x' });
+  const [m, ...rest] = r.messages;
+  assert.equal(rest.length, 0);
   assert.equal(m.level, 'warning');
-  assert.equal(m.file, 'theme.md');
-  for (const s of ['#999999', '#ffffff', '2.85:1', '4.5:1']) assert.ok(m.problem.includes(s), s);
-  assert.ok(m.fix);
-  assert.ok(rest.every((x) => x.level === 'warning'));
+  assert.match(m.problem, /"fonts", which is retired.*No font is fetched or embedded/);
+  assert.equal(m.fix, 'Remove "fonts" from theme.md.');
+  assert.deepEqual(toSnapshot(r.model).assets, {});
 });
 
-test('remote font rejected: error explaining fonts must be files in assets/', () => {
-  const msgs = withTheme('fonts:\n  body: https://fonts.example.com/brand.woff2\n').messages;
-  assert.equal(msgs.length, 1);
-  assert.equal(msgs[0].level, 'error');
-  assert.match(msgs[0].problem, /Fonts must be files in the assets\/ folder/);
+test('a palette key: its own warning; every retired key warns once, in a fixed order', () => {
+  const msgs = withTheme('palette: ["#3a6ea5"]\nlogo: x.svg\nfonts: { body: Georgia }\ncolors: { primary: "#000000" }\n').messages;
+  assert.deepEqual(msgs.map((m) => m.problem.match(/"(\w+)", which is retired/)[1]), ['colors', 'fonts', 'logo', 'palette']);
 });
 
-test('remote logo rejected', () => {
-  const [m] = withTheme('logo: https://example.com/logo.png\n').messages;
-  assert.equal(m.level, 'error');
-  assert.match(m.problem, /web address/);
-});
-
-test('missing asset: error naming the missing file', () => {
-  const [m] = withTheme('logo: assets/missing.png\n').messages;
+test('2.27 missing asset: a narrative image that is not in assets/ is an error naming the file', () => {
+  const [m] = loadModel(files({ 'model.md': MODEL.replace('purpose: A tiny model.', 'purpose: "See ![Plan](assets/missing.png)"') })).messages;
   assert.equal(m.level, 'error');
   assert.match(m.problem, /"assets\/missing\.png" was not found/);
-  const font = withTheme('fonts:\n  heading: assets/brand.woff2\n').messages[0];
-  assert.match(font.problem, /"assets\/brand\.woff2" was not found/);
-  assert.deepEqual(withTheme('fonts:\n  heading: assets/brand.woff2\n', { 'assets/brand.woff2': 'x' }).messages, []);
 });
 
-test('no theme file: no theme messages, the default palette and no overrides', () => {
-  const { model, messages } = loadModel(files({ 'model.md': MODEL }));
-  assert.deepEqual(messages, []);
-  const t = themeCss(toSnapshot(model));
-  assert.equal(t.css, ':root:root{}');
-  assert.deepEqual(t.palette, DEFAULT_PALETTE);
+test('2.23 no theme file: no theme messages', () => {
+  assert.deepEqual(loadModel(files({ 'model.md': MODEL })).messages, []);
 });
 
-test('the sample theme becomes CSS custom properties, and the snapshot keeps only the logo as a data URI', () => {
+test('2.20 labels only: no theme messages, and the snapshot carries only the labels and no logo', () => {
+  const r = withTheme('labels:\n  workstream: Value stream\n  workstreams: Value streams\n');
+  assert.deepEqual(r.messages, []);
+  assert.equal(labeller(toSnapshot(r.model).theme)('workstream'), 'Value stream');
   const snap = toSnapshot(loadModel(readFolder(SAMPLE)).model);
-  assert.deepEqual(Object.keys(snap.assets), ['assets/logo.svg']);
-  assert.match(snap.assets['assets/logo.svg'], /^data:image\/svg\+xml;base64,/);
-  const { css, palette } = themeCss(snap);
-  for (const s of ['--om-primary:#0b1f4d', '--om-on-primary:#ffffff', '--om-bg:#ffffff', '--om-text:#1a1a1a', 'color-scheme:light', '--om-font-heading:Georgia, serif']) assert.ok(css.includes(s), s);
-  assert.equal(palette[0], '#3a6ea5');
-});
-
-test('a font stack cannot inject CSS', () => {
-  const snap = toSnapshot(withTheme('fonts:\n  body: "Arial; } body { display: none"\n').model);
-  assert.ok(!themeCss(snap).css.includes('display: none;') && !/[{};]\s*body/.test(themeCss(snap).css.replace(':root:root{', '')));
+  assert.deepEqual(snap.assets, {}, "the sample's old logo is no longer embedded");
+  assert.equal(labeller(snap.theme)('workstreams'), 'Value streams');
 });
 
 test('labels: overrides replace defaults, unset terms keep them', () => {

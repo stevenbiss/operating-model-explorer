@@ -8,7 +8,7 @@ const names = readdirSync(dir).filter((f) => f.endsWith('.schema.json'));
 const load = (f) => JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
 
 test('there is a schema for every type', () => {
-  assert.deepEqual(names.map((f) => f.split('.')[0]).sort(), ['model', 'party', 'persona', 'process', 'role', 'team', 'theme', 'workstream']);
+  assert.deepEqual(names.map((f) => f.split('.')[0]).sort(), ['brand', 'model', 'party', 'persona', 'process', 'role', 'team', 'theme', 'workstream']);
 });
 
 for (const f of names) {

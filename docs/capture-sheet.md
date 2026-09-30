@@ -131,7 +131,7 @@ Version: 1.0
 | `## Workstreams` | No | A table of groups of processes. |
 | `## Process: <name>` | No | One section per process: its lines, a step table, a RACI matrix and notes. |
 | `## Personas` | No | A table of the types of viewer, and where each one starts. |
-| `## Theme` | No | Colours, fonts, logo and your own words for terms. |
+| `## Theme` | No | Your own words for terms. |
 | `## Notes: <name>` | No | Text for a party, team, role, workstream, process or persona, shown on its page. |
 | `## Open questions` | No | A checklist of things still to decide. Not included in snapshots. |
 | `## Sources` | No | A list of the material the sheet was drafted from. Not included in snapshots. |
@@ -320,34 +320,18 @@ An unknown name is an error, with a suggestion when one is close. So is a name s
 
 ## Theme
 
-`## Theme` is optional. It holds `Key: value` lines, one per line. Anything left out uses the neutral default theme.
+`## Theme` is optional. It holds `Label <term>: <word>` lines, one per line: your word for one of the engine's terms: `model`, `party`, `team`, `role`, `persona`, `workstream`, `process`, `step` and `key message`, each also in the plural (`Label workstreams`). Rename both forms together.
 
 ```markdown
 ## Theme
 
-Name: Acme + Globex
-Primary colour: #0b1f4d
-Accent colour: #b34700
-Background colour: #ffffff
-Surface colour: #f4f5f7
-Text colour: #1a1a1a
-Palette: #3a6ea5; #2e7d5b
-Body font: Segoe UI, system-ui, sans-serif
-Heading font: Georgia, serif
 Label workstream: Value stream
 Label workstreams: Value streams
 ```
 
-| Key | What it does |
-|---|---|
-| `Name` | The theme's name. |
-| `Primary colour`, `Accent colour`, `Background colour`, `Surface colour`, `Text colour` | Hex colours such as `#0b1f4d`. `color` works too. Text colours must pass WCAG AA contrast (4.5:1). |
-| `Palette` | Colours for parties and lanes, in order, separated by semicolons. |
-| `Body font`, `Heading font` | A font file in `assets/` (e.g. `assets/brand.woff2`) or a system font stack. Web addresses are not allowed. |
-| `Logo` | An image file in `assets/`, e.g. `assets/logo.svg`. |
-| `Label <term>` | Your word for one of the engine's terms: `model`, `party`, `team`, `role`, `persona`, `workstream`, `process`, `step` and `key message`, each also in the plural (`Label workstreams`). Rename both forms together. |
+The frame always uses the engine's neutral theme. Lines for colours, fonts, a logo or a palette are retired: each one is ignored with a warning, because party colours and marks now come from brand packs.
 
-A logo, font or image is read from an `assets/` folder next to the sheet. To load them, put the sheet and `assets/` in one folder (or `.zip`) and load that.
+An image is read from an `assets/` folder next to the sheet. To load it, put the sheet and `assets/` in one folder (or `.zip`) and load that.
 
 ## Open questions and Sources
 

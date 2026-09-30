@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { unzipSync, zipSync } from 'fflate';
 import { join, relative } from 'node:path';
-import { schemas } from '../src/model/schemas.js';
+import { brandSchema, schemas } from '../src/model/schemas.js';
 import { contentReference } from '../src/model/reference.js';
 
 const root = new URL('../', import.meta.url);
@@ -21,7 +21,7 @@ const writeIfChanged = (p, data) => {
   writeFileSync(new URL(p, root), buf);
 };
 
-writeIfChanged('docs/content-reference.md', contentReference(schemas));
+writeIfChanged('docs/content-reference.md', contentReference({ ...schemas, brand: brandSchema }));
 
 // One version across the bundle (design D11): package.json is the single source. The engine gets it through
 // esbuild's define; SKILL.md's "Version:" line and plugin.json's "version" are stamped when those files exist.

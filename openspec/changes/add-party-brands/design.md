@@ -57,6 +57,15 @@ Algorithm, for each scheme (light, then dark):
 
    If no ink reaches 4.5 on `band`, lightness is shifted until one does.
 
+**Tuned values (task 1.3):**
+- `T = 0.06` in OKLab. That is about 3× the OKLab just-noticeable difference. Measured pairs: `#e10600`/`#d40511` are 0.024 apart (must clash), `#b8261c` is 0.010 from Removed `#b42318` (must clash), `#e10600` is 0.088 from Removed and 0.095 from "Your lane" (must pass), and navy `#0b1f4d` is 0.396 from green `#3aaa35` (must pass). So T has to fall between 0.03 and 0.088.
+- **Party vs party** uses the smallest ΔE in normal vision and under each of the three simulations. **Party vs meaning** uses ΔE in normal vision only. This departs from step 2: under simulation the four warm and green meaning colours collapse onto one axis, so nearly every warm or green brand (including `#e10600` against "Your lane" at 0.010 for deuteranopia) would be shifted. Meaning is never shown by colour alone, because badges and "Your lane" carry text.
+- The meaning colours are accent, new, changed and removed. The focus ring (`--om-link`) is included too, in light and dark. They're mirrored from `styles.css` in `ENGINE` in `colour.js`, and a unit test keeps the two in step.
+- **Steps:** secondary colour (light scheme only), then hue ±20° up to ±120°, then OKLCH lightness −/+0.06 up to ±0.30. If nothing passes, the candidate with the largest margin is used and an "unresolved" warning is shown. Before any check, each candidate is shifted in lightness by 0.01 steps until white or `#111111` ink reaches 4.5:1. If that changed a brand's colour, a "contrast" warning is shown.
+- **Dark:** the pack's `dark` is used only when the light scheme used the primary. Otherwise the dark colour is derived from the light result (clamped to L 0.62–0.78), so a party that fell back to its secondary colour stays on that hue.
+- **Tint:** 10% of the band mixed into the surface (sRGB), with the frame text on it.
+- **Neutrals:** `#3e5c71`, `#c0c9a5`, `#635737`, `#bea0ba`, `#a2cfc5`, `#a8ae99`. The first three stay T apart in both schemes. Later neutrals are shifted if needed, and unbranded parties never get a colour warning.
+
 This is deterministic: the same model always gives the same colours. It's pure, so it's unit-tested without a browser. It runs in `buildModel`, and its result is embedded in the snapshot, so the viewer never recomputes it.
 
 ### D4. Applying colours in the viewer

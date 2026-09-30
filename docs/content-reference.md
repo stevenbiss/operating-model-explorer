@@ -50,6 +50,7 @@ An organisation taking part in the model, such as a partner company or a client.
 | `type` | Yes | one of: party | Always party. |
 | `name` | Yes | text | The organisation's display name. |
 | `summary` | No | text | One or two sentences about this party. |
+| `brand` | No | text | Optional id of a brand pack in brands/<id>/, e.g. acme. The party is then shown with that brand's colour and mark. Left out, it gets a neutral colour and its initials. |
 | `change` | No | group of fields | Optional current vs future state. |
 | `change.status` | Yes | one of: new, changed, removed, unchanged | How this element differs from today. |
 | `change.today` | No | text | How it works today, shown next to the future state. |
@@ -62,6 +63,7 @@ id: acme
 type: party
 name: Acme Corp
 summary: The client-facing partner.
+brand: acme
 ---
 ```
 
@@ -257,7 +259,7 @@ steps:
 
 ## theme
 
-Optional look and language of the model: colours, fonts, logo and the words used for each term. Lives in theme.md at the top of the folder. Anything left out uses the neutral default theme.
+Optional words used for each term, in theme.md at the top of the folder. The frame always uses the engine's neutral theme, and each party's colours and mark come from its brand pack.
 
 **EDGY concept:** None (presentation only)
 
@@ -266,17 +268,10 @@ Optional look and language of the model: colours, fonts, logo and the words used
 | `type` | Yes | one of: theme | Always theme. |
 | `id` | No | text | Optional id: lower-case letters and numbers joined by hyphens. |
 | `name` | No | text | Optional theme name. |
-| `colors` | No | group of fields | Colours as hex codes, e.g. "#0b1f4d". Put quotes around them. |
-| `colors.primary` | No | text | Header, active navigation and selected items. A hex colour such as #0b1f4d. |
-| `colors.accent` | No | text | Highlights. A hex colour such as #e0632a. |
-| `colors.background` | No | text | Page background. A hex colour such as #ffffff. |
-| `colors.surface` | No | text | Cards and panels. A hex colour such as #f4f5f7. |
-| `colors.text` | No | text | Body text. A hex colour such as #1a1a1a. |
-| `colors.palette` | No | list of text | Colours for parties and lanes, used in order. |
-| `fonts` | No | group of fields | A font file in assets/ (e.g. assets/brand.woff2) or a system font stack (e.g. Georgia, serif). Web addresses are not allowed. |
-| `fonts.body` | No | text | Font for body text. |
-| `fonts.heading` | No | text | Font for headings. |
-| `logo` | No | text | An image file in assets/, e.g. assets/logo.svg. |
+| `colors` | No | group of fields | Retired in 1.2: ignored, with a warning. Party colours now come from brand packs. |
+| `fonts` | No | group of fields | Retired in 1.2: ignored, with a warning. The engine always uses its own fonts. |
+| `logo` | No | text | Retired in 1.2: ignored, with a warning. The header shows the party marks from brand packs. |
+| `palette` | No | list | Retired in 1.2: ignored, with a warning. Each party's colour comes from its brand pack. |
 | `labels` | No | group of fields | Your words for the engine's terms. Anything left out keeps its default. |
 | `labels.model` | No | text | Default: Model |
 | `labels.models` | No | text | Default: Models |
@@ -302,20 +297,45 @@ Optional look and language of the model: colours, fonts, logo and the words used
 ```yaml
 ---
 type: theme
-colors:
-  primary: '#0b1f4d'
-  accent: '#e0632a'
-  background: '#ffffff'
-  surface: '#f4f5f7'
-  text: '#1a1a1a'
-  palette:
-    - '#3a6ea5'
-    - '#2e7d5b'
-fonts:
-  body: Segoe UI, system-ui, sans-serif
-logo: assets/logo.svg
 labels:
   workstream: Value stream
   workstreams: Value streams
+---
+```
+
+## brand
+
+A brand pack: a party's colours and mark. It lives in brands/<id>/brand.md, next to its image files, and is copied into the model from the brand library. The Markdown text below the header holds usage notes, which are never shown or exported. A party uses it with a brand: line (or the capture sheet's Brand column).
+
+**EDGY concept:** None (presentation only)
+
+| Field | Required | Value | Description |
+|---|---|---|---|
+| `id` | Yes | text | The pack's id, the same as its folder name: lower-case letters and numbers joined by hyphens, e.g. globex. |
+| `name` | Yes | text | The brand's name. |
+| `version` | Yes | text or number | The pack's version in the brand library, e.g. "2026.1". Put quotes around it, so a version such as 2026.10 keeps its last 0. |
+| `updated` | Yes | text | The date the pack was last changed, as YYYY-MM-DD, e.g. 2026-03-01. |
+| `colours` | Yes | group of fields | The brand's colours. Colours must be hex values such as "#0b1f4d". Put quotes around them. |
+| `colours.primary` | Yes | text | The main brand colour. Colours must be hex values such as "#0b1f4d". |
+| `colours.secondary` | No | text | Used when the primary colour is too close to another party's. Colours must be hex values such as "#e0632a". |
+| `colours.dark` | No | text | The primary colour for dark mode. Left out, the engine derives one. Colours must be hex values such as "#6a86bc". |
+| `marks` | Yes | group of fields | Image files in the pack's own folder, written relative to it, e.g. mark.svg. |
+| `marks.mark` | Yes | text | A square SVG mark, shown next to the party's name, e.g. mark.svg. |
+| `marks.mono` | No | text | Optional one-colour version of the mark, e.g. mark-mono.svg. |
+| `marks.full` | No | text | Optional full logo, e.g. logo.svg. |
+
+**Example**
+
+```yaml
+---
+id: globex
+name: Globex
+version: '2026.1'
+updated: '2026-03-01'
+colours:
+  primary: '#2e7d5b'
+  secondary: '#3a6ea5'
+marks:
+  mark: mark.svg
 ---
 ```

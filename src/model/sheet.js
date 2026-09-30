@@ -4,6 +4,7 @@
 import MarkdownIt from 'markdown-it';
 import { closest, COMBINED } from './validate.js';
 import { schemas } from './schemas.js';
+import { RETIRED, retiredFix } from './theme-check.js';
 
 export const FORMAT = 1; // the newest capture sheet format this engine reads (D11)
 
@@ -49,7 +50,7 @@ export function isSheet(text) {
 // [heading, field, required] per table. Column headers match by nameKey, in any order.
 const CHANGE = [['Change', 'status'], ['Today', 'today'], ['ID', 'id']];
 const TABLES = {
-  party: [['Party', 'name', 1], ['Summary', 'summary'], ...CHANGE],
+  party: [['Party', 'name', 1], ['Summary', 'summary'], ['Brand', 'brand'], ...CHANGE],
   team: [['Team', 'name', 1], ['Party', 'party', 1], ['Summary', 'summary'], ...CHANGE],
   role: [['Role', 'name', 1], ['Party', 'party', 1], ['Team', 'team'], ['Summary', 'summary'], ...CHANGE],
   workstream: [['Workstream', 'name', 1], ['Summary', 'summary', 1], ['Parties', 'parties'], ['Detail', 'detail', 1], ...CHANGE],
@@ -60,7 +61,6 @@ const SECTION = { party: 'Parties', team: 'Teams', role: 'Roles', workstream: 'W
 const SECTIONS = ['Purpose', 'Key messages', 'About this model', 'Parties', 'Teams', 'Roles', 'Workstreams', 'Personas', 'Theme', 'Open questions', 'Sources'];
 const REQUIRED = ['Purpose', 'Key messages', 'Parties', 'Roles'];
 const WORD = { party: 'party', team: 'team', role: 'role', workstream: 'workstream', process: 'process', persona: 'persona' };
-const COLOURS = ['primary', 'accent', 'background', 'surface', 'text'];
 const LABELS = Object.keys(schemas.theme.properties.labels.properties);
 
 const colKey = (h) => (h.trim() === '#' ? '#' : nameKey(h));
@@ -116,7 +116,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
 
   // ---------- helpers over a section's tokens ----------
 
-  // "Key: value" lines in paragraphs. known(key) -> true if the key is understood.
+  // "Key: value" lines in paragraphs. known(key, line) -> true if the key is understood.
   function keyLines(blocks, where, known, fix) {
     const out = {};
     blocks.forEach((t, i) => {
@@ -124,7 +124,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
       for (const line of t.content.split('\n')) {
         const m = line.match(/^\s*([^:]+?)\s*:\s*(.*)$/);
         const k = m && m[1].toLowerCase().replace(/\s+/g, ' ');
-        if (k && known(k)) out[k] = m[2].trim();
+        if (k && known(k, line.trim())) out[k] = m[2].trim();
         else if (line.trim()) say('warning', where, `The line "${line.trim()}" is not one the engine understands here, so it is ignored.`, fix);
       }
     });
@@ -287,7 +287,8 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
   doc('model', 'Top of the sheet', { ...compact({ id: head.id || toId(name), name, version: head.version }), purpose, key_messages: keys }, one['About this model'] ? textOf(one['About this model'].blocks, 1) : '');
 
   const base = (r) => compact({ id: r.id, name: r.get('name'), summary: r.get('summary'), change: changeOf(r.get('status'), r.get('today'), r.where) });
-  for (const r of rows.party) doc('party', r.where, base(r));
+  // Brand: a pack id, matched to brands/ by loadModel, which can see the packs.
+  for (const r of rows.party) doc('party', r.where, compact({ ...base(r), brand: r.get('brand') }));
   for (const r of rows.team) doc('team', r.where, compact({ ...base(r), party: find('party', r.get('party'), r.where, 'party') }));
   for (const r of rows.role) {
     doc('role', r.where, compact({ ...base(r), party: find('party', r.get('party'), r.where, 'party'), team: find('team', r.get('team'), r.where, 'team') }));
@@ -379,26 +380,22 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     doc('persona', r.where, compact({ ...base(r), roles, entry }));
   }
 
-  // ---------- theme ----------
+  // ---------- theme: Label lines only; lines for the retired keys warn (design D9) ----------
   if (one.Theme) {
-    const theme = {};
-    const set = (path, v) => {
-      let o = theme;
-      for (const p of path.slice(0, -1)) o = o[p] ??= {};
-      o[path[path.length - 1]] = v;
-    };
-    const pathOf = (k) => {
-      const c = k.replace(/colou?r$/, '').trim();
-      if (k === 'name' || k === 'logo') return [k];
-      if (/colou?r$/.test(k) && COLOURS.includes(c)) return ['colors', c];
-      if (k === 'palette') return ['colors', 'palette'];
-      if (/^(body|heading) font$/.test(k)) return ['fonts', k.split(' ')[0]];
+    const labels = {};
+    const RETIRED_WORD = { colors: 'theme colours are', fonts: 'theme fonts are', logo: 'the theme logo is', palette: 'the theme palette is' };
+    const retired = (k) => (/^(primary|accent|background|surface|text) colou?r$/.test(k) ? 'colors' : /^(body|heading) font$/.test(k) ? 'fonts' : ['logo', 'palette'].includes(k) ? k : undefined);
+    const label = (k) => {
       const l = k.match(/^label (.+)$/);
-      if (l && LABELS.includes(l[1].replace(/ /g, '_'))) return ['labels', l[1].replace(/ /g, '_')];
+      return l && LABELS.includes(l[1].replace(/ /g, '_')) ? l[1].replace(/ /g, '_') : undefined;
     };
-    const kv = keyLines(one.Theme.blocks, 'Theme', pathOf, 'Theme lines are "Key: value", e.g. "Primary colour: #0b1f4d", "Logo: assets/logo.svg" or "Label workstream: Value stream". See the format spec for every key.');
-    for (const [k, v] of Object.entries(kv)) if (v) set(pathOf(k), k === 'palette' ? v.split(/[;,]/).map((c) => c.trim()).filter(Boolean) : v);
-    doc('theme', 'Theme', theme);
+    const kv = keyLines(one.Theme.blocks, 'Theme', (k, line) => {
+      if (label(k)) return true;
+      if (retired(k)) say('warning', 'Theme', `The Theme line "${line}" is ignored, because ${RETIRED_WORD[retired(k)]} retired. ${RETIRED[retired(k)]}`, retiredFix(retired(k), 'Remove the line.'));
+      return !!retired(k);
+    }, 'The Theme section holds only "Label <term>: <word>" lines, e.g. "Label workstream: Value stream". See the format spec for every term.');
+    for (const [k, v] of Object.entries(kv)) if (v && label(k)) labels[label(k)] = v;
+    doc('theme', 'Theme', Object.keys(labels).length ? { labels } : {});
   }
 
   // ---------- narratives for named elements ----------

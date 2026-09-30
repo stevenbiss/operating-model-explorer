@@ -347,22 +347,33 @@ test('2.11 personas: roles by name and every kind of Starts at', () => {
   assert.match(bad.problem, /"Starts at" is "The start"/);
 });
 
-test('2.12 theme lines become the theme, and the logo is read from assets/', () => {
-  const logo = '<svg xmlns="http://www.w3.org/2000/svg"/>';
-  const r = load(`${BASE}\n## Theme\n\nName: Tiny\nPrimary color: #0b1f4d\nText colour: #1a1a1a\nPalette: #3a6ea5; #2e7d5b\nBody font: Georgia, serif\nLogo: assets/logo.svg\nLabel workstream: Value stream\nLabel workstreams: Value streams\nLabel key message: Big idea\nLabel key messages: Big ideas\n`, { 'assets/logo.svg': logo });
+test('2.12 / 2.31 theme: Label lines become the theme labels, with no theme messages', () => {
+  const r = load(`${BASE}\n## Theme\n\nLabel workstream: Value stream\nLabel workstreams: Value streams\nLabel key message: Big idea\nLabel key messages: Big ideas\n`);
   assert.deepEqual(r.messages, []);
-  assert.deepEqual(r.model.theme, {
-    type: 'theme',
-    name: 'Tiny',
-    colors: { primary: '#0b1f4d', text: '#1a1a1a', palette: ['#3a6ea5', '#2e7d5b'] },
-    fonts: { body: 'Georgia, serif' },
-    logo: 'assets/logo.svg',
-    labels: { workstream: 'Value stream', workstreams: 'Value streams', key_message: 'Big idea', key_messages: 'Big ideas' },
+  assert.deepEqual(r.model.theme, { type: 'theme', labels: { workstream: 'Value stream', workstreams: 'Value streams', key_message: 'Big idea', key_messages: 'Big ideas' } });
+});
+
+test('2.32 retired theme lines: one warning each, naming the line and what replaces it; nothing is applied', () => {
+  const lines = ['Primary colour: #0b1f4d', 'Text color: #1a1a1a', 'Palette: #3a6ea5; #2e7d5b', 'Body font: Georgia, serif', 'Logo: assets/logo.svg'];
+  const r = load(`${BASE}\n## Theme\n\n${lines.join('\n')}\nLabel workstream: Value stream\nLabel workstreams: Value streams\n`);
+  assert.equal(r.messages.length, lines.length);
+  r.messages.forEach((m, i) => {
+    assert.deepEqual([m.level, m.where], ['warning', 'Theme']);
+    assert.ok(m.problem.startsWith(`The Theme line "${lines[i]}" is ignored, because `), m.problem);
+    assert.match(m.problem, /retired/);
+    assert.match(m.fix, /^Remove the line\./);
   });
-  assert.ok(r.model.assets['assets/logo.svg']);
-  const missing = only(load(`${BASE}\n## Theme\n\nLogo: assets/logo.svg\nFavourite colour: blue\n`).messages.filter((m) => m.level === 'error'));
-  assert.deepEqual([missing.where, missing.problem], ['Theme', 'The logo file "assets/logo.svg" was not found. Images must be files in the assets/ folder.']);
-  assert.ok(load(`${BASE}\n## Theme\n\nFavourite colour: blue\n`).messages.some((m) => m.level === 'warning' && /Favourite colour/.test(m.problem)));
+  assert.match(r.messages[0].problem, /Party colours now come from brand packs/);
+  assert.match(r.messages[0].fix, /brand pack/);
+  assert.match(r.messages[3].problem, /own fonts/);
+  assert.match(r.messages[4].problem, /party marks from brand packs/);
+  assert.deepEqual(r.model.theme, { type: 'theme', labels: { workstream: 'Value stream', workstreams: 'Value streams' } });
+  // No logo file needed any more, and a line that was never a theme key is still the usual "not understood" warning.
+  const other = only(load(`${BASE}\n## Theme\n\nFavourite colour: blue\n`).messages);
+  assert.equal(other.level, 'warning');
+  assert.match(other.problem, /"Favourite colour: blue" is not one the engine understands/);
+  assert.match(other.fix, /Label <term>/);
+  assert.match(only(load(`${BASE}\n## Theme\n\nName: Tiny\n`).messages).problem, /"Name: Tiny" is not one the engine understands/);
 });
 
 test('Purpose, Key messages and About this model become the model; Notes attach to the named element', () => {
@@ -415,7 +426,7 @@ test('ID and Version lines under the title', () => {
 
 test('a sheet loads on its own, or from a folder or zip with assets/ alongside', () => {
   const single = loadModel([{ path: 'capture-sheet.md', data: readFileSync(SAMPLE_SHEET) }]);
-  assert.deepEqual(single.messages.map((m) => m.problem), ['The logo file "assets/logo.svg" was not found. Images must be files in the assets/ folder.']);
+  assert.deepEqual(single.messages, []);
   const folder = loadModel(readSampleSheet());
   assert.deepEqual(folder.messages, []);
   assert.ok(folder.model.assets['assets/logo.svg']);

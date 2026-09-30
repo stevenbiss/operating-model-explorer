@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/brand.schema.json",
+  "title": "brand",
+  "description": "A brand pack: a party's colours and mark. It lives in brands/<id>/brand.md, next to its image files, and is copied into the model from the brand library. The Markdown text below the header holds usage notes, which are never shown or exported. A party uses it with a brand: line (or the capture sheet's Brand column).",
+  "x-edgy": "None (presentation only)",
+  "type": "object",
+  "required": ["id", "name", "version", "updated", "colours", "marks"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The pack's id, the same as its folder name: lower-case letters and numbers joined by hyphens, e.g. globex." },
+    "name": { "type": "string", "description": "The brand's name." },
+    "version": { "type": ["string", "number"], "description": "The pack's version in the brand library, e.g. \"2026.1\". Put quotes around it, so a version such as 2026.10 keeps its last 0." },
+    "updated": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "The date the pack was last changed, as YYYY-MM-DD, e.g. 2026-03-01." },
+    "colours": {
+      "type": "object",
+      "description": "The brand's colours. Colours must be hex values such as \"#0b1f4d\". Put quotes around them.",
+      "required": ["primary"],
+      "properties": {
+        "primary": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "The main brand colour. Colours must be hex values such as \"#0b1f4d\"." },
+        "secondary": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "Used when the primary colour is too close to another party's. Colours must be hex values such as \"#e0632a\"." },
+        "dark": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", "description": "The primary colour for dark mode. Left out, the engine derives one. Colours must be hex values such as \"#6a86bc\"." }
+      },
+      "additionalProperties": false
+    },
+    "marks": {
+      "type": "object",
+      "description": "Image files in the pack's own folder, written relative to it, e.g. mark.svg.",
+      "required": ["mark"],
+      "properties": {
+        "mark": { "type": "string", "description": "A square SVG mark, shown next to the party's name, e.g. mark.svg." },
+        "mono": { "type": "string", "description": "Optional one-colour version of the mark, e.g. mark-mono.svg." },
+        "full": { "type": "string", "description": "Optional full logo, e.g. logo.svg." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": "globex",
+      "name": "Globex",
+      "version": "2026.1",
+      "updated": "2026-03-01",
+      "colours": { "primary": "#2e7d5b", "secondary": "#3a6ea5" },
+      "marks": { "mark": "mark.svg" }
+    }
+  ]
+}

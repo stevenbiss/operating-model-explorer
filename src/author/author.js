@@ -60,7 +60,7 @@ function shell() {
       <h2 id="om-drop-title">Drop a capture sheet, folder or .zip here</h2>
       <p class="drop-or">or choose one</p>
       <button type="button" class="btn btn-primary btn-lg" data-act="sheet" data-testid="load-capture-sheet" aria-describedby="om-sheet-hint">Load capture sheet</button>
-      <p class="drop-hint" id="om-sheet-hint">One .md file. If it uses a logo or images, load its folder instead.</p>
+      <p class="drop-hint" id="om-sheet-hint">One .md file. If it uses brand packs or images, load its folder instead.</p>
       <div class="drop-actions">
         <button type="button" class="btn" data-act="folder" data-testid="load-folder">Load folder</button>
         <button type="button" class="btn" data-act="zip" data-testid="load-zip">Load .zip</button>

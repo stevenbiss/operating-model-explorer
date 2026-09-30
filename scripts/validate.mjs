@@ -18,13 +18,13 @@ const walk = (dir) =>
     .filter((e) => e.isFile())
     .map((e) => ({ path: relative(dir, join(e.parentPath, e.name)).replace(/\\/g, '/'), data: new Uint8Array(readFileSync(join(e.parentPath, e.name))) }));
 
-// A sheet file is read with the assets/ folder next to it, as a folder holding the sheet would be.
+// A sheet file is read with the assets/ and brands/ folders next to it, as a folder holding the sheet would be.
 function read(path) {
   if (statSync(path).isDirectory()) return walk(path);
   const data = new Uint8Array(readFileSync(path));
   if (/\.zip$/i.test(path)) return readZip(data);
-  const assets = join(dirname(path), 'assets');
-  return [{ path: basename(path), data }, ...(existsSync(assets) ? walk(assets).map((f) => ({ ...f, path: `assets/${f.path}` })) : [])];
+  const beside = ['assets', 'brands'].map((d) => [d, join(dirname(path), d)]).filter(([, dir]) => existsSync(dir));
+  return [{ path: basename(path), data }, ...beside.flatMap(([d, dir]) => walk(dir).map((f) => ({ ...f, path: `${d}/${f.path}` })))];
 }
 
 const path = process.argv[2];

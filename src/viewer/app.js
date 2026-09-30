@@ -3,7 +3,7 @@
 import { renderInline, renderMarkdown, useImages } from '../model/markdown.js';
 import { flow, isRemoved, nextOf, prevOf } from '../model/layout.js';
 import { formatRoute, parseRoute } from './route.js';
-import { labeller, themeCss } from './theme.js';
+import { DEFAULT_PALETTE, labeller } from './theme.js';
 import { swimlaneSvg } from './swimlane.js';
 import { esc } from './esc.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
@@ -32,7 +32,7 @@ const narrow = matchMedia('(max-width: 767px)');
 let M; // snapshot
 let E; // elements by id
 let L; // label lookup; every output is already HTML-escaped (theme.js)
-let palette;
+const palette = DEFAULT_PALETTE;
 let route = null;
 let root;
 let main;
@@ -92,21 +92,12 @@ const letterHtml = (l) => {
 
 // ---------- entry ----------
 
-// target: #app in viewer mode; in author mode the preview element, which the theme is then scoped to.
+// target: #app in viewer mode; in author mode the preview element.
 export function render(snapshot, target = document.getElementById('app')) {
   M = snapshot;
   E = M.elements;
   L = labeller(M.theme);
   useImages(M.assets);
-  const theme = themeCss(M, target.id === 'app' ? undefined : `#${target.id}`);
-  palette = theme.palette;
-  let style = document.getElementById('om-theme');
-  if (!style) {
-    style = document.createElement('style');
-    style.id = 'om-theme';
-    document.head.append(style);
-  }
-  style.textContent = theme.css;
   try {
     visited = new Set(JSON.parse(store.get(visitedKey()) || '[]'));
   } catch {
@@ -156,11 +147,10 @@ function personaButtons(testid = 'persona-door') {
 
 function shell() {
   const m = M.model || {};
-  const logo = M.theme && M.assets[M.theme.logo];
   const personas = M.order.persona;
   return `<a class="skip" href="#om-main" data-skip>Skip to content</a>
 <header class="topbar"><div class="bar-in">
-  <a class="brand" data-testid="brand" href="#/">${logo ? `<img src="${esc(logo)}" alt="${esc(m.name)}" data-testid="logo">` : ''}<span class="brand-name"${logo ? ' aria-hidden="true"' : ''}>${esc(m.name)}</span></a>
+  <a class="brand" data-testid="brand" href="#/"><span class="brand-name">${esc(m.name)}</span></a>
   <div class="top-tools">
     <div class="progress" data-testid="progress"><span class="meter" aria-hidden="true"><span></span></span><span class="progress-text"></span>
       <button type="button" class="btn btn-key" data-open-km data-testid="key-messages-button">${L('key_messages')}</button></div>

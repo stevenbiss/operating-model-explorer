@@ -51,9 +51,8 @@ test('the sample has change data: new, changed and removed, each with today', ()
   for (const status of ['new', 'changed', 'removed']) assert.ok(changes.some((c) => c.change.status === status && c.change.today), status);
 });
 
-test('the sample theme has a logo in assets/ and label overrides', () => {
-  assert.ok(model.assets[model.theme.logo]);
-  assert.equal(model.theme.labels.workstream, 'Value stream');
+test('the sample theme is labels only (theme colours, fonts and logo are retired)', () => {
+  assert.deepEqual(model.theme, { type: 'theme', labels: { workstream: 'Value stream', workstreams: 'Value streams' } });
 });
 
 test('steps are resolved to owner, lane and party, and edges are precomputed (D4)', () => {

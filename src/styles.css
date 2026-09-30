@@ -1,6 +1,6 @@
-/* Operating Model Explorer. Every colour and font comes from a token (design D8): the default theme below,
-   overridden by <style id="om-theme"> when the model has a theme.md. In author mode the theme applies only to
-   #om-preview, so the tokens are declared there too (derived tokens must be re-computed from its own colours). */
+/* Operating Model Explorer. Every colour and font comes from a token: the engine's neutral frame below, which
+   themes no longer change (add-party-brands D7). The tokens are declared on #om-preview too, for author mode.
+   The meaning and frame colours are mirrored in src/model/colour.js (ENGINE); a unit test keeps them in step. */
 
 :root, #om-preview {
   color-scheme: light dark;

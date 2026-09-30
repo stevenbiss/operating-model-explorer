@@ -57,7 +57,7 @@ const whereOf = (doc, i) => {
 
 const fieldName = (path) => path.reduce((acc, p) => (typeof p === 'number' ? `${acc} item ${p + 1}` : acc ? `${acc}.${p}` : p), '');
 
-function wordIssue(issue, doc) {
+export function wordIssue(issue, doc) {
   const { header } = doc;
   let path = issue.path;
   let step;

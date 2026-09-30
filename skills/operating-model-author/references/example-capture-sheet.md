@@ -135,16 +135,6 @@ Summary: Design, price and review the proposal, then send it to the client.
 
 ## Theme
 
-Name: Acme + Globex
-Primary colour: #0b1f4d
-Accent colour: #b34700
-Background colour: #ffffff
-Surface colour: #f4f5f7
-Text colour: #1a1a1a
-Palette: #3a6ea5; #2e7d5b; #8a4f9e; #9c6b00
-Body font: Segoe UI, system-ui, sans-serif
-Heading font: Georgia, serif
-Logo: assets/logo.svg
 Label workstream: Value stream
 Label workstreams: Value streams
 
