@@ -33,3 +33,6 @@ I checked this myself against the engine from `file://` with the network off, th
 - The package spec lists `references/assets/`.
 - The error location is fixed in this fix round.
 - 2.23 and 2.29 are re-run after the fix round.
+
+## Manual check by the user (30 September 2026)
+- **2.51 Marketplace install: PASS.** The user ran `/plugin marketplace add stevenbiss/operating-model-explorer` and then `/plugin install operating-model-author@operating-model-explorer` in Claude Code, and the skill appears in `/skills`. The orchestrator's session also lists `operating-model-author:operating-model-author` with its trigger description.

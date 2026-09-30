@@ -87,7 +87,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.48 Versions match (unit test)
 - [x] 2.49 Engine shows its version
 - [x] 2.50 Committed skill folder is current (Node test: rebuild, no diff under `skills/`)
-- [ ] 2.51 Marketplace install works (skill trial: add the marketplace from GitHub after pushing, install, validate the Acme sheet)
+- [x] 2.51 Marketplace install works (skill trial: add the marketplace from GitHub after pushing, install, validate the Acme sheet)
 - [x] 2.52 Release assets (checked after publishing, in 5.2)
 - [x] 2.53 Newer format
 - [x] 2.54 Missing format line
