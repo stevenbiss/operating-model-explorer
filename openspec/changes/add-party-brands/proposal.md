@@ -32,13 +32,12 @@ We want the engine to show **whose part is whose** at a glance: each party's col
 ## Capabilities
 
 ### New Capabilities
-- `party-brands`: the brand pack format, loading packs from `brands/`, party-to-brand references, colour adaptation (tints, text colour, dark variants), the distinguishability and meaning-colour checks, the fallback for parties with no brand, the header lockup, and the snapshot's brand metadata.
+- `party-brands`: the brand pack format, where party identity appears in the views (cards, swimlane bands and tints, owner chips, legend, party and role pages), loading packs from `brands/`, party-to-brand references, colour adaptation (tints, text colour, dark variants), the distinguishability and meaning-colour checks, the fallback for parties with no brand, the header lockup, and the snapshot's brand metadata.
 
 ### Modified Capabilities
-- `theming`: frame colours, fonts, the theme logo and the palette are retired (REMOVED, with migration notes). Labels are kept, and the default theme is the neutral host. The requirements covering custom colours, the logo, remote fonts and theme contrast change or are removed.
+- `theming`: the theme is reduced to labels, with frame colours, fonts, the theme logo and the palette retired (they warn when set). The default theme becomes the always-on neutral frame. "Offline assets only" now covers brand marks and narrative images. "Accessible theme colours" is removed (REMOVED, with a migration note to the party-brands checks).
 - `content-schema`: a `brand:` field on party files, a `brands/` folder in the content layout, and validation of brand packs (required fields, a missing mark, bad colours).
 - `capture-sheet`: a `Brand` column in the Parties table, and a Theme section reduced to labels.
-- `explorer-views`: party cards, swimlane bands and lane tints, owner chips and the legend use brand identity, and the header shows the lockup.
 - `authoring-skill`: the brand library workflow (copying packs into the model folder, filling in the Brand column, the output-location rules unchanged).
 
 ## Non-goals
