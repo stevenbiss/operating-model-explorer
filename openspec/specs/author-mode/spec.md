@@ -6,14 +6,14 @@ Lets colleagues turn their content folder into a shareable snapshot using only t
 ## Requirements
 
 ### Requirement: Engine opens in author mode
-The engine file SHALL open in author mode when it has no embedded content. Author mode SHALL offer loading a content folder, loading a `.zip` of a content folder, loading the bundled sample, and opening the content reference.
+The engine file SHALL open in author mode when it has no embedded content. Author mode SHALL offer loading a capture sheet, loading a content folder, loading a `.zip` of a content folder, loading the bundled sample, and opening the content reference.
 
 #### Scenario: First open
 - **WHEN** `dist/operating-model-explorer.html` is opened from disk
-- **THEN** author mode shows controls for "Load folder", "Load .zip", "Try the sample" and "Content reference"
+- **THEN** author mode shows controls for "Load capture sheet", "Load folder", "Load .zip", "Try the sample" and "Content reference"
 
 ### Requirement: Load content
-Author mode SHALL accept a content folder by drag-and-drop or folder picker in current Chrome and Edge, and a `.zip` of the folder in any supported browser. Loading SHALL read only the selected files, and SHALL NOT send content anywhere.
+Author mode SHALL accept a capture sheet (a single `.md` file) by file picker or drag-and-drop in any supported browser. It SHALL accept a content folder by drag-and-drop or folder picker in current Chrome and Edge, and a `.zip` of a folder in any supported browser. A folder or `.zip` containing a capture sheet, plus optional `assets/`, SHALL be loaded as that capture sheet. A folder or `.zip` containing both a capture sheet and element files SHALL be an error asking the author to keep one format. Loading SHALL read only the selected files, and SHALL NOT send content anywhere.
 
 #### Scenario: Load a zip
 - **WHEN** the author loads a `.zip` of `examples/acme-sample/`
@@ -22,6 +22,18 @@ Author mode SHALL accept a content folder by drag-and-drop or folder picker in c
 #### Scenario: Load the bundled sample
 - **WHEN** the author activates "Try the sample"
 - **THEN** the sample model is validated and previewed without the author selecting any files
+
+#### Scenario: Load a capture sheet
+- **WHEN** the author activates "Load capture sheet" and chooses `examples/acme-capture-sheet/capture-sheet.md`
+- **THEN** the validation report and the preview appear, and no network requests are made
+
+#### Scenario: Keyboard load of a capture sheet
+- **WHEN** a keyboard user tabs to "Load capture sheet", presses Enter and chooses a sheet
+- **THEN** the sheet loads exactly as it does with drag-and-drop
+
+#### Scenario: Mixed formats rejected
+- **WHEN** a folder contains both `capture-sheet.md` and a `roles/` folder of element files
+- **THEN** the report shows an error explaining that a model is either one capture sheet or a folder of element files, and export is disabled
 
 ### Requirement: Validation report
 After loading, author mode SHALL show the validation report (see content-schema) with error and warning counts, each message identifying its file. A model with no problems SHALL show a clear "Ready to export" state.
@@ -49,11 +61,15 @@ When there are no errors, author mode SHALL export a snapshot as a single HTML f
 - **THEN** the Export control is disabled and says how many errors must be fixed
 
 ### Requirement: Snapshot contains only what was loaded
-The snapshot SHALL contain only the engine and the files loaded from the content folder that the model uses. It SHALL NOT include other files from the folder, the author's file paths, or the validation report.
+The snapshot SHALL contain only the engine and the content the model uses. It SHALL NOT include other files from the folder, the author's file paths, the validation report, or a capture sheet's Open questions, Sources or HTML comments.
 
 #### Scenario: Unused file excluded
 - **WHEN** a content folder also contains `notes/private.txt` that no element references
 - **THEN** the exported snapshot does not contain the text of `private.txt`
+
+#### Scenario: Capture-sheet working notes excluded
+- **WHEN** a capture sheet with Open questions, Sources and guidance comments is exported
+- **THEN** the snapshot contains none of that text
 
 ### Requirement: Accessible author mode
 All author mode controls SHALL be keyboard operable and labelled, including the folder and zip pickers as alternatives to drag-and-drop. Author mode SHALL be usable at 768px width and above.
@@ -61,3 +77,14 @@ All author mode controls SHALL be keyboard operable and labelled, including the 
 #### Scenario: Keyboard load
 - **WHEN** a keyboard user tabs to "Load .zip", presses Enter and chooses a file
 - **THEN** the content loads exactly as it does with drag-and-drop
+
+### Requirement: Open questions in the report
+When a capture sheet has unticked open questions, the validation report SHALL list them in their own group labelled "Open questions", separately from other warnings, with a count. Export SHALL remain enabled.
+
+#### Scenario: Open questions group
+- **WHEN** a sheet with 3 unticked open questions is loaded
+- **THEN** the report shows an "Open questions (3)" group listing them, and the Export control is enabled
+
+#### Scenario: Report at 768px
+- **WHEN** a sheet with open questions is loaded at 768px wide
+- **THEN** the report and the open-questions group are readable without horizontal scrolling

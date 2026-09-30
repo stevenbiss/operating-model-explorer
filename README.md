@@ -4,7 +4,7 @@ An engine that turns an operating model, written as one capture sheet or a folde
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.1.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.1.0)). It adds the capture sheet, `npm run validate`, and the operating-model-author skill and plugin to the v1 engine. Built, tested (142 end-to-end and 134 unit tests), verified and QA-approved; the skill was checked in simulated trials. Reports are in `openspec/changes/add-capture-sheet-authoring/reports/`.
+**Status:** v1.1.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.1.0)). It adds the capture sheet, `npm run validate`, and the operating-model-author skill and plugin to the v1 engine. Built, tested (142 end-to-end and 134 unit tests), verified and QA-approved; the skill was checked in simulated trials. Reports are in `openspec/changes/archive/2026-09-30-add-capture-sheet-authoring/reports/`.
 
 ## For authors
 
