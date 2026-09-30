@@ -123,6 +123,17 @@ test('HTML comments are ignored everywhere and never reach the model', () => {
   assert.doesNotMatch(JSON.stringify(r.model), /SECRET/);
 });
 
+test('comments are removed in one pass: an unclosed <!-- runs to the end of the file, and 40,000 of them parse quickly', () => {
+  const r = load(`${BASE}\n<!-- never closed\n## Personas\nSECRET-D\n`);
+  assert.deepEqual(r.messages, []);
+  assert.doesNotMatch(JSON.stringify(r.model), /SECRET/);
+  assert.deepEqual(load(`${BASE}<!-- a --> <!-- b -->\n`).messages, [], 'two comments alone on a line go with the line');
+
+  const start = performance.now();
+  sheetToDocs(`${BASE}\n${'<!-- open\n'.repeat(40000)}`);
+  assert.ok(performance.now() - start < 1000, `took ${Math.round(performance.now() - start)} ms`);
+});
+
 // ---------- tables ----------
 
 test('2.4 columns in a different order load exactly the same', () => {
@@ -294,7 +305,7 @@ test('2.10 combined letters rejected: an error naming the step and role, with th
   const r = load(BASE.replace('| 1 | A | | |', '| 1 | A/R | | |'));
   const m = only(r.messages);
   assert.equal(m.level, 'error');
-  assert.equal(m.where, 'Process: Build the proposal › row 1 (Plan the bid)');
+  assert.equal(m.where, 'Process: Build the proposal › RACI › row 1 (Plan the bid)', 'at the RACI row, where the letters are written');
   assert.match(m.problem, /Account lead has "A\/R" on the step "Plan the bid"/);
   assert.equal(m.fix, 'Choose one letter: R if Account lead does the work, or A if Account lead signs the work off.');
 });

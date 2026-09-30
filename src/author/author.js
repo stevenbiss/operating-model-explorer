@@ -32,7 +32,7 @@ export function startAuthor(el) {
 function shell() {
   return `<div class="author">
 <div class="author-bar" role="region" aria-label="Author tools"><div class="bar-in">
-  <p class="author-brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Operating Model Explorer <span class="mode">Author mode</span> <span class="ver" data-testid="author-engine-version">Engine ${OM_VERSION}</span></p>
+  <p class="author-brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand-text">Operating Model Explorer</span> <span class="mode">Author mode</span> <span class="ver" data-testid="author-engine-version">Engine ${OM_VERSION}</span></p>
   <div class="author-actions">
     <p class="source" data-testid="source" hidden></p>
     <button type="button" class="btn" data-act="reload" data-testid="reload" hidden>Reload</button>
@@ -224,7 +224,7 @@ function reportHtml(errors, warnings, counts, files, source) {
     return `<li class="msg msg-${esc(m.level)}" data-testid="report-message" data-level="${esc(m.level)}"${m.openQuestion ? ' data-open-question' : ''}>
   <span class="msg-level">${m.level === 'error' ? 'Error' : m.openQuestion ? 'Question' : 'Warning'}</span>
   <div class="msg-body"><p class="msg-where">${m.where ? esc(m.where) : `<code>${esc(m.file)}</code>${where ? ` · ${where}` : ''}`}</p>
-  <p class="msg-problem">${esc(m.problem)}</p>
+  <p class="msg-problem">${esc(m.openQuestion ? m.problem.replace(/^Open question: /, '') : m.problem)}</p>
   <p class="msg-fix"><span class="k">How to fix</span> ${esc(m.fix)}</p></div></li>`;
   };
   return `<div class="report-head">

@@ -2,7 +2,7 @@
 
 A capture sheet is one Markdown file that holds a whole operating model. It is the easy way to write a model: fixed section headings, a table for each list of things, and names instead of ids. People can read and comment on it as one document, and the engine loads it directly, just like a content folder.
 
-This page is the full format, **format 1**. For a complete real-size sheet, see `examples/acme-capture-sheet/capture-sheet.md`. To start a new one, copy `templates/capture-sheet.md`.
+This page is the full format, **format 1**. For a complete real-size sheet, see the example capture sheet. To start a new one, copy the blank template. (In the repo they are `examples/acme-capture-sheet/capture-sheet.md` and `templates/capture-sheet.md`; in the authoring skill, `references/example-capture-sheet.md` and `references/capture-sheet-template.md`.)
 
 ## At a glance
 
@@ -12,7 +12,7 @@ This page is the full format, **format 1**. For a complete real-size sheet, see 
 - Lists of things (parties, teams, roles, workstreams, steps, personas, the RACI matrix) are Markdown tables. Columns are found by their header, in any order, ignoring case and spaces.
 - Things refer to each other **by name**. Names match ignoring case, spaces and punctuation, so `solution  Architect` finds "Solution architect".
 - Different kinds of thing may share a name, such as a workstream and a process both called "Win the work". Every id must still be unique across the whole model, so the engine appends the kind to the id of the one that comes **later** in the sheet (parties, teams, roles, workstreams, personas, then processes, each in table order): the process gets the id `win-the-work-process`. There is no message, and the names stay as written. An id you set yourself (an `ID` column or `ID:` line) is never changed: if it is the same as the id of something earlier in the sheet, the report shows an error naming both places.
-- HTML comments (`<!-- like this -->`) are ignored everywhere, so you can leave guidance in the sheet.
+- HTML comments (`<!-- like this -->`) are ignored everywhere, so you can leave guidance in the sheet. A comment ends at the next `-->`. If a `<!--` is never closed, everything from it to the end of the file is ignored, so close every comment you add.
 - **Open questions** and **Sources** are working notes. They are never included in an exported snapshot.
 
 ## A complete small sheet

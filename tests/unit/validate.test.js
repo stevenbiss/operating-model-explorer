@@ -156,6 +156,14 @@ test('closest id prefers abbreviations, and gives up when nothing is similar', (
   assert.equal(closest('zzzzzz', ['account-lead', 'bid-manager']), undefined);
 });
 
+test('closest skips strings over 100 characters, so very long names stay fast', () => {
+  const long = 'x'.repeat(20000);
+  const start = performance.now();
+  assert.equal(closest(long, ['account-lead', `${long}y`]), undefined);
+  assert.equal(closest('account-leed', ['account-lead', long]), 'account-lead');
+  assert.ok(performance.now() - start < 100, `took ${Math.round(performance.now() - start)} ms`);
+});
+
 test('a step that stays but is owned by a removed role is a warning; a removed step is not', () => {
   const removedRole = { 'roles/al.md': '---\nid: account-lead\ntype: role\nname: AL\nparty: acme\nchange: {status: removed}\n---\n' };
   const m = only(run({ ...processWith('  - {id: a, name: A, owner: account-lead}\n  - {id: b, name: B, owner: account-lead, change: {status: removed}}\n'), ...removedRole }));

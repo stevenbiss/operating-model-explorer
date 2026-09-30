@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { zipSync } from 'fflate';
-import { test, expect, openEngine, loadZip, loadFolder, skipPrompt, go, messages, fixtureDir, useSnapshot, openSnapshot, noHorizontalScroll, SAMPLE_SHEET, SAMPLE_SHEET_DIR } from './helpers.js';
+import { test, expect, openEngine, loadZip, loadFolder, skipPrompt, go, messages, fixtureDir, useSnapshot, openSnapshot, noHorizontalScroll, fileUrl, SAMPLE_SHEET, SAMPLE_SHEET_DIR } from './helpers.js';
 
 const text = (p) => readFileSync(p, 'utf8');
 const BASE = text(join(fixtureDir('sheet-tiny'), 'capture-sheet.md'));
@@ -194,6 +194,7 @@ test.describe('capture-sheet (author mode)', () => {
     await expect(m).toHaveCount(1);
     await expect(m).toHaveAttribute('data-level', 'error');
     await expect(m).toContainText('Capture the lead');
+    await expect(m.locator('.msg-where')).toHaveText(/› RACI › row 1 \(Capture the lead\)$/);
     await expect(m.locator('.msg-problem')).toContainText('Account lead');
     await expect(m.locator('.msg-fix')).toContainText('R if Account lead does the work');
     await expect(m.locator('.msg-fix')).toContainText('A if Account lead signs the work off');
@@ -474,7 +475,8 @@ test.describe('author-mode (capture sheets)', () => {
     await expect(group.getByRole('heading', { name: 'Open questions (3)' })).toBeVisible();
     const items = group.getByTestId('report-message');
     await expect(items).toHaveCount(3);
-    for (const [i, q] of ['Does the zebra committee approve pricing before submission?', 'Is Legal counsel consulted on every bid, or only large ones?', 'Who owns the tangerine budget after go-live?'].entries()) await expect(items.nth(i)).toContainText(q);
+    for (const [i, q] of ['Does the zebra committee approve pricing before submission?', 'Is Legal counsel consulted on every bid, or only large ones?', 'Who owns the tangerine budget after go-live?'].entries()) await expect(items.nth(i).locator('.msg-problem')).toHaveText(q);
+    await expect(group).not.toContainText('Open question:', { message: 'the group heading says it once; no prefix on each item' });
     // Separate from other warnings: none of them is in the main message list.
     await expect(page.locator('[data-testid="report-messages"] [data-open-question]')).toHaveCount(0);
     await expect(page.getByTestId('export')).toBeEnabled();
@@ -505,6 +507,38 @@ test.describe('author-mode (capture sheets)', () => {
   test('2.49 author-mode › Engine shows its version', async ({ page }) => {
     await expect(page.getByTestId('author-engine-version')).toBeVisible();
     await expect(page.getByTestId('author-engine-version')).toHaveText(`Engine ${version}`);
+  });
+
+  test('author header at 375px: the name on one line, the mode and version together below it', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await openEngine(page);
+    const box = async (sel) => page.locator(`.author-brand ${sel}`).evaluate((e) => { const r = e.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, right: r.right }; });
+    const [name, mode, ver] = [await box('.brand-text'), await box('.mode'), await box('.ver')];
+    expect(name.bottom, 'the mode is on the line below the name').toBeLessThanOrEqual(mode.top + 1);
+    expect(Math.abs(mode.top - ver.top), 'the mode and the version share a line').toBeLessThan(8);
+    expect(ver.right).toBeLessThanOrEqual(375);
+    await expect(page.getByTestId('author-engine-version')).toBeVisible();
+    expect(await noHorizontalScroll(page)).toBe(true);
+  });
+
+  test('viewer header at 375px: a long Key messages label wraps, with no horizontal scroll and readable contrast', async ({ page }, info) => {
+    const long = 'Our most important partnership commitments and messages';
+    await loadSheetZip(page, edit(ACME, 'Label workstream: Value stream\n', `Label workstream: Value stream\nLabel key messages: ${long}\nLabel key message: Commitment\n`));
+    await expect(counts(page)).toHaveText('0 errors, 0 warnings');
+    const snap = await exportDownload(page, info.outputPath());
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto(fileUrl(snap.path));
+    await page.getByTestId('persona-skip').click(); // the Acme sheet has personas, so the prompt opens
+    const btn = page.getByTestId('key-messages-button');
+    await expect(btn).toHaveText(long);
+    expect(await noHorizontalScroll(page), 'page has no horizontal scroll').toBe(true);
+    for (const el of [btn, page.getByTestId('progress')]) {
+      const r = await el.evaluate((e) => ({ left: e.getBoundingClientRect().left, right: e.getBoundingClientRect().right, sw: e.scrollWidth, cw: e.clientWidth }));
+      expect(r.left).toBeGreaterThanOrEqual(0);
+      expect(r.right).toBeLessThanOrEqual(375);
+      expect(r.sw, 'nothing cut off inside').toBeLessThanOrEqual(r.cw);
+    }
+    expect(await axe(page, '375 snapshot, long label')).toEqual([]);
   });
 
   test('html-deliverable › No serious axe violations in capture-sheet states at 1280 and 768', async ({ page }) => {

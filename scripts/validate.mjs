@@ -8,6 +8,9 @@ import { readZip } from '../src/model/read.js';
 
 // OM_VERSION is set by esbuild when this script is bundled into the skill (design D8); otherwise package.json.
 const version = typeof OM_VERSION === 'string' ? OM_VERSION : JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
+// Sheet text is untrusted: control characters (such as ESC, which starts terminal escape sequences) are replaced
+// before printing, so a sheet can't clear the screen or change the terminal title.
+const clean = (s) => String(s).replace(/[\u0000-\u001f\u007f-\u009f]/g, '\uFFFD');
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 const walk = (dir) =>
@@ -34,20 +37,20 @@ let files;
 try {
   files = read(path);
 } catch {
-  console.log(`${path} could not be read. Check the path, and that a .zip opens on your computer.`);
+  console.log(`${clean(path)} could not be read. Check the path, and that a .zip opens on your computer.`);
   process.exit(1);
 }
 
 const { messages } = loadModel(files);
 const errors = messages.filter((m) => m.level === 'error');
 const warnings = messages.filter((m) => m.level === 'warning');
-console.log(`Checking ${path} (${count(files.length, 'file')})`);
+console.log(`Checking ${clean(path)} (${count(files.length, 'file')})`);
 for (const [title, list] of [['Errors', errors], ['Warnings', warnings]]) {
   if (!list.length) continue;
   console.log(`\n${title} (${list.length})`);
   for (const m of list) {
     const at = m.where || [m.file, m.element && `element ${m.element}`, m.step && `step ${m.step}`].filter(Boolean).join(' · ');
-    console.log(`\n  ${m.level} · ${at}\n    Problem: ${m.problem}\n    Fix: ${m.fix}`);
+    console.log(`\n  ${m.level} · ${clean(at)}\n    Problem: ${clean(m.problem)}\n    Fix: ${clean(m.fix)}`);
   }
 }
 console.log(`\n${count(errors.length, 'error')}, ${count(warnings.length, 'warning')}`);

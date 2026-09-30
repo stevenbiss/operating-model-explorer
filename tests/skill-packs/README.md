@@ -13,7 +13,7 @@ Every company, person and figure in these packs is made up. Keep it that way: th
 
 ## Setup (every trial)
 
-1. `npm run build`, so the skill folder is current.
+1. Use the committed skill folder, `skills/operating-model-author/`. It is kept current by the build and checked by `npm run test:unit`, so a trial doesn't need to build and doesn't write to the repo. Note the commit you trial.
 2. Make the skill available in a fresh Claude Code session: install it from the marketplace (see 2.51), or copy `skills/operating-model-author/` into a scratch project's `.claude/skills/`.
 3. Make an empty output folder **outside this repo**, e.g. `%TEMP%\om-trial-rich\`. Copy the pack's files into a separate input folder, so the skill reads them as the colleague's material.
 4. Start a new session for each trial, so trials don't share context.

@@ -32,10 +32,13 @@ const isSubsequence = (a, b) => {
 };
 
 // The candidate most like `word`: abbreviations (sol-arch -> solution-architect) first, then fewest edits.
+// Long strings get no suggestion: the edit distance grows with the product of the two lengths.
 export function closest(word, candidates) {
+  if (word.length > 100) return undefined;
   let best;
   let bestScore = Infinity;
   for (const c of candidates) {
+    if (c.length > 100) continue;
     const score = distance(word, c) - (isSubsequence(word, c) ? 1000 : 0);
     if (score < bestScore) [best, bestScore] = [c, score];
   }
@@ -205,7 +208,8 @@ export function validate(docs) {
           }
           if (s.raci && typeof s.raci === 'object') for (const r of Object.keys(s.raci)) ref(sat, 'RACI role', r, 'role');
           for (const n of list(s.next)) ref(sat, 'next step', typeof n === 'string' ? n : n && n.to, 'step', stepIds);
-          raciChecks(s, sat);
+          // A capture sheet's combined letter is reported at its RACI table row, where it is written.
+          raciChecks(s, sat, doc.raciWhere && doc.raciWhere[i] ? { ...sat, where: doc.raciWhere[i] } : sat);
         });
         break;
       }
@@ -214,7 +218,7 @@ export function validate(docs) {
   return messages;
 
   // One letter per cell, and exactly one A per step (design D6). The owner counts as R when it has no letter.
-  function raciChecks(s, sat) {
+  function raciChecks(s, sat, cellAt) {
     const raci = s.raci && typeof s.raci === 'object' && !Array.isArray(s.raci) ? s.raci : {};
     const step = typeof s.name === 'string' ? s.name : s.id;
     let combined = false;
@@ -222,7 +226,7 @@ export function validate(docs) {
       if (typeof v !== 'string' || !COMBINED.test(v.trim())) continue;
       combined = true;
       const who = nameOf(r);
-      add({ level: 'error', ...sat, problem: `${who} has "${v}" on the step "${step}". A role can have only one RACI letter per step.`, fix: `Choose one letter: R if ${who} does the work, or A if ${who} signs the work off.` });
+      add({ level: 'error', ...cellAt, problem: `${who} has "${v}" on the step "${step}". A role can have only one RACI letter per step.`, fix: `Choose one letter: R if ${who} does the work, or A if ${who} signs the work off.` });
     }
     if (combined) return;
     const accountable = Object.keys(raci).filter((r) => raci[r] === 'A');

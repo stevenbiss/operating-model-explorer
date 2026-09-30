@@ -13,8 +13,32 @@ const plain = (s) => s.normalize('NFKD').replace(/\p{M}/gu, '');
 // Names match ignoring case, spaces and punctuation (D4); ids are the name in lower case with hyphens.
 export const nameKey = (s) => plain(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 export const toId = (s) => plain(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-// A comment on lines of its own goes with its line breaks, so a comment between table rows doesn't split the table.
-const noComments = (text) => text.replace(/^[ \t]*<!--[\s\S]*?-->[ \t]*(\r?\n|$)/gm, '').replace(/<!--[\s\S]*?-->/g, '');
+// HTML comments are dropped in one pass, so the time grows with the sheet's length only. A comment runs to the next
+// "-->", or to the end of the file when it is never closed. A comment on lines of its own goes with its line breaks,
+// so a comment between table rows doesn't split the table.
+function noComments(text) {
+  const rest = /[ \t]*(\r?\n|$)/y; // only spaces or tabs up to the end of the line
+  let out = '';
+  let i = 0;
+  let blank = true; // the current line of out holds only spaces or tabs
+  for (let s; (s = text.indexOf('<!--', i)) !== -1; ) {
+    const gap = text.slice(i, s);
+    const nl = gap.lastIndexOf('\n');
+    blank = (nl !== -1 || blank) && /^[ \t]*$/.test(gap.slice(nl + 1));
+    out += gap;
+    const e = text.indexOf('-->', s + 4);
+    i = e === -1 ? text.length : e + 3;
+    rest.lastIndex = i;
+    const after = blank && rest.exec(text);
+    if (after) {
+      let k = out.length;
+      while (k && (out[k - 1] === ' ' || out[k - 1] === '\t')) k--;
+      out = out.slice(0, k);
+      i += after[0].length;
+    }
+  }
+  return out + text.slice(i);
+}
 
 // A capture sheet's first heading is "# Operating model: <name>" (D3).
 export function isSheet(text) {
@@ -311,6 +335,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
       return out;
     });
 
+    const raciWhere = [];
     if (parts.RACI) {
       const rw = `${where} › RACI`;
       const table = tableOf(parts.RACI, rw);
@@ -322,6 +347,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
           const at = rowLabel(rw, r + 1, hit ? hit.get('name') : cells[0]);
           if (!hit) return stepRef(cells[0], at, 'This RACI row');
           const step = header[steps.indexOf(hit)];
+          raciWhere[steps.indexOf(hit)] = at;
           cells.slice(1).forEach((cell, c) => {
             const v = cell.trim().toUpperCase();
             if (!v || !roleIds[c]) return;
@@ -338,7 +364,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
       where,
       { ...compact({ id, name: s.target, workstream: find('workstream', kv.workstream, where, 'workstream'), summary: kv.summary, change: changeOf(kv.change, kv.today, where) }), steps: header },
       parts.Notes ? textOf(parts.Notes, 2) : '',
-      { stepWhere: steps.map((st) => st.where) },
+      { stepWhere: steps.map((st) => st.where), raciWhere },
     );
   }
 

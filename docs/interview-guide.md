@@ -6,7 +6,7 @@ The author owns the model. Your job is to draft what the material supports, poin
 
 ## 1. Before you start
 
-- **Ask where the sheet will be saved.** Use only the place the author chooses. If they suggest the engine's own repository, remind them that it is public and ask for another place: a capture sheet usually describes real organisations and people.
+- **Agree where the sheet will be saved** before you first write it. With enough material, draft first and ask when the draft is ready to save. Use only the place the author chooses. If they suggest the engine's own repository, remind them that it is public and ask for another place: a capture sheet usually describes real organisations and people.
 - **Collect the material.** Decks, notes, RACI tables, org charts, process slides, emails. Keep a list of what you were given, by the names the author uses (file names or short descriptions). This list becomes the `## Sources` section.
 - **Keep confidential detail out.** A snapshot made from the sheet can be forwarded. Leave out personal data, prices, passwords and anything the author wouldn't put in a slide deck.
 
@@ -35,7 +35,7 @@ Check the draft for three kinds of problem. Ask about each one, or, if the autho
 | Tag | What it is | Example |
 |---|---|---|
 | `(gap)` | Something the model needs that the material doesn't say. | A step with no owner. A process with no end. A role with no party. |
-| `(assumption)` | Something you inferred rather than read. | A party taken from an email signature. Step order taken from slide order. |
+| `(assumption)` | Something you inferred rather than read. | A party taken from an email signature. Step order taken from slide order. A workstream named after the deck's title, because the material describes a process but names no workstream for it. |
 | `(contradiction)` | Two sources that disagree. | The deck and the RACI table name different owners for the same step. |
 
 Write each item so the author can answer it without going back to the sources: name the section and the element, and for a contradiction name **both** sides and where each came from.

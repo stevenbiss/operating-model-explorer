@@ -52,6 +52,19 @@ test('open questions are reported as warnings and do not fail the command', () =
   assert.doesNotMatch(r.out, /walrus/, 'ticked questions are ignored');
 });
 
+test('control characters in sheet text are replaced before printing, so no terminal escape sequence gets through', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'om-validate-'));
+  const sheet = readFileSync(join(ROOT, 'tests/fixtures/sheet-unknown-owner/capture-sheet.md'), 'utf8').replace(/Sol architect/g, 'Sol\u001b]0;pwned\u0007\u001b[2J\u009barchitect');
+  writeFileSync(join(dir, 'capture-sheet.md'), sheet);
+  // The repo's script and the copy bundled into the skill.
+  for (const script of ['scripts/validate.mjs', 'skills/operating-model-author/scripts/validate.mjs']) {
+    const r = spawnSync(process.execPath, [script, join(dir, 'capture-sheet.md')], { cwd: ROOT, encoding: 'utf8' });
+    assert.equal(r.status, 1, script);
+    assert.match(r.stdout, /The owner "Sol\uFFFD\]0;pwned\uFFFD\uFFFD\[2J\uFFFDarchitect" does not match any role/, script);
+    assert.doesNotMatch(r.stdout, /[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/, `${script}: only line breaks and tabs are printed as control characters`);
+  }
+});
+
 test('a missing or unreadable path says so and exits 1', () => {
   assert.equal(run('no/such/path.md').code, 1);
   assert.match(run('no/such/path.md').out, /could not be read/);

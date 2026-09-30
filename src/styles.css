@@ -478,6 +478,12 @@ main { padding: 36px 24px 72px; }
 .drop-note { margin: 14px 0 0; font-size: 0.8rem; color: var(--om-muted); }
 .drop-hint { margin: 8px 0 20px; font-size: 0.85rem; color: var(--om-muted); }
 .ver { font-family: var(--om-font-body); font-size: 0.78rem; font-weight: 500; opacity: 0.85; }
+/* On a phone the mode and the engine version share a second line under the name, so the header doesn't wrap mid-phrase. */
+@media (max-width: 479px) {
+  .author-brand { flex-wrap: wrap; gap: 4px 10px; }
+  .author-brand .brand-text { flex-basis: calc(100% - 36px); }
+  .author-brand .mode { margin-left: 36px; }
+}
 
 .ref-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; padding-bottom: 14px; border-bottom: 1px solid var(--om-border); }
 .ref-tabs [aria-pressed="true"] { color: var(--om-on-primary); background: var(--om-primary); border-color: var(--om-primary); }
@@ -553,9 +559,10 @@ main { padding: 36px 24px 72px; }
   main { padding: 24px 16px 56px; }
   .removed-notice { width: calc(100% - 32px); }
   .top-tools, .sub-tools { width: 100%; justify-content: space-between; }
-  .progress { flex: 1; justify-content: space-between; }
+  /* A long custom Key messages label wraps onto its own line rather than widening the page. */
+  .progress { flex: 1 1 100%; flex-wrap: wrap; justify-content: space-between; min-width: 0; }
   .meter { width: 48px; }
-  .btn-key { white-space: nowrap; }
+  .btn-key { max-width: 100%; margin-left: auto; text-align: start; overflow-wrap: break-word; }
   .search { flex: 1 1 100%; }
   .search input { flex: 1; width: auto; }
   .persona-ctl select { max-width: 52vw; }
