@@ -88,7 +88,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.49 Engine shows its version
 - [x] 2.50 Committed skill folder is current (Node test: rebuild, no diff under `skills/`)
 - [ ] 2.51 Marketplace install works (skill trial: add the marketplace from GitHub after pushing, install, validate the Acme sheet)
-- [ ] 2.52 Release assets (checked after publishing, in 5.2)
+- [x] 2.52 Release assets (checked after publishing, in 5.2)
 - [x] 2.53 Newer format
 - [x] 2.54 Missing format line
 - [x] 2.55 Same name for a workstream and a process
@@ -105,5 +105,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 ## 5. Package
 
 - [x] 5.1 Build `dist/operating-model-author.zip` and export `examples/acme-capture-sheet/capture-sheet.md` to a demo snapshot. Verify both, commit the generated skill folder, push, then install the skill from GitHub through the Claude Code marketplace and run one smoke trial
-- [ ] 5.2 Bump the version to 1.1.0 across the bundle, tag it, and publish the release with `gh release create`: attach `operating-model-author.zip`, `operating-model-explorer.html` and the demo snapshot, with notes from the template and checksums. Verify by downloading the assets and checking their checksums (2.52)
-- [ ] 5.3 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.2 Bump the version to 1.1.0 across the bundle, tag it, and publish the release with `gh release create`: attach `operating-model-author.zip`, `operating-model-explorer.html` and the demo snapshot, with notes from the template and checksums. Verify by downloading the assets and checking their checksums (2.52)
+- [x] 5.3 dist/operating-model-explorer.html built, self-contained, and README updated
