@@ -88,6 +88,6 @@ test('the skill folder and the trial packs contain no real company names', () =>
 
 test('the trial packs are all there', () => {
   const packs = readdirSync(join(ROOT, 'tests/skill-packs'), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
-  assert.deepEqual(packs, ['contradictions', 'revision', 'rich', 'thin']);
+  assert.deepEqual(packs, ['brand-library', 'contradictions', 'revision', 'rich', 'thin']);
   assert.match(read('tests/skill-packs/contradictions/raci-table.md'), /\| Capture the lead \| A\/R \|/);
 });

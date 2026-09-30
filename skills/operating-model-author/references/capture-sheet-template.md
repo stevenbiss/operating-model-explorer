@@ -27,10 +27,13 @@ Optional lines under the title: "ID: my-model" (the snapshot's file name) and "V
 
 ## Parties
 
-<!-- Required. The organisations taking part: one row each. -->
+<!-- Required. The organisations taking part: one row each.
+Brand is optional: the id of the party's brand pack, e.g. globex. Copy the whole pack folder, unchanged, from
+the brand library into a brands/ folder next to this sheet (brands/globex/), then load the folder (or a .zip of it),
+not the sheet on its own. Leave Brand empty for a party with no pack: it gets a neutral colour and its initials. -->
 
-| Party | Summary |
-|---|---|
+| Party | Summary | Brand |
+|---|---|---|
 
 ## Teams
 
@@ -94,21 +97,12 @@ Starts at: Overview, Workstream: <name>, Process: <name> or Role: <name>. -->
 ## Theme
 
 <!--
-Optional. One "Key: value" line each; anything left out uses the default theme. For example:
+Optional. Your own words for the engine's terms, one "Label <term>: <word>" line each, for example:
 
-Primary colour: #0b1f4d
-Accent colour: #b34700
-Background colour: #ffffff
-Surface colour: #f4f5f7
-Text colour: #1a1a1a
-Palette: #3a6ea5; #2e7d5b
-Body font: Segoe UI, system-ui, sans-serif
-Heading font: Georgia, serif
-Logo: assets/logo.svg
 Label workstream: Value stream
 Label workstreams: Value streams
 
-A logo or font file goes in an assets/ folder next to the sheet; load the folder (or a .zip of it).
+Party colours and marks come from brand packs (the Brand column in Parties), not from this section.
 -->
 
 <!--

@@ -10,6 +10,7 @@ Every company, person and figure in these packs is made up. Keep it that way: th
 | `thin/` | One paragraph. | 2.23 |
 | `contradictions/` | A partner deck and a RACI table that name different owners for "Price the solution", and an `A/R` cell for Account lead on "Capture the lead". | 2.24, 2.25 |
 | `revision/` | New material against the Acme capture sheet: a new legal review step, and a different owner for "Submit the proposal". | 2.26 |
+| `brand-library/` | A fictional brand library: packs for Acme (2026.2), Globex (2026.3) and Initech (2025.4, never used). Used with a copy of the Acme capture sheet. | 2.34, 2.35 |
 
 ## Setup (every trial)
 
@@ -75,13 +76,33 @@ Prompt: "Draft an operating model from `<input folder>`, save it in `<output fol
 
 ### 2.26 New material proposes, not overwrites (`revision`)
 
-Copy `examples/acme-capture-sheet/` (the sheet and `assets/`) to the output folder. Note the sheet's checksum (`certutil -hashfile capture-sheet.md SHA256`, or `sha256sum`).
+Copy `examples/acme-capture-sheet/` (the sheet and `brands/`) to the output folder. Note the sheet's checksum (`certutil -hashfile capture-sheet.md SHA256`, or `sha256sum`).
 
 Prompt: "Here's my current sheet, `<output folder>/capture-sheet.md`, and some new notes, `<input folder>/new-material.md`. Please update the sheet."
 
 - [ ] The skill lists proposed changes: an addition (a Legal review step owned by Legal counsel) and a change (Submit the proposal: Account lead → Bid manager), saying the change would override a value already in the sheet.
 - [ ] Before you agree, the sheet's checksum is unchanged.
 - [ ] Reply "Add the legal review step, but keep the Account lead on Submit the proposal." Afterwards the sheet has the new step, "Submit the proposal" is still owned by the Account lead, the declined change is recorded as a ticked `(contradiction)` under `## Open questions`, and the sheet still validates with 0 errors.
+
+### 2.34 Packs copied, not altered (`brand-library`)
+
+Copy only `examples/acme-capture-sheet/capture-sheet.md` (not its `brands/`) to the output folder, and delete the `Brand` column from its Parties table (the header cell, its dashes and the last cell of each row). The library's Acme and Globex packs have newer versions (2026.2 and 2026.3) than the example's copies in the skill's `references/brands/` (2026.1), so a copy from the wrong place shows.
+
+Prompt: "Please show Acme Corp and Globex in their brand colours in `<output folder>/capture-sheet.md`. Our brand library is `<repo>/tests/skill-packs/brand-library/`: use the acme and globex brands."
+
+- [ ] The output folder has `brands/acme/` and `brands/globex/`, and nothing from `initech`.
+- [ ] Every file in them is byte-identical to the library copy: `certutil -hashfile <file> SHA256` (or `sha256sum`) matches for `brand.md` and `mark.svg` in each.
+- [ ] The Parties table has a `Brand` column naming `acme` for Acme Corp and `globex` for Globex.
+- [ ] `## Sources` lists both ids with their versions: acme 2026.2 and globex 2026.3.
+- [ ] `npm run validate -- "<output folder>/capture-sheet.md"` ends with `0 errors` (the validator reads `brands/` next to the sheet), and **Load folder** on the output folder in the engine shows each party with its mark.
+
+### 2.35 Brand not in the library (`brand-library`, same setup)
+
+Prompt: "Use our brand library at `<repo>/tests/skill-packs/brand-library/` for `<output folder>/capture-sheet.md`: the acme brand for Acme Corp and the Tarnside brand for Globex."
+
+- [ ] The skill says there is no Tarnside pack in the library (ideally listing the packs that are there) and asks what to do.
+- [ ] No `brands/tarnside/` folder or other invented pack is written, and no colour or mark is made up for Globex.
+- [ ] If it goes ahead with Acme, `brands/acme/` is byte-identical to the library copy.
 
 ### 2.29 Refuses the public repo by default (any pack)
 

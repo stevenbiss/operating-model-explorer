@@ -17,7 +17,7 @@ This page is the full format, **format 1**. For a complete real-size sheet, see 
 
 ## A complete small sheet
 
-Every example on this page fits into this sheet.
+Every example on this page fits into this sheet. It names two brand packs, so it loads without errors from a folder that also holds `brands/acme/` and `brands/globex/` (see [Brand packs](#brand-packs)).
 
 ```markdown
 # Operating model: Acme + Globex partnership
@@ -39,10 +39,10 @@ A short example of the capture sheet format.
 
 ## Parties
 
-| Party | Summary |
-|---|---|
-| Acme Corp | The client-facing partner. |
-| Globex | The solution partner. |
+| Party | Summary | Brand |
+|---|---|---|
+| Acme Corp | The client-facing partner. | acme |
+| Globex | The solution partner. | globex |
 
 ## Teams
 
@@ -179,6 +179,7 @@ Every table can also have these optional columns:
 |---|---|---|
 | `Party` | Yes | The party's name. |
 | `Summary` | No | One or two sentences about it. |
+| `Brand` | No | The id of the party's brand pack in `brands/`, e.g. `globex`. The party is then shown with that brand's colour and mark. Left empty, the party gets a neutral colour and its initials. See [Brand packs](#brand-packs). |
 
 ### Teams
 
@@ -329,9 +330,26 @@ Label workstream: Value stream
 Label workstreams: Value streams
 ```
 
-The frame always uses the engine's neutral theme. Lines for colours, fonts, a logo or a palette are retired: each one is ignored with a warning, because party colours and marks now come from brand packs.
+The frame always uses the engine's neutral theme. The lines for colours, fonts, a logo and a palette are retired: `Primary colour`, `Accent colour`, `Background colour`, `Surface colour`, `Text colour`, `Palette`, `Body font`, `Heading font` and `Logo`. Each one is ignored with a warning, because party colours and marks now come from [brand packs](#brand-packs). Delete those lines, and give each party a `Brand` instead.
 
-An image is read from an `assets/` folder next to the sheet. To load it, put the sheet and `assets/` in one folder (or `.zip`) and load that.
+## Brand packs
+
+A brand pack is a folder, `brands/<id>/`, holding a `brand.md` (the brand's name, version, colours and mark) and the mark's image file. Packs come from your organisation's brand library: copy the whole pack folder into `brands/` next to the sheet, and never edit the copy. To take up a newer version of a brand, copy the pack again and export a new snapshot. The fields of `brand.md` are in the content reference.
+
+```text
+my-model/
+  capture-sheet.md
+  brands/
+    acme/          brand.md, mark.svg
+    globex/        brand.md, mark.svg
+  assets/          images used in the text, if any
+```
+
+- Name each party's pack in the Parties table's `Brand` column, by the pack's id (its folder name).
+- Brand packs are read only when you load the folder (or a `.zip` of it). A sheet loaded on its own can't see `brands/`, so each brand it names is an error, with a hint to load the folder instead.
+- A brand that isn't in `brands/` is an error naming the party, with a suggestion when a pack's id is close.
+- The engine may adjust a brand colour, so that text on it is readable, parties can be told apart (also with common colour-blindness), and no party looks like a colour that has a meaning, such as "Removed". Each adjustment is a warning saying what changed and why. It doesn't stop the export.
+- A snapshot records which brand and version each party used. The pack's usage notes, and packs no party uses, are never included.
 
 ## Open questions and Sources
 
@@ -357,5 +375,5 @@ Every message about a capture sheet says where in the sheet the problem is: the 
 
 ## Loading a sheet
 
-- Load the sheet on its own as a single `.md` file, or load a folder (or `.zip`) that holds the sheet and its `assets/` folder.
+- Load the sheet on its own as a single `.md` file, or load a folder (or `.zip`) that holds the sheet and its `brands/` and `assets/` folders. A sheet that names brands, or shows images from `assets/`, must be loaded as a folder.
 - A folder can hold either one capture sheet or a folder of element files, not both. Mixing them is an error.

@@ -496,7 +496,10 @@ test('every Markdown example in the format spec parses, inside the spec\'s compl
   const blocks = [...read('docs/capture-sheet.md').matchAll(/^```markdown\n([\s\S]*?)^```$/gm)].map((m) => m[1]);
   const [base, ...snippets] = blocks;
   assert.ok(isSheet(base) && snippets.length >= 6);
-  const errorsOf = (text) => load(text).messages.filter((m) => !m.openQuestion);
+  // The complete sheet names the acme and globex brands, so it loads with the example sheet's brands/ folder.
+  const brands = Object.fromEntries(readSampleSheet().filter((f) => f.path.startsWith('brands/')).map((f) => [f.path, new TextDecoder().decode(f.data)]));
+  assert.match(base, /\| Globex \| The solution partner\. \| globex \|/);
+  const errorsOf = (text) => load(text, brands).messages.filter((m) => !m.openQuestion);
   assert.deepEqual(errorsOf(base), []);
   for (const s of snippets) {
     const sheet = s.startsWith('# ') ? s + base.slice(base.indexOf('\n## ')) : s.split(/(?=^## )/m).reduce((acc, sec) => with_(sec.trim(), acc), base);

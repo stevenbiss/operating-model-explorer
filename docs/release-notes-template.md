@@ -44,6 +44,17 @@ Then ask for help in your own words, for example: "Turn these workshop notes int
 
 - <!-- Changes, one per line, for authors first. -->
 
+## Models look different from 1.2.0
+
+<!-- Standard note: keep it in every release from 1.2.0 on, while authors may still have models with theme colours. -->
+
+Each party is now shown in its own brand colour and mark, from a **brand pack**, inside the engine's neutral frame. Theme colours, fonts, the theme logo and the palette are **retired**:
+
+- A model that still sets them (`colors`, `fonts`, `logo` or `palette` in `theme.md`, or colour, font, palette and logo lines in a capture sheet's Theme section) still loads and exports, with a warning for each setting saying it is ignored. It is shown in the neutral frame, and parties without a brand get neutral colours and their initials.
+- To show each party's colour and mark, copy its brand pack from your brand library into the model's `brands/` folder, unchanged, and name it in the party: `brand: <id>` in a party file, or the `Brand` column of the capture sheet's Parties table. Then load the folder and export again.
+- Theme labels (your own words for terms) work as before.
+- Snapshots exported with an earlier version are not affected. The capture sheet format is still 1.
+
 ## Checksums (SHA-256)
 
 ```text

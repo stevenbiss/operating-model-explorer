@@ -7,7 +7,7 @@ This guide is for colleagues writing an operating model for the Operating Model 
 Most authors should write a **capture sheet** instead of the folder described below: one Markdown file with fixed headings, a table for each list of things and a RACI matrix per process, where everything is referred to by name rather than by id. It is easier to write, and clients can review it as one document.
 
 - Start from `templates/capture-sheet.md`. The format is in [capture-sheet.md](capture-sheet.md), and `examples/acme-capture-sheet/capture-sheet.md` is a complete fictional example.
-- In the engine, choose **Load capture sheet**. If the sheet uses a logo or fonts from an `assets/` folder, choose **Load folder** on the folder holding both.
+- In the engine, choose **Load capture sheet**. If the sheet names brands (a `brands/` folder) or shows images from an `assets/` folder, choose **Load folder** on the folder holding the sheet and those folders.
 - To check it without a browser, run `npm run validate -- <path to the sheet>` in this repo.
 - To have an AI assistant draft the sheet from your decks, notes and RACI tables, install the **operating-model-author** skill (see the README). It follows the [interview guide](interview-guide.md), which you can also use on your own or with another assistant.
 
@@ -29,14 +29,15 @@ The quickest start is to copy `examples/acme-sample/` and change it. It's a fict
 ```
 my-model/
   model.md          required: the model, its purpose and key messages
-  theme.md          optional: colours, fonts, logo and your own words for terms
+  theme.md          optional: your own words for terms
   parties/          the organisations taking part
   teams/            teams inside a party
   roles/            the roles that do the work
   personas/         the types of viewer, and where each one starts
   workstreams/      groups of processes
   processes/        one file per process, with its steps
-  assets/           images and font files used by the theme
+  brands/           brand packs copied from the brand library, one folder each (brands/acme/)
+  assets/           images used in the text
 ```
 
 The folders are only a convention. The engine goes by each file's `type`, not by its folder. Items appear in the order of their file names, so prefix them with numbers to control the order, e.g. `01-presales.md` and `02-delivery.md`.
@@ -57,7 +58,7 @@ The account lead is the **single point of contact** for the client.
 ```
 
 - `id` is how other files refer to this one. Use lower-case words joined by hyphens (`account-lead`). Every id must be unique across the whole model. Step ids only need to be unique within their process.
-- `type` is one of `model`, `party`, `team`, `role`, `persona`, `workstream`, `process` or `theme`.
+- `type` is one of `model`, `party`, `team`, `role`, `persona`, `workstream`, `process` or `theme`. A brand pack's `brand.md` has no `type`: the engine knows it by its place, `brands/<id>/brand.md`.
 - The text after the header is shown wherever the element is described. Headings, lists and **bold** all work. HTML is shown as plain text, never run.
 
 ## Processes and steps
@@ -122,23 +123,41 @@ change:
 
 If no file uses `change`, the explorer shows no change controls at all.
 
+## Brands (optional)
+
+Each party can be shown in its own brand's colour, with its mark next to its name, wherever it appears: party cards, swimlane bands and lanes, owner chips, the legend and the header. The rest of the page keeps the engine's neutral frame.
+
+1. **Copy the brand packs** you need from your organisation's brand library into `brands/` in your model folder. Copy each pack's whole folder, unchanged: `brands/acme/` holds `brand.md` and `mark.svg`. Never edit the copy; if a brand looks wrong, ask the library's curators to fix it.
+2. **Name the brand in the party file**, by the pack's id (its folder name):
+
+```yaml
+---
+id: acme
+type: party
+name: Acme Corp
+brand: acme
+---
+```
+
+- The engine reads only the packs in your model folder, never the library itself. So a model keeps the brand versions it was built with. To take up a newer version, copy the pack again and export a new snapshot.
+- A party without a brand gets a neutral colour and its initials.
+- The engine may adjust a brand colour so that text on it is readable, parties can be told apart (also with common colour-blindness), and no party looks like a colour with a meaning, such as the "Removed" badge. The report tells you each time, as a warning.
+- For the fields of `brand.md`, see the [content reference](content-reference.md#brand). For how packs are made and kept, see [brand packs](brand-packs.md).
+
 ## Theme (optional)
 
-`theme.md` sets colours (as quoted hex codes), fonts, a logo from `assets/`, and your own words for the engine's terms:
+`theme.md` holds your own words for the engine's terms:
 
 ```yaml
 ---
 type: theme
-colors:
-  primary: "#0b1f4d"
-logo: assets/logo.svg
 labels:
   workstream: Value stream
   workstreams: Value streams
 ---
 ```
 
-Fonts and images must be files in `assets/` (or a system font such as `Georgia, serif`). Web addresses are not allowed, because snapshots must work offline.
+Theme colours, fonts, a theme logo and a palette are retired: a `theme.md` that still sets `colors`, `fonts`, `logo` or `palette` loads with a warning for each, saying it is ignored. Party colours and marks come from brand packs instead, and the engine always uses its own fonts.
 
 ## Safe YAML habits
 
@@ -146,7 +165,7 @@ Most problems are small typing slips in the header. The report gives the file an
 
 - **Indent with spaces, never tabs**, and keep items at the same level lined up.
 - **Put quotes around text that contains `: `**, e.g. `name: "Step 1: capture"`.
-- **Put quotes around colours**, e.g. `"#0b1f4d"`. Without them, `#` starts a comment.
+- **Put quotes around colours**, e.g. `"#0b1f4d"` in a brand pack. Without them, `#` starts a comment.
 - For long text, use `>-` and indent the lines below it (see `purpose` in the sample's `model.md`).
 - Lists can go on one line (`roles: [account-lead, bid-manager]`) or one item per line starting with `- `.
 - An unknown field is only a warning, so check the spelling. It won't stop you exporting.

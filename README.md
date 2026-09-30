@@ -6,13 +6,30 @@ The engine is a single file, `dist/operating-model-explorer.html`. Opened on its
 
 **Status:** v1.1.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.1.0)). It adds the capture sheet, `npm run validate`, and the operating-model-author skill and plugin to the v1 engine. Built, tested (142 end-to-end and 134 unit tests), verified and QA-approved; the skill was checked in simulated trials. Reports are in `openspec/changes/archive/2026-09-30-add-capture-sheet-authoring/reports/`.
 
+**In progress:** v1.2.0, party brands (`openspec/changes/add-party-brands/`): each party shown in its own brand colour and mark from brand packs, with theme colours, fonts, logo and palette retired. Built; not yet tested, verified or released.
+
 ## For authors
 
 You need a current Chrome or Edge (Safari and Firefox work too, but can only load a `.zip` or a single capture sheet). No other software is needed.
 
 ### The easy route: a capture sheet
 
-A **capture sheet** is one Markdown file with fixed headings and a table for each list of things (parties, roles, steps, a RACI matrix), referring to everything by name. Clients and colleagues can review and comment on it as one document before anything is built. Copy `templates/capture-sheet.md`, see `examples/acme-capture-sheet/capture-sheet.md` for a complete fictional example, and `docs/capture-sheet.md` for the format. In the engine, choose **Load capture sheet** (or **Load folder** on a folder holding the sheet and its `assets/`).
+A **capture sheet** is one Markdown file with fixed headings and a table for each list of things (parties, roles, steps, a RACI matrix), referring to everything by name. Clients and colleagues can review and comment on it as one document before anything is built. Copy `templates/capture-sheet.md`, see `examples/acme-capture-sheet/capture-sheet.md` for a complete fictional example, and `docs/capture-sheet.md` for the format. In the engine, choose **Load capture sheet** (or **Load folder** on a folder holding the sheet and its `brands/` or `assets/`).
+
+### Brands: each party in its own colour and mark
+
+From v1.2.0, each party can be shown in its own brand colour, with its mark, wherever it appears: party cards, swimlane bands and lanes, owner chips, the legend and the header, where the model's name sits next to every party's mark. The rest of the page stays in the engine's neutral frame, and the colours that carry meaning ("Your lane", the New, Changed and Removed badges, errors) are always the engine's own.
+
+- **Brand packs** come from your organisation's **brand library**: a folder with one pack per brand, each holding `brand.md` (name, version, colours) and a square SVG mark. Copy the whole pack folder, unchanged, into a `brands/` folder in your model: `my-model/brands/acme/`. Never edit the copy. The engine reads only your model's folder, never the library, so a model keeps the brand versions it was built with; to take up a new version, copy the pack again and export again.
+- **Name each party's brand** by the pack's id: the `Brand` column of the capture sheet's Parties table, or `brand: acme` in a party file. A party without a brand gets a neutral colour and its initials.
+- **Load the folder**, not the sheet on its own, so the engine can see `brands/`.
+- The engine may **adjust a brand colour** so that text on it is readable, parties can be told apart (also with common colour-blindness) and no party looks like a colour with a meaning. The report tells you each time, as a warning.
+- An exported snapshot records which brand and version each party used. Brand usage notes, and packs no party uses, are never included.
+- The operating-model-author skill (below) can do this for you: tell it where the library is and which brands to use. It copies the packs, fills in the Brand column and lists each pack's version under Sources, and asks if a brand isn't in the library.
+
+Curators of a brand library: see `docs/brand-packs.md` for the pack format, versions, marks and the colour adjustments the engine may make. The fictional packs in `examples/` and `tests/skill-packs/brand-library/` are examples.
+
+**Retired theme settings (v1.2.0).** The theme is now only your own words for terms (`labels`, or `Label …` lines in a sheet), which work as before. Theme colours, fonts, the theme logo and the palette are retired: `colors`, `fonts`, `logo` and `palette` in `theme.md`, and the sheet's `Primary colour`, `Accent colour`, `Background colour`, `Surface colour`, `Text colour`, `Palette`, `Body font`, `Heading font` and `Logo` lines. A model that still sets them loads and exports, with a warning for each one saying it's ignored, and is shown in the neutral frame. Brand packs replace colours, the palette and the logo; the engine always uses its own fonts. The capture sheet format stays 1, and snapshots exported with an earlier version are unaffected.
 
 ### Let an AI assistant draft it: the operating-model-author skill
 
@@ -27,14 +44,14 @@ Then ask in your own words, e.g. "Turn these workshop notes into an operating mo
 ### Using the engine
 
 1. **Open the engine.** Double-click `operating-model-explorer.html`. It opens in author mode.
-2. **Load your content.** Use **Load capture sheet** for a single sheet, or drag your folder onto the page, or use **Load folder** (for a content folder, or a sheet with its `assets/`). You can also use **Load .zip** with a zip of the folder. To see how it works first, choose **Try the sample**. Files are read in your browser and never uploaded.
+2. **Load your content.** Use **Load capture sheet** for a single sheet, or drag your folder onto the page, or use **Load folder** (for a content folder, or a sheet with its `brands/` or `assets/`). You can also use **Load .zip** with a zip of the folder. To see how it works first, choose **Try the sample**. Files are read in your browser and never uploaded.
 3. **Fix any problems.** The validation report lists each error and warning with its file and how to fix it. Errors block the export. Warnings don't. Edit your files, then choose **Reload** (Chrome and Edge, after Load folder or a folder drop), or load the folder or zip again.
 4. **Check the preview.** It shows exactly what viewers will see, including the persona prompt and every view.
 5. **Export.** Choose **Export snapshot** to download `<model-id>.html`. Send that file to your viewers. It contains only the files your model uses, not other files in the folder, your file paths or the validation report.
 
 To write a content folder instead of a capture sheet, start from a copy of `examples/acme-sample/` (a fictional model) and see:
 - `docs/authoring-guide.md`: how to write a model.
-- `docs/content-reference.md`: every field of every file type. It is also available in the engine under **Content reference**.
+- `docs/content-reference.md`: every field of every file type, and of brand packs. It is also available in the engine under **Content reference**.
 
 ## For developers
 
@@ -72,10 +89,10 @@ src/
   viewer/           the explorer: app.js (render), swimlane, routes, theme
   author/           author mode: load, validation report, preview, reload, export
 schema/             JSON Schemas for each content file type (the single source of truth)
-examples/acme-sample/  fictional sample model, bundled for "Try the sample"
+examples/acme-sample/  fictional sample model with fictional brand packs, bundled for "Try the sample"
 examples/acme-capture-sheet/  the same model as one capture sheet (the parity test compares them)
 templates/          the blank capture sheet
-docs/               authoring guide, capture sheet format, interview guide, release notes template;
+docs/               authoring guide, capture sheet format, brand packs, interview guide, release notes template;
                     content-reference.md is generated by the build
 skills/operating-model-author/  the skill: SKILL.md, plus generated references/, scripts/ and engine/
 .claude-plugin/     marketplace.json and plugin.json: this repo is a Claude Code plugin marketplace
@@ -84,7 +101,7 @@ scripts/validate.mjs  the command-line validator (npm run validate)
 tests/unit/         Node unit tests (node --test)
 tests/e2e/          Playwright end-to-end tests, one per spec scenario
 tests/fixtures/     content folders the tests load, including one per validation error case
-tests/skill-packs/  fictional context packs and the scripted skill trial checklist
+tests/skill-packs/  fictional context packs, a fictional brand library and the scripted skill trial checklist
 openspec/           specs and changes for this project (OpenSpec)
 ```
 

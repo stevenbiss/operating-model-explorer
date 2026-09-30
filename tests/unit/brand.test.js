@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -172,6 +172,16 @@ test('2.7 sheet loaded without its brands: an error for each missing brand, sugg
     assert.match(m.problem, /no brand packs were loaded\. Brand packs are read from the brands\/ folder next to the capture sheet\./);
     assert.match(m.fix, /Load the sheet's folder \(or a \.zip of it\).*instead of the sheet on its own/);
   });
+});
+
+test('the brand.md example in docs/brand-packs.md and the party example in the authoring guide load with no messages', () => {
+  const read = (p) => readFileSync(new URL(`../../${p}`, import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+  const example = read('docs/brand-packs.md').match(/^```markdown\n(---\nid: acme[\s\S]*?)^```$/m)[1];
+  const partyFile = read('docs/authoring-guide.md').match(/^```yaml\n(---\nid: acme\ntype: party[\s\S]*?)^```$/m)[1];
+  const r = loadModel(files({ 'model.md': MODEL, 'parties/acme.md': partyFile, 'brands/acme/brand.md': example, 'brands/acme/mark.svg': MARK }));
+  assert.deepEqual(r.messages, []);
+  assert.equal(r.model.elements.acme.brand, 'acme');
+  assert.equal(r.model.brands.acme.version, '2026.1');
 });
 
 test('the validator reads brands/ next to a sheet file, as it does assets/', () => {

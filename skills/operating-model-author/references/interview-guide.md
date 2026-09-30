@@ -28,7 +28,7 @@ Read everything before asking anything. Then decide:
 5. **Processes.** For each detailed workstream: which processes, and for each process, its steps in order, who owns each step, where decisions branch, and where the flow ends.
 6. **Personas.** Who will look at the model, which roles do they play, and where should each one start?
 
-Ask about the RACI for each process once its steps are agreed (see section 4). Teams, the theme, Notes and current-versus-future detail are optional: offer them, but don't push.
+Ask about the RACI for each process once its steps are agreed (see section 4). Teams, brands (section 7), the theme, Notes and current-versus-future detail are optional: offer them, but don't push.
 
 ## 3. Gaps, assumptions and contradictions
 
@@ -111,17 +111,30 @@ List every piece of material under `## Sources`, one per line, by the names the 
 - Conversation with the author, 14 March.
 ```
 
-## 7. Check the sheet
+## 7. Brands
+
+Each party can be shown in its own brand colour, with its mark, from a **brand pack**: a folder holding `brand.md` (the brand's name, version and colours) and its mark files. Packs are kept in the author's organisation's brand library. Offer this once the parties are agreed, but don't push: a party without a brand gets a neutral colour and its initials.
+
+1. **Ask where the library is**, and which brand each party uses. A brand's pack is the library folder whose `brand.md` has that id.
+2. **Copy each pack's whole folder, unchanged,** into a `brands/` folder next to the sheet: `brands/<id>/`. Copy the files as they are; never retype or re-save them. Copy only the packs a party uses. The sheet's location rules apply to the packs too (section 1).
+3. **Never change a pack**, even if the engine reports that it adjusted a colour. If a pack looks wrong, the author asks the library's curators for a new version.
+4. **Put each pack's id in the Parties table's `Brand` column.**
+5. **List each pack under `## Sources`** with its id and version, e.g. `- Brand pack acme, version 2026.2, from the brand library`.
+6. **If a brand isn't in the library, say so and ask** what to do: use another pack, leave the party without a brand for now (record a `(gap)`), or wait for the curators to add it. Never make up a pack, a colour or a mark, and never take them from the material or a website.
+
+A sheet with brands has to be checked and loaded together with its `brands/` folder: load the folder, not the sheet on its own.
+
+## 8. Check the sheet
 
 Before handing over, check the sheet with the engine's validator or by loading it in the engine (**Load capture sheet**). Hand over a sheet with 0 errors. If an error can't be fixed without a decision from the author, tell them what it is and why it's still there. Warnings don't stop the export, but go through them: each unticked open question is shown as a warning.
 
-## 8. Handover
+## 9. Handover
 
 Tell the author:
 
 1. **Where the sheet is saved**, and that the engine file (`operating-model-explorer.html`) is next to it.
 2. **How many open questions remain**, and which ones matter most.
-3. **How to load it:** open `operating-model-explorer.html` in Chrome or Edge, and choose **Load capture sheet**. If the sheet uses a logo, fonts or images from an `assets/` folder, choose **Load folder** and pick the folder that holds the sheet and `assets/`.
+3. **How to load it:** open `operating-model-explorer.html` in Chrome or Edge, and choose **Load capture sheet**. If the sheet names brands (a `brands/` folder) or shows images from an `assets/` folder, choose **Load folder** and pick the folder that holds the sheet and those folders.
 4. **How to review it:** check the validation report, including the Open questions group, and look through the preview as each persona.
 5. **How to export it:** choose **Export snapshot** to download one HTML file to send to viewers. Open questions, Sources and comments are never included in the snapshot.
 6. That reviewers can comment on the capture sheet itself before a snapshot is made.
