@@ -104,6 +104,6 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 Build `dist/operating-model-author.zip` and export `examples/acme-capture-sheet/capture-sheet.md` to a demo snapshot. Verify both, commit the generated skill folder, push, then install the skill from GitHub through the Claude Code marketplace and run one smoke trial
+- [x] 5.1 Build `dist/operating-model-author.zip` and export `examples/acme-capture-sheet/capture-sheet.md` to a demo snapshot. Verify both, commit the generated skill folder, push, then install the skill from GitHub through the Claude Code marketplace and run one smoke trial
 - [ ] 5.2 Bump the version to 1.1.0 across the bundle, tag it, and publish the release with `gh release create`: attach `operating-model-author.zip`, `operating-model-explorer.html` and the demo snapshot, with notes from the template and checksums. Verify by downloading the assets and checking their checksums (2.52)
 - [ ] 5.3 dist/operating-model-explorer.html built, self-contained, and README updated

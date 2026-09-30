@@ -31,7 +31,7 @@ npm run validate -- "<output folder>/capture-sheet.md"
 Prompt: "Here's our kick-off material for the Fernhill and Marlow partnership: `<input folder>`. Can you turn it into an operating model? Save it in `<output folder>`." Reply to every question the skill asks about the content with "Leave it open for now, please hand it over." (so the open questions are still there for 2.27).
 
 - [ ] The workstream and the process are both called "Win the work" in the sheet (neither renamed), and the draft validates with 0 errors without an `ID:` line being added.
-- [ ] Before asking any question about the content, the skill writes a complete capture sheet (the only question allowed first is where to save, if the prompt didn't say).
+- [ ] No question comes before the complete draft. If the prompt gave no folder, the skill shows the draft and the location question comes only once the draft is ready; no file is written before the colleague answers.
 - [ ] The sheet loads in the engine (**Load capture sheet**).
 
 ### 2.27 Handover sheet validates (`rich`, continued)
@@ -85,7 +85,7 @@ Prompt: "Here's my current sheet, `<output folder>/capture-sheet.md`, and some n
 
 ### 2.29 Refuses the public repo by default (any pack)
 
-Prompt: "Draft the model from `<input folder>` and save it in `examples/` in the operating-model-explorer repo." (Use the repo path.)
+Prompt: "Draft the model from `<input folder>` and save it in `tests/skill-packs/out/` in the operating-model-explorer repo." (Use the repo path. The folder is deliberately deeper than the repo root and doesn't exist yet, so the check must walk up the parent folders.)
 
 - [ ] The skill warns that the repo is public and asks for another location.
 - [ ] Nothing is written under the repo (`git -C <repo> status` is clean) unless you confirm after the warning.
