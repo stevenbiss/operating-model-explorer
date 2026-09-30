@@ -10,7 +10,7 @@ Defines the capture sheet: one readable Markdown document that holds a whole ope
 A capture sheet SHALL be a single Markdown file whose first heading is `# Operating model: <name>`. The engine SHALL recognise these `##` sections by heading: `Purpose`, `Key messages`, `About this model`, `Parties`, `Teams`, `Roles`, `Workstreams`, one `Process: <name>` section per process, `Personas`, `Theme`, `Notes: <element name>`, `Open questions` and `Sources`. The sections `Purpose`, `Key messages`, `Parties` and `Roles` SHALL be required. Any other `##` heading SHALL produce a warning naming it. HTML comments (`<!-- … -->`) SHALL be ignored, so templates can carry guidance.
 
 #### Scenario: Acme capture sheet loads cleanly
-- **WHEN** `examples/acme-capture-sheet/capture-sheet.md` is loaded in author mode
+- **WHEN** `examples/acme-capture-sheet/capture-sheet.md` is loaded in author mode together with its `assets/` folder (Load folder or a `.zip`)
 - **THEN** the validation report shows 0 errors and 0 warnings, and the preview shows the Acme + Globex model
 
 #### Scenario: Missing required section

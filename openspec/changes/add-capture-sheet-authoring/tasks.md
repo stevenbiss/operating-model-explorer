@@ -95,12 +95,12 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 3. Verify
 
-- [ ] 3.1 html-verifier checks every requirement across the four specs against the engine, a sheet-exported snapshot and the skill package, with evidence, reviews the skill-trial report, and returns VERIFIED. Report saved to `openspec/changes/add-capture-sheet-authoring/reports/html-verifier.md`
-- [ ] 3.2 Confirm no real client or partner content in the repo, including the skill packs and references (private-names guard plus a repo search); verify zero matches
+- [x] 3.1 html-verifier checks every requirement across the four specs against the engine, a sheet-exported snapshot and the skill package, with evidence, reviews the skill-trial report, and returns VERIFIED. Report saved to `openspec/changes/add-capture-sheet-authoring/reports/html-verifier.md`
+- [x] 3.2 Confirm no real client or partner content in the repo, including the skill packs and references (private-names guard plus a repo search); verify zero matches
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate: accessibility, console/network, performance, security (a capture sheet is untrusted input, so test escaping through every sheet field and table cell, and check for no `eval`/`new Function`), responsiveness, visual polish, `/code-review`, Ponytail audit. It returns SHIP. Report saved to `openspec/changes/add-capture-sheet-authoring/reports/html-qa.md`
+- [x] 4.1 html-qa final gate: accessibility, console/network, performance, security (a capture sheet is untrusted input, so test escaping through every sheet field and table cell, and check for no `eval`/`new Function`), responsiveness, visual polish, `/code-review`, Ponytail audit. It returns SHIP. Report saved to `openspec/changes/add-capture-sheet-authoring/reports/html-qa.md`
 
 ## 5. Package
 

@@ -9,7 +9,7 @@ A Claude skill that turns a colleague's own background material into a clean, va
 ### Requirement: Installable skill package
 The build SHALL produce `dist/operating-model-author.zip`, containing:
 - `SKILL.md`;
-- the reference files: the capture sheet format spec, the blank template, the Acme capture sheet and the interview guide;
+- the reference files: the capture sheet format spec, the blank template, the Acme capture sheet (with its `assets/`) and the interview guide;
 - a single-file validator script that needs no `node_modules`;
 - the **matching engine**, `engine/operating-model-explorer.html`, from the same build.
 
