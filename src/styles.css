@@ -231,7 +231,7 @@ main { padding: 36px 24px 72px; }
 .card .card-meta { margin: auto 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.85rem; }
 .card-party { border-left: 4px solid var(--p-band); }
 .card-party h3 { --mk: 32px; gap: 12px; }
-.dots { display: flex; gap: 4px; margin-left: auto; --mk: 20px; }
+.dots { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; min-width: 0; max-width: 100%; margin-left: auto; --mk: 20px; }
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
 .chip {
@@ -276,7 +276,7 @@ main { padding: 36px 24px 72px; }
 .lane-bar h2 { margin: 0; font-size: 1rem; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; list-style: none; font-size: 0.8rem; color: var(--om-muted); }
 .legend li { display: flex; align-items: center; gap: 8px; }
-.swatch { width: 18px; height: 12px; flex: none; border-radius: 3px; background: var(--p-band); }
+.swatch { width: 18px; height: 12px; flex: none; border-radius: 3px; background: var(--p-band); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--om-text) 35%, transparent); }
 .party-head h1 { display: flex; align-items: center; gap: 16px; --mk: 48px; }
 .party-head { padding-left: 20px; border-left: 6px solid var(--p-band); }
 .raci-key {
@@ -320,7 +320,7 @@ main { padding: 36px 24px 72px; }
 .band-bg { fill: var(--p-tint); }
 .lane-heads .band-bg { fill: var(--p-band); }
 .band-line { stroke: var(--p-band); stroke-width: 2; }
-.swimlane .band-name { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--p-band-text); }
+.swimlane .band-name { font-size: 12.5px; font-weight: 700; fill: var(--p-band-text); }
 .lane-bg { fill: var(--om-surface); }
 .lane.alt .lane-bg { fill: color-mix(in srgb, var(--om-text) 2.5%, var(--om-surface)); }
 .lane-head { fill: var(--p-tint); }

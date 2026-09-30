@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
+import { fileURLToPath } from 'node:url';
 import { toSnapshot } from '../../src/model/snapshot.js';
 import { article, labeller } from '../../src/viewer/theme.js';
 import { formatRoute, parseRoute } from '../../src/viewer/route.js';
@@ -105,4 +106,13 @@ test('labeller output is HTML-escaped at the source', () => {
   assert.equal(L('process'), '&#60;img src=x onerror=&#34;alert(1)&#34;&#62;Proc');
   assert.equal(L.lower('party'), 'r&#38;D');
   assert.ok(!/[<>"]/.test(L.a('process')));
+});
+
+// QA round 1, MAJOR 1: the snapshot embeds only the theme's labels, never the retired values.
+const RETIRED_VALUES = ['#999999', '#0b1f4d', 'fonts.example.com', 'brand.woff2', 'assets/logo.svg', '#3a6ea5', '#2e7d5b', 'palette', 'colors', 'logo'];
+test('the snapshot embeds only theme labels: none of the theme-retired fixture\'s colours, font URL, logo path or palette', () => {
+  const snap = toSnapshot(loadModel(readFolder(fileURLToPath(new URL('../fixtures/theme-retired/', import.meta.url)))).model);
+  assert.deepEqual(snap.theme, { labels: { workstream: 'Value stream', workstreams: 'Value streams' } });
+  const json = JSON.stringify(snap);
+  for (const v of RETIRED_VALUES) assert.ok(!json.includes(v), v);
 });

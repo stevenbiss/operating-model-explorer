@@ -90,15 +90,14 @@ export const ENGINE = {
   light: { frame: { surface: '#ffffff', text: '#1b1f24' }, meaning: { accent: '#c05621', new: '#1a7f4b', changed: '#9a6700', removed: '#b42318', focus: '#1f3a5f' } },
   dark: { frame: { surface: '#171d24', text: '#e7eaee' }, meaning: { accent: '#f0883e', new: '#3fb97a', changed: '#d4a72c', removed: '#f47067', focus: '#8fb8ec' } },
 };
-// How each meaning colour is named in the report.
+// How each meaning colour is named in the report: [in full, short].
 export const MEANING_NAMES = {
-  accent: '"Your lane" highlighting and cross-party handoffs',
-  new: 'the "New" badge',
-  changed: 'the "Changed" badge and notices',
-  removed: 'the "Removed" badge and errors',
-  focus: 'the keyboard focus ring',
+  accent: ['"Your lane" highlighting and cross-party handoffs', '"Your lane"'],
+  new: ['the "New" badge', '"New"'],
+  changed: ['the "Changed" badge and notices', '"Changed"'],
+  removed: ['the "Removed" badge and errors', '"Removed"'],
+  focus: ['the keyboard focus ring', 'the focus ring'],
 };
-const SHORT = { accent: '"Your lane"', new: '"New"', changed: '"Changed"', removed: '"Removed"', focus: 'the focus ring' };
 
 // For parties without a brand: low chroma, spread in lightness and hue, clear of the meaning colours. The first three
 // stay T apart in both schemes and under every simulation; later ones are shifted if they need to be.
@@ -107,10 +106,10 @@ const INK = { dark: '#111111', light: '#ffffff' };
 
 // Tuned in task 1.3 (design D3).
 export const T = 0.06; // smallest distance allowed, in OKLab, in normal vision and under every simulation
-const HUE_STEP = 20; // degrees, tried +20, -20, +40, ... up to HUE_MAX
-const HUE_MAX = 120;
-const L_STEP = 0.06; // then OKLCH lightness, darker first, up to L_MAX
+const L_STEP = 0.06; // OKLCH lightness first, darker first, up to L_MAX (design D3a)
 const L_MAX = 0.3;
+const HUE_STEP = 20; // then hue, degrees, tried +20, -20, +40, ... up to HUE_MAX
+const HUE_MAX = 120;
 const DARK_L = [0.62, 0.78]; // a derived dark-mode variant: OKLCH lightness clamped to this range
 
 // The ink (near-black or white) with the better contrast, and the colour shifted in lightness until it reaches 4.5:1.
@@ -128,8 +127,8 @@ function candidates(first, secondary) {
   const out = [{ colour: first, how: 'as given' }];
   if (secondary) out.push({ colour: secondary, how: 'secondary' });
   const [L, C, h] = oklch(first);
-  for (let d = HUE_STEP; d <= HUE_MAX; d += HUE_STEP) for (const s of [d, -d]) out.push({ colour: fromOklch([L, C, (h + s + 360) % 360]), how: 'shade' });
   for (let d = L_STEP; d <= L_MAX + 1e-9; d += L_STEP) for (const s of [-d, d]) if (L + s > 0.05 && L + s < 0.97) out.push({ colour: fromOklch([L + s, C, h]), how: 'shade' });
+  for (let d = HUE_STEP; d <= HUE_MAX; d += HUE_STEP) for (const s of [d, -d]) out.push({ colour: fromOklch([L, C, (h + s + 360) % 360]), how: 'shade' });
   return out.map((c) => ({ how: c.how, ...readable(c.colour) }));
 }
 
@@ -148,13 +147,14 @@ const margin = (colour, taken, meaning) => Math.min(...gaps(colour, taken, meani
 
 // parties: [{ id, brand? }] in order; brands: { id: { colours: { primary, secondary?, dark? } } }; engine: ENGINE.
 // -> one entry per party: { party, source, base, dark, band, bandText, tint, darkBand, darkBandText, darkTint, adjusted }
-// adjusted: [{ scheme, from, to, how: 'secondary'|'shade'|'contrast'|'unresolved', reason?: 'party'|'meaning', other?, cvd? }]
-// (cvd: the clash with another party shows only under a colour-vision simulation)
+// adjusted: [{ scheme, from, derived?, to, how: 'secondary'|'shade'|'contrast'|'unresolved', reason?: 'party'|'meaning', other?, cvd? }]
+// (from: the author's own colour; derived: the dark-mode variant made from it, when that isn't the author's own;
+// cvd: the clash with another party shows only under a colour-vision simulation)
 export function resolvePartyColours(parties, brands = {}, engine = ENGINE) {
   const hex = (v) => (typeof v === 'string' && HEX.test(v) ? v.toLowerCase() : undefined);
   let neutral = 0;
   const out = parties.map((p) => {
-    const b = (p.brand && brands[p.brand] && brands[p.brand].colours) || {};
+    const b = (typeof p.brand === 'string' && Object.hasOwn(brands, p.brand) && brands[p.brand].colours) || {};
     const primary = hex(b.primary);
     return { party: p.id, source: primary ? 'brand' : 'neutral', base: primary || NEUTRALS[neutral++ % NEUTRALS.length], secondary: primary && hex(b.secondary), packDark: primary && hex(b.dark), adjusted: [] };
   });
@@ -163,8 +163,10 @@ export function resolvePartyColours(parties, brands = {}, engine = ENGINE) {
     const taken = [];
     for (const r of out) {
       let first = r.base;
+      let own = r.base; // the author's colour this one comes from, quoted in warnings (design D3a)
       if (scheme === 'dark') {
-        // The pack's dark colour goes with its primary. Any other light colour is lifted into the dark range.
+        // The pack's dark colour goes with its primary. Any other light colour is brought into the dark range.
+        own = r.usedPrimary ? r.packDark || r.base : r.secondaryUsed ? r.secondary : r.base;
         const [L, C, h] = oklch(r.usedPrimary ? r.base : r.band);
         first = r.dark = r.usedPrimary && r.packDark ? r.packDark : fromOklch([Math.min(DARK_L[1], Math.max(DARK_L[0], L)), C, h]);
       }
@@ -172,16 +174,18 @@ export function resolvePartyColours(parties, brands = {}, engine = ENGINE) {
       const why = clashes(list[0].band, taken, meaning);
       // The first candidate clear of everything; failing that, the one furthest from its nearest colour.
       const far = (x) => margin(x.band, taken, meaning);
-      const pick = list.find((x) => !clashes(x.band, taken, meaning)) || list.reduce((a, x) => (far(x) > far(a) ? x : a));
+      const clear = list.find((x) => !clashes(x.band, taken, meaning));
+      const pick = clear || list.reduce((a, x) => (far(x) > far(a) ? x : a));
       const [band, bandText, tint] = scheme === 'light' ? ['band', 'bandText', 'tint'] : ['darkBand', 'darkBandText', 'darkTint'];
       Object.assign(r, { [band]: pick.band, [bandText]: pick.bandText, [tint]: mix(pick.band, frame.surface, 0.1) });
-      if (scheme === 'light') r.usedPrimary = pick === list[0];
-      if (why) r.adjusted.push({ scheme, from: first, to: pick.band, how: pick === list[0] ? 'unresolved' : pick.how, reason: why.kind, other: why.id, ...(why.cvd && { cvd: true }) });
-      else if (pick.band !== first && r.source === 'brand') r.adjusted.push({ scheme, from: first, to: pick.band, how: 'contrast' });
+      if (scheme === 'light') Object.assign(r, { usedPrimary: pick === list[0], secondaryUsed: pick.how === 'secondary' });
+      const from = { from: own, ...(first !== own && { derived: first }) };
+      if (why) r.adjusted.push({ scheme, ...from, to: pick.band, how: clear ? pick.how : 'unresolved', reason: why.kind, other: why.id, ...(why.cvd && { cvd: true }) });
+      else if (pick.band !== first && r.source === 'brand') r.adjusted.push({ scheme, ...from, to: pick.band, how: 'contrast' });
       taken.push({ id: r.party, band: pick.band });
     }
   }
-  return out.map(({ secondary, packDark, usedPrimary, ...r }) => r);
+  return out.map(({ secondary, packDark, usedPrimary, secondaryUsed, ...r }) => r);
 }
 
 // Adjustment records -> plain-English report warnings (design D3 step 4). Parties without a brand never get one.
@@ -192,15 +196,18 @@ export function colourMessages(resolved, nameOf, at) {
     const who = nameOf(r.party);
     for (const a of r.adjusted) {
       const mode = a.scheme === 'dark' ? ' in dark mode' : '';
-      const like = a.reason === 'party' ? `${nameOf(a.other)}'s colour${a.cvd ? ' for people with common colour-blindness' : ''}` : `the colour of ${MEANING_NAMES[a.other]}`;
+      // The author's colour first; a derived dark-mode variant only as the explanation.
+      const colour = `${who}'s colour ${a.from}${a.derived ? `, adapted to ${a.derived} for dark mode,` : ''}`;
+      const [long, short] = MEANING_NAMES[a.other] || [];
+      const like = a.reason === 'party' ? `${nameOf(a.other)}'s colour${a.cvd ? ' for people with common colour-blindness' : ''}${mode}` : `the colour of ${long}${mode}`;
       const drawn = a.how === 'secondary' ? `its brand's secondary colour, ${a.to}` : `a shifted shade, ${a.to}`;
       const problem = {
-        contrast: `${who}'s colour ${a.from}${mode} is drawn as ${a.to}, so that text on it meets the WCAG AA contrast of 4.5:1.`,
-        unresolved: `${who}'s colour ${a.from}${mode} is close to ${like}, and no clearly different shade was found. The name and mark still tell them apart.`,
-      }[a.how] || `${who}'s colour ${a.from}${mode} is too close to ${like}, so ${who} is drawn in ${drawn}${a.reason === 'meaning' ? `, so it can't be mistaken for ${SHORT[a.other]}` : ''}.`;
+        contrast: `${colour} is drawn as ${a.to}${mode}, so that text on it meets the WCAG AA contrast of 4.5:1.`,
+        unresolved: `Unresolved: ${colour} is close to ${like}, and no clearly different shade was found. ${who} is drawn in the furthest shade tried, ${a.to}; ${a.reason === 'party' ? `the names and marks of ${who} and ${nameOf(a.other)} still tell them apart` : `${short} is always shown with its text, so it still can't be mistaken for ${who}`}.`,
+      }[a.how] || `${colour} is too close to ${like}, so ${who} is drawn in ${drawn}${a.reason === 'meaning' ? `, so it can't be mistaken for ${short}` : ''}.`;
       const fix = a.how === 'contrast'
         ? `Nothing to do if this looks right. To choose the shade yourself, give ${who}'s brand pack a${mode ? ' dark' : ' primary'} colour with at least 4.5:1 contrast against white or near-black text.`
-        : `Nothing to do if this looks right. To choose the colour yourself, give ${who}'s brand pack a${mode ? ' dark' : ' secondary'} colour that is clearly different from ${a.reason === 'party' ? `${nameOf(a.other)}'s` : SHORT[a.other]}.`;
+        : `Nothing to do if this looks right. To choose the colour yourself, give ${who}'s brand pack a${mode ? ' dark' : ' secondary'} colour that is clearly different from ${a.reason === 'party' ? `${nameOf(a.other)}'s` : short}.`;
       out.push({ level: 'warning', ...at(r.party), problem, fix });
     }
   }

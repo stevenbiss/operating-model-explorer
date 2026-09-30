@@ -75,7 +75,7 @@ function checked(parsed, assets, brands) {
 // A pack: { id, name, version, updated, colours, marks }, where marks hold full paths (brands/acme/mark.svg).
 // Usage notes (the Markdown text) are dropped.
 export function readBrands(list, assets) {
-  const packs = {};
+  const packs = Object.create(null); // keyed by folder name, so a folder called __proto__ is just a key
   const messages = [];
   for (const { folder, file, text } of list) {
     const parsed = parseFile(text);
@@ -109,9 +109,12 @@ export function readBrands(list, assets) {
         const what = isUrl(v) && !/^[a-z]:[\\/]/i.test(v.trim()) ? 'is a web address' : "points outside the pack's folder";
         say('error', `The ${word} "${v}" in the brand pack ${folder} ${what}. Marks must be files in the brand pack's folder, so the model works offline.`, `Put the file in brands/${folder}/ and write its name, e.g. "mark.svg".`);
       } else if (!assets[path]) {
-        say('error', `The ${word} file "${v}" was not found in the brand pack's folder, brands/${folder}/.`, `Add the file to brands/${folder}/, or correct its name in brand.md.`);
+        // Only the mark is drawn, so a missing mono mark or full logo doesn't block export.
+        say(key === 'mark' ? 'error' : 'warning', `The ${word} file "${v}" was not found in the brand pack's folder, brands/${folder}/.`, `Add the file to brands/${folder}/, or correct its name in brand.md.`);
       } else {
         marks[key] = path;
+        // TextDecoder drops a leading byte-order mark.
+        if (!/^\s*<(svg|\?xml)\b/i.test(decoder.decode(assets[path].subarray(0, 512)))) say('warning', `The ${word} "${v}" in the brand pack ${folder} doesn't look like an SVG file: it doesn't start with <svg or <?xml, so it may not show.`, 'Use the SVG version of the mark from the brand library.');
         const kb = Math.ceil(assets[path].length / 1024);
         if (kb > MARK_KB) say('warning', `The ${word} "${v}" in the brand pack ${folder} is ${kb} KB. Marks should be under ${MARK_KB} KB, because they are embedded in every snapshot.`, 'Use a simplified or optimised version of the mark.');
       }

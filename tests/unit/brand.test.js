@@ -76,6 +76,39 @@ test('2.2 missing mark: an error naming the pack and the missing file', () => {
   assert.match(full.problem, /full logo file "logo\.svg" was not found/);
 });
 
+test('a missing optional mark (mono or full) is a warning, not an error, so export stays enabled', () => {
+  for (const key of ['mono', 'full']) {
+    const m = only(folder('globex', globex({ marks: `\n  mark: mark.svg\n  ${key}: other.svg` })).messages);
+    assert.equal(m.level, 'warning', key);
+    assert.match(m.problem, /"other\.svg" was not found/);
+  }
+});
+
+test('a mark that does not look like SVG: a warning; SVG with a BOM, whitespace or an XML declaration is fine', () => {
+  for (const text of ['<!DOCTYPE html><html><body>not a mark</body></html>', 'PNG\r\n', '']) {
+    const m = only(folder('globex', { ...globex(), 'brands/globex/mark.svg': text }).messages);
+    assert.equal(m.level, 'warning');
+    assert.match(m.problem, /doesn't look like an SVG file: it doesn't start with <svg or <\?xml/);
+  }
+  for (const text of [`﻿${MARK}`, `\n  ${MARK}`, `<?xml version="1.0"?>\n${MARK}`]) assert.deepEqual(folder('globex', { ...globex(), 'brands/globex/mark.svg': text }).messages, []);
+});
+
+test('a brands/__proto__/ folder is an ordinary pack folder: no prototype pollution, and lookups use own keys', () => {
+  const r = loadModel(files({
+    'model.md': MODEL,
+    'parties/globex.md': party('globex', 'Globex', '__proto__'),
+    'brands/__proto__/brand.md': pack('__proto__'),
+    'brands/__proto__/mark.svg': MARK,
+  }));
+  assert.equal(Object.getPrototypeOf(r.model.brands), null);
+  assert.ok(Object.hasOwn(r.model.brands, '__proto__'));
+  assert.equal({}.version, undefined, 'Object.prototype untouched');
+  assert.equal(r.model.partyColours[0].source, 'brand');
+  // A party naming "constructor" with no such pack is an unknown brand, not a crash.
+  const c = folder('constructor', globex());
+  assert.match(c.messages.map((m) => m.problem).join('\n'), /uses the brand "constructor", which does not match/);
+});
+
 test('2.26 remote mark, and marks outside the pack: an error saying marks must be files in the pack\'s folder', () => {
   for (const [path, what] of [['https://example.com/mark.svg', 'is a web address'], ['../acme/mark.svg', 'points outside'], ['/mark.svg', 'points outside'], ['C:\\\\marks\\\\mark.svg', 'points outside'], ['file:///C:/mark.svg', 'is a web address'], ['sub/../../x.svg', 'points outside']]) {
     const m = only(folder(undefined, globex({ marks: `\n  mark: "${path}"` }), { 'brands/acme/mark.svg': MARK }).messages);
@@ -98,7 +131,7 @@ test('a mark over 200 KB: a warning', () => {
   const m = only(folder(undefined, { 'brands/globex/brand.md': pack('globex'), 'brands/globex/mark.svg': big }).messages);
   assert.equal(m.level, 'warning');
   assert.match(m.problem, /is 211 KB\. Marks should be under 200 KB/);
-  assert.deepEqual(folder(undefined, { 'brands/globex/brand.md': pack('globex'), 'brands/globex/mark.svg': 'x'.repeat(200 * 1024) }).messages, []);
+  assert.deepEqual(folder(undefined, { 'brands/globex/brand.md': pack('globex'), 'brands/globex/mark.svg': `<svg>${'x'.repeat(200 * 1024 - 11)}</svg>` }).messages, []);
 });
 
 test('a brand.md without a header, or with bad YAML: an error, and the pack is not used', () => {

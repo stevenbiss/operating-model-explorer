@@ -32,7 +32,7 @@ test('OKLab and OKLCH: reference values and round trips', () => {
   assert.ok(Math.abs(oklab('#000000')[0]) < 1e-6);
   // Published OKLab of sRGB red: L 0.6280, a 0.2249, b 0.1258.
   oklab('#ff0000').forEach((v, i) => assert.ok(Math.abs(v - [0.628, 0.2249, 0.1258][i]) < 1e-3));
-  for (const hex of ['#0b1f4d', '#ffd400', '#e10600', '#3aaa35', '#7b5a68']) assert.equal(fromOklch(oklch(hex)), hex);
+  for (const hex of ['#0b1f4d', '#ffd23f', '#d6281e', '#3aaa35', '#7b5a68']) assert.equal(fromOklch(oklch(hex)), hex);
   assert.equal(deltaE('#123456', '#123456'), 0);
   // Out-of-gamut OKLCH is brought into sRGB by reducing chroma.
   assert.match(fromOklch([0.7, 0.5, 140]), /^#[0-9a-f]{6}$/);
@@ -62,25 +62,55 @@ test('the engine colours in colour.js match the tokens in styles.css, light and 
   assert.match(css, /:focus-visible \{ outline: 3px solid var\(--om-link\)/);
 });
 
-test('2.10 light brand colour: #ffd400 keeps its colour and takes dark text, at 4.5:1 or more', () => {
-  const { out, messages } = resolve(['#ffd400']);
+test('2.10 light brand colour: #ffd23f keeps its colour and takes dark text, at 4.5:1 or more', () => {
+  const { out, messages } = resolve(['#ffd23f']);
   const [r] = out;
-  assert.deepEqual([r.band, r.bandText], ['#ffd400', '#111111']);
+  assert.deepEqual([r.band, r.bandText], ['#ffd23f', '#111111']);
   assert.ok(contrast(r.band, r.bandText) >= 4.5);
   assert.equal(r.darkBandText, '#111111');
   assertAA(r);
-  // Its derived dark variant sits close to the dark "Changed" amber, so dark mode is shifted, with a warning.
-  assert.deepEqual(messages.map((m) => m.problem.match(/in dark mode.*"Changed"/) !== null), [true]);
+  // Its derived dark variant sits close to the dark "Changed" amber, so dark mode is shifted in lightness (design D3a):
+  // it stays yellow, darker than the author's colour, and the warning quotes the author's colour first.
+  const [L, C, h] = oklch(r.darkBand);
+  assert.ok(Math.abs(h - oklch('#ffd23f')[2]) < 3 && C > 0.1, `${r.darkBand} is still yellow`);
+  assert.ok(L < oklch('#ffd23f')[0], 'and darker');
+  assert.equal(messages.length, 1);
+  assert.match(messages[0].problem, /^Party 1's colour #ffd23f, adapted to #[0-9a-f]{6} for dark mode, is too close to the colour of the "Changed" badge and notices in dark mode/);
+});
+
+test('adjustments change lightness before hue, light and dark (design D3a)', () => {
+  for (const list of [['#d6281e', '#c92d25'], ['#b8261c'], ['#ffd23f']]) {
+    const r = resolve(list).out.at(-1);
+    const hue = (x) => oklch(x)[2];
+    for (const [from, to] of [[list.at(-1), r.band], [r.dark, r.darkBand]]) assert.ok(Math.abs(hue(from) - hue(to)) < 5, `${from} -> ${to} keeps its hue`);
+  }
+});
+
+test('a crowded model: a clash no shade resolves is reported as unresolved, naming both parties', () => {
+  const { out, messages } = resolve(Array(14).fill('#d6281e'));
+  const a = out.flatMap((r) => r.adjusted).find((x) => x.how === 'unresolved');
+  assert.ok(a, 'some clash is unresolved');
+  const m = messages.find((x) => x.problem.startsWith('Unresolved:'));
+  assert.match(m.problem, /^Unresolved: Party \d+'s colour #d6281e is close to Party \d+'s colour.*no clearly different shade was found/);
+  assert.match(m.problem, /the names and marks of Party \d+ and Party \d+ still tell them apart\.$/);
+  // Every unresolved clash is reported as unresolved, never as "shifted".
+  assert.equal(messages.filter((x) => x.problem.startsWith('Unresolved:')).length, out.flatMap((r) => r.adjusted).filter((x) => x.how === 'unresolved').length);
+  out.forEach(assertAA);
+});
+
+test('brand lookups use own keys only: a party whose brand is "__proto__" or "constructor" is unbranded', () => {
+  const out = resolvePartyColours([{ id: 'a', brand: '__proto__' }, { id: 'b', brand: 'constructor' }], {});
+  assert.deepEqual(out.map((r) => r.source), ['neutral', 'neutral']);
 });
 
 test('2.12 two similar reds: the second party is drawn in its secondary colour, and the report names both', () => {
-  const { out, messages } = resolve(['#e10600', { primary: '#d40511', secondary: '#0057b8' }]);
-  assert.deepEqual([out[0].band, out[0].adjusted], ['#e10600', []], 'the first party keeps its colour');
-  assert.equal(out[1].band, '#0057b8');
-  assert.deepEqual(out[1].adjusted, [{ scheme: 'light', from: '#d40511', to: '#0057b8', how: 'secondary', reason: 'party', other: 'p1' }]);
+  const { out, messages } = resolve(['#d6281e', { primary: '#c92d25', secondary: '#1f5fbf' }]);
+  assert.deepEqual([out[0].band, out[0].adjusted], ['#d6281e', []], 'the first party keeps its colour');
+  assert.equal(out[1].band, '#1f5fbf');
+  assert.deepEqual(out[1].adjusted, [{ scheme: 'light', from: '#c92d25', to: '#1f5fbf', how: 'secondary', reason: 'party', other: 'p1' }]);
   const m = messages.find((x) => x.element === 'p2');
   assert.equal(m.level, 'warning');
-  assert.equal(m.problem, "Party 2's colour #d40511 is too close to Party 1's colour, so Party 2 is drawn in its brand's secondary colour, #0057b8.");
+  assert.equal(m.problem, "Party 2's colour #c92d25 is too close to Party 1's colour, so Party 2 is drawn in its brand's secondary colour, #1f5fbf.");
   assert.match(m.fix, /clearly different from Party 1's/);
   // In dark mode the second party follows its secondary colour too, so no second warning.
   assert.equal(messages.length, 1);
@@ -88,7 +118,7 @@ test('2.12 two similar reds: the second party is drawn in its secondary colour, 
 });
 
 test('two similar reds without a secondary colour: a shifted shade, still at least T apart for every simulation', () => {
-  const { out } = resolve(['#e10600', '#d40511']);
+  const { out } = resolve(['#d6281e', '#c92d25']);
   assert.equal(out[1].adjusted[0].how, 'shade');
   for (const s of ['band', 'darkBand']) assert.ok(distance(out[0][s], out[1][s]) >= T, s);
 });
@@ -145,7 +175,7 @@ test('2.15 unbranded parties: neutral colours, distinct from each other, and no 
 });
 
 test('deterministic: the same parties always give the same colours', () => {
-  const list = ['#e10600', { primary: '#d40511', secondary: '#0057b8' }, null, '#ffd400', '#b8261c'];
+  const list = ['#d6281e', { primary: '#c92d25', secondary: '#1f5fbf' }, null, '#ffd23f', '#b8261c'];
   assert.deepEqual(resolve(list).out, resolve(list).out);
 });
 
@@ -156,14 +186,14 @@ test('loadModel: partyColours in party order, and colour warnings located at the
     'model.md': MODEL,
     'parties/1-acme.md': party('acme', 'Acme Corp', 'acme'),
     'parties/2-globex.md': party('globex', 'Globex', 'globex'),
-    'brands/acme/brand.md': pack('acme', '#e10600'),
+    'brands/acme/brand.md': pack('acme', '#d6281e'),
     'brands/acme/mark.svg': '<svg/>',
-    'brands/globex/brand.md': pack('globex', '#d40511', '#0057b8'),
+    'brands/globex/brand.md': pack('globex', '#c92d25', '#1f5fbf'),
     'brands/globex/mark.svg': '<svg/>',
   }));
-  assert.deepEqual(r.model.partyColours.map((c) => [c.party, c.band]), [['acme', '#e10600'], ['globex', '#0057b8']]);
+  assert.deepEqual(r.model.partyColours.map((c) => [c.party, c.band]), [['acme', '#d6281e'], ['globex', '#1f5fbf']]);
   const [m] = r.messages;
   assert.equal(r.messages.length, 1);
   assert.deepEqual([m.level, m.file, m.element], ['warning', 'parties/2-globex.md', 'globex']);
-  assert.equal(m.problem, "Globex's colour #d40511 is too close to Acme Corp's colour, so Globex is drawn in its brand's secondary colour, #0057b8.");
+  assert.equal(m.problem, "Globex's colour #c92d25 is too close to Acme Corp's colour, so Globex is drawn in its brand's secondary colour, #1f5fbf.");
 });

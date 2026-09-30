@@ -196,7 +196,7 @@ test.describe('party-brands (author mode)', () => {
     await expect(band.locator('.band-name')).toHaveText('Sunco');
     const bg = (await colourOf(page, band.locator('.band-bg'), 'fill')).split(',').map(Number);
     const fg = (await colourOf(page, band.locator('.band-name'), 'fill')).split(',').map(Number);
-    expect(bg.join(), "Sunco's band keeps its yellow").toBe(rgbKey('#ffd400'));
+    expect(bg.join(), "Sunco's band keeps its yellow").toBe(rgbKey('#ffd23f'));
     expect(luminance(fg), `text ${fg} on the yellow band is dark`).toBeLessThan(0.1);
     expect(contrast(fg, bg), 'band text contrast').toBeGreaterThanOrEqual(4.5);
     for (const p of (await brandPairs(page, '#om-preview')).filter((x) => x.party === '1' || x.kind === 'html')) expect(p.ratio, `${p.kind} ${p.what}`).toBeGreaterThanOrEqual(4.5);
@@ -232,12 +232,12 @@ test.describe('party-brands (author mode)', () => {
     await expect(m).toHaveAttribute('data-level', 'warning');
     await expect(m).toContainText('Crimson Co');
     await expect(m).toContainText('Redline');
-    await expect(m).toContainText('#d40511');
+    await expect(m).toContainText('#c92d25');
     await expect(m).toContainText('secondary colour, #1f5fbf');
     await expect(page.getByTestId('export')).toBeEnabled();
     await skipPrompt(page);
     await go(page, '#/p/flow');
-    expect(await colourOf(page, pv(page).locator('.lane-heads .band[data-party="0"] .band-bg'), 'fill'), 'Redline keeps its primary').toBe(rgbKey('#e10600'));
+    expect(await colourOf(page, pv(page).locator('.lane-heads .band[data-party="0"] .band-bg'), 'fill'), 'Redline keeps its primary').toBe(rgbKey('#d6281e'));
     expect(await colourOf(page, pv(page).locator('.lane-heads .band[data-party="1"] .band-bg'), 'fill'), 'Crimson Co uses its blue secondary').toBe(rgbKey('#1f5fbf'));
   });
 
@@ -405,6 +405,55 @@ test.describe('party-brands (phone)', () => {
       }
     });
   }
+});
+
+// QA round 1, MAJOR 2 and 3: twenty parties, with long names ("Partner Organisation 1 Holdings").
+test.describe('party-brands (many parties, long names)', () => {
+  const snap = useSnapshot('brand-many-parties');
+  const LONG = 'Partner Organisation 1 Holdings';
+
+  test('party-brands › Swimlane bands: a long party name is shown in full, on up to two lines', async ({ page }) => {
+    test.skip(page.viewportSize().width < 1280, 'the swimlane is drawn at desktop widths');
+    await openSnapshot(page, snap, '#/p/flow');
+    const band = page.locator('.lane-heads .band[data-party="0"]');
+    const name = band.locator('.band-name');
+    await expect(name).toHaveText(LONG);
+    expect(await name.textContent()).not.toContain('…');
+    expect(await name.evaluate((t) => getComputedStyle(t).textTransform), 'not uppercased').toBe('none');
+    const bg = await band.locator('.band-bg').boundingBox();
+    const lines = await name.locator('tspan').evaluateAll((ts) => ts.map((t) => ({ text: t.textContent, right: t.getBoundingClientRect().right })));
+    expect(lines.length).toBeLessThanOrEqual(2);
+    for (const l of lines) expect(l.right, `"${l.text}" fits its header cell`).toBeLessThanOrEqual(bg.x + bg.width);
+    const tb = await name.boundingBox();
+    expect(tb.y >= bg.y && tb.y + tb.height <= bg.y + bg.height, 'the name sits inside its band').toBe(true);
+    // The legend swatch has an edge, so black or white brands stay visible.
+    expect(await page.locator('[data-testid="legend-party"] .swatch').first().evaluate((s) => getComputedStyle(s).boxShadow)).not.toBe('none');
+    expect(await noHorizontalScroll(page)).toBe(true);
+  });
+
+  test('party-brands › Twenty parties: the workstream card\'s marks wrap, with no horizontal scroll', { tag: '@mobile' }, async ({ page }) => {
+    await openSnapshot(page, snap);
+    await skipPrompt(page);
+    const vw = page.viewportSize().width;
+    const card = page.getByTestId('workstream-card-main-ws');
+    const marks = card.locator('.dots .mk');
+    await expect(marks).toHaveCount(20);
+    const cb = await card.boundingBox();
+    for (const m of await marks.all()) {
+      const b = await m.boundingBox();
+      expect(b.x >= cb.x - 0.5 && b.x + b.width <= cb.x + cb.width + 0.5, 'each mark inside the card').toBe(true);
+    }
+    expect(await noHorizontalScroll(page), 'no horizontal page scroll on the overview').toBe(true);
+    for (const hash of ['#/w/main-ws', '#/p/flow', '#/e/partner-1']) {
+      await openSnapshot(page, snap, hash);
+      expect(await noHorizontalScroll(page), `no horizontal page scroll at ${hash}`).toBe(true);
+    }
+    // On a phone the steps are a list, and the long party name is shown in full.
+    if (vw < 768) {
+      await openSnapshot(page, snap, '#/p/flow');
+      await expect(page.getByTestId('step-step-1').locator('.fi-lane')).toContainText(LONG);
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -7,7 +7,8 @@ const COL = 244; // column width (one per rank)
 const NW = 164; // node width
 const NH = 70; // node height
 const GAP = COL - NW;
-const PARTY_H = 34;
+const PARTY_H = 34; // a party row; a two-line party name adds BAND_LINE
+const BAND_LINE = 16;
 const PAD_T = 18;
 const PAD_B = 32; // room for rework loops under the steps
 const COMPACT = 50; // lanes that only take part (RACI)
@@ -78,12 +79,16 @@ export function swimlaneSvg(ctx) {
   const lh = (r) => head[r].h;
 
   // Vertical positions of party rows and lanes.
+  // A party's name: up to two lines in its header cell, so long names stay readable.
+  const partyLines = (p) => (p && el[p] ? wrap(el[p].name, 20, 2).map(esc) : [`No ${ctx.L.lower('party')}`]);
   let y = 0;
   const laneTop = {};
   const bands = [];
   for (const g of f.groups) {
-    bands.push({ party: g.party, y });
-    y += PARTY_H;
+    const name = partyLines(g.party);
+    const h = PARTY_H + (name.length - 1) * BAND_LINE;
+    bands.push({ party: g.party, y, h, name });
+    y += h;
     for (const r of g.lanes) {
       laneTop[r] = y;
       y += lh(r);
@@ -96,7 +101,6 @@ export function swimlaneSvg(ctx) {
     const top = laneTop[n.step.owner] + PAD_T + n.slot * (NH + 16);
     return { x, y: top, cx: x + NW / 2, cy: top + NH / 2, bottom: top + NH, laneBottom: laneTop[n.step.owner] + lh(n.step.owner) };
   };
-  const partyName = (p) => (p && el[p] ? esc(wrap(el[p].name, 17, 1)[0]) : `No ${ctx.L.lower('party')}`);
 
   // Backgrounds: party rows and lanes in the body (bg); their left-hand header cells in the sticky column (headBg).
   // A party's mark is an HTML <img> laid over its header cell (marks), never SVG markup (design D5).
@@ -104,11 +108,13 @@ export function swimlaneSvg(ctx) {
   let headBg = '';
   let marks = '';
   for (const b of bands) {
-    const band = (w) => `<g class="band"${ctx.dp(b.party)}><rect class="band-bg" x="0" y="${b.y}" width="${w}" height="${PARTY_H}"/>`;
-    bg += `${band(FULL)}<line class="band-line" x1="0" x2="${FULL}" y1="${b.y + PARTY_H - 1}" y2="${b.y + PARTY_H - 1}"/></g>`;
+    const band = (w) => `<g class="band"${ctx.dp(b.party)}><rect class="band-bg" x="0" y="${b.y}" width="${w}" height="${b.h}"/>`;
+    bg += `${band(FULL)}<line class="band-line" x1="0" x2="${FULL}" y1="${b.y + b.h - 1}" y2="${b.y + b.h - 1}"/></g>`;
     const m = ctx.mark(b.party);
-    headBg += `${band(HEAD)}<text class="band-name" x="${m ? 42 : 18}" y="${b.y + PARTY_H / 2 + 4.5}">${partyName(b.party)}</text></g>`;
-    if (m) marks += `<span class="band-mark" style="top:${b.y + (PARTY_H - 22) / 2}px">${m}</span>`;
+    const x = m ? 42 : 18;
+    const lines = b.name.map((t, i) => `<tspan x="${x}" y="${b.y + PARTY_H / 2 + 4.5 + i * BAND_LINE}">${t}</tspan>`).join(' ');
+    headBg += `${band(HEAD)}<text class="band-name">${lines}</text></g>`;
+    if (m) marks += `<span class="band-mark" style="top:${b.y + (b.h - 22) / 2}px">${m}</span>`;
   }
   const laneParty = Object.fromEntries(f.groups.flatMap((g) => g.lanes.map((r) => [r, g.party])));
   f.lanes.forEach((r, i) => {

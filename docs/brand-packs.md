@@ -82,6 +82,8 @@ Brand colours are shown as given where possible. The engine adjusts a colour onl
 | **A shifted shade, when a brand looks like a colour with a meaning.** The engine's own colours for "Your lane", the New, Changed and Removed badges, cross-party handoffs, errors and focus rings always stay the engine's. | A party's colour must not be mistaken for "Removed" or "Your lane". |
 | **A dark-mode shade.** Without `colours.dark`, the engine derives one from the primary colour. | The colour stays readable on a dark page. |
 
+A shifted shade is made lighter or darker first, and the hue changes only when that isn't enough, so the brand stays recognisable. When no shade is clearly different, the report says the clash is unresolved and names both parties. Warnings always quote the pack's own colour.
+
 The result is the same every time for the same model. To avoid adjustments: give a primary colour that is not close to a common status red, green or amber, a secondary with a clearly different hue, and a `dark` colour for dark mode.
 
 ## Checks the engine makes
@@ -90,7 +92,7 @@ When a model is loaded, each pack it holds is checked. Errors stop the export un
 
 - a missing required field, or a colour that isn't a hex value (error);
 - an `id` that doesn't match the pack's folder name (error);
-- a mark file that isn't in the pack's folder (error);
-- a `fonts` field, or a mark over 200 KB (warning).
+- a `mark` file that isn't in the pack's folder (error), or a missing `mono` or `full` file (warning);
+- a `fonts` field, a mark over 200 KB, or a mark that doesn't look like SVG (it doesn't start with `<svg` or `<?xml`) (warning).
 
 To check a pack before publishing it, put it in a small model that uses it and load that model in the engine, or run `npm run validate -- <model folder>` in the engine's repository.

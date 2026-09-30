@@ -2,7 +2,7 @@
 // palette are retired keys that warn and are ignored). "2.19 theming › Rename workstream" is from add-capture-sheet
 // authoring and is unchanged. The removed "Low-contrast theme" scenario is replaced by the brand contrast tests in
 // party-brands.spec.js (the low-contrast fixture is now a brand whose colour needs adjusting).
-import { test, expect, openEngine, loadZip, skipPrompt, messages, go, variant, useSnapshot, openSnapshot, exportSnapshot, frameColours, rgbKey } from './helpers.js';
+import { test, expect, openEngine, loadZip, skipPrompt, messages, go, variant, useSnapshot, openSnapshot, exportSnapshot, frameColours, rgbKey, contentOf } from './helpers.js';
 
 const DEFAULT_PRIMARY = 'rgb(31, 58, 95)'; // #1f3a5f, the engine's neutral frame
 const RETIRED_PRIMARY = rgbKey('#0b1f4d'); // the colour the old sample theme set
@@ -59,8 +59,7 @@ test.describe('theming (author mode)', () => {
     await expect(page.getByTestId('export')).toBeEnabled();
     await skipPrompt(page);
     await neutralFrame(page, '#om-preview');
-    // And the exported snapshot: the neutral frame. (The retired key's value is still copied into the embedded theme
-    // data, inert; the spec doesn't say whether it may be. Reported, not asserted.)
+    // And the exported snapshot: the neutral frame. (Retired values are not embedded: see "Retired theme values").
     const snap = await exportSnapshot(browser, src, info.outputPath('snap'));
     await openSnapshot(page, snap);
     await skipPrompt(page);
@@ -155,6 +154,17 @@ test.describe('theming (author mode)', () => {
     await expect(m).toContainText("Marks must be files in the brand pack's folder");
     await expect(m.locator('.msg-where')).toContainText('brands/globex/brand.md');
     await expect(page.getByTestId('export')).toBeDisabled();
+  });
+
+  // QA round 1, MAJOR 1: the exported file carries only the theme's labels.
+  test('theming › Retired theme values are not in the exported snapshot', async ({ browser }, info) => {
+    const snap = await exportSnapshot(browser, 'theme-retired', info.outputPath('snap'));
+    for (const v of ['#999999', 'fonts.example.com', 'brand.woff2', 'assets/logo.svg']) expect(snap.html.toLowerCase(), v).not.toContain(v);
+    const content = contentOf(snap.html);
+    expect(content.theme).toEqual({ labels: { workstream: 'Value stream', workstreams: 'Value streams' } });
+    // The primary colour and the palette also appear in the engine's own help text and schema examples, so they are
+    // checked in the embedded content.
+    for (const v of ['#0b1f4d', '#3a6ea5', '#2e7d5b', 'palette']) expect(JSON.stringify(content), v).not.toContain(v);
   });
 
   test('2.27 theming › Missing asset', async ({ page }) => {

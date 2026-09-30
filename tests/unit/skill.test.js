@@ -79,9 +79,9 @@ test('1.18 plugin manifests: marketplace operating-model-explorer lists plugin o
   assert.match(read('skills/operating-model-author/SKILL.md'), /^---\nname: operating-model-author\ndescription: >\n/);
 });
 
-test('the skill folder and the trial packs contain no real company names', () => {
+test('the skill folder, the trial packs and the planning docs (openspec/) contain no real company names', () => {
   if (!PRIVATE_NAMES) return;
-  for (const dir of ['skills', 'tests/skill-packs', '.claude-plugin']) {
+  for (const dir of ['skills', 'tests/skill-packs', '.claude-plugin', 'openspec']) {
     for (const f of readFolder(join(ROOT, dir))) assert.doesNotMatch(new TextDecoder().decode(f.data), PRIVATE_NAMES, `${dir}/${f.path}`);
   }
 });

@@ -4,7 +4,7 @@ name: Sunco
 version: "2026.1"
 updated: 2026-03-01
 colours:
-  primary: "#ffd400"
+  primary: "#ffd23f"
 marks:
   mark: mark.svg
 ---

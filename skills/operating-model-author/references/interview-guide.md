@@ -118,9 +118,9 @@ Each party can be shown in its own brand colour, with its mark, from a **brand p
 1. **Ask where the library is**, and which brand each party uses. A brand's pack is the library folder whose `brand.md` has that id.
 2. **Copy each pack's whole folder, unchanged,** into a `brands/` folder next to the sheet: `brands/<id>/`. Copy the files as they are; never retype or re-save them. Copy only the packs a party uses. The sheet's location rules apply to the packs too (section 1).
 3. **Never change a pack**, even if the engine reports that it adjusted a colour. If a pack looks wrong, the author asks the library's curators for a new version.
-4. **Put each pack's id in the Parties table's `Brand` column.**
-5. **List each pack under `## Sources`** with its id and version, e.g. `- Brand pack acme, version 2026.2, from the brand library`.
-6. **If a brand isn't in the library, say so and ask** what to do: use another pack, leave the party without a brand for now (record a `(gap)`), or wait for the curators to add it. Never make up a pack, a colour or a mark, and never take them from the material or a website.
+4. **Put each pack's id in the Parties table's `Brand` column.** On an existing sheet, the author's request for brands is their agreement to this change, unless it replaces a brand already set.
+5. **List each pack under `## Sources`** with its id and version, e.g. `- Brand pack acme, version 2026.2, from the Acme brand library`. Name the library as the colleague did; never write a full local path.
+6. **If a brand isn't in the library, say so and ask** what to do: use another pack, leave the party without a brand for now (record a `(gap)`), or wait for the curators to add it. Never make up a pack, a colour or a mark, and never take them from the material or a website. Wait for the answer before copying the packs that were found, so the sheet is changed once.
 
 A sheet with brands has to be checked and loaded together with its `brands/` folder: load the folder, not the sheet on its own.
 
