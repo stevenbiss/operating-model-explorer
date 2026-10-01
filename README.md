@@ -6,7 +6,6 @@ The engine is a single file, `dist/operating-model-explorer.html`. Opened on its
 
 **Status:** v1.2.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.2.0)). It adds party brands: each party shown in its own brand colour and mark, from brand packs copied into the model, inside a neutral frame. Theme colours, fonts, logo and palette are retired. Built, tested (181 end-to-end and 174 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-party-brands/reports/`.
 
-**In progress:** v1.2.0, party brands (`openspec/changes/add-party-brands/`): each party shown in its own brand colour and mark from brand packs, with theme colours, fonts, logo and palette retired. Built; not yet tested, verified or released.
 
 ## For authors
 
