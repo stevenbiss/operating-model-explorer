@@ -65,12 +65,12 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 3. Verify
 
-- [ ] 3.1 html-verifier checks every requirement across the five delta specs, plus a regression pass over the existing main specs, against the engine and exported snapshots, with evidence. It reviews the skill-trial report and returns VERIFIED. The report is saved to `openspec/changes/add-party-brands/reports/html-verifier.md`
-- [ ] 3.2 Confirm there are no real brand assets or real client or partner content anywhere in the repo (private-names guard plus a repo search, including `brands/` folders and the brand library fixture); verify zero matches
+- [x] 3.1 html-verifier checks every requirement across the five delta specs, plus a regression pass over the existing main specs, against the engine and exported snapshots, with evidence. It reviews the skill-trial report and returns VERIFIED. The report is saved to `openspec/changes/add-party-brands/reports/html-verifier.md`
+- [x] 3.2 Confirm there are no real brand assets or real client or partner content anywhere in the repo (private-names guard plus a repo search, including `brands/` folders and the brand library fixture); verify zero matches
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate: security first (hostile brand packs: script-bearing SVG marks, markup in brand names, versions and notes, path traversal in mark paths), then colour accessibility (AA on every derived pair in light and dark, distinguishability under CVD simulation), accessibility (axe), console and network, performance (the colour resolution cost on a large model), responsiveness, visual polish, `/code-review` and a Ponytail audit. It returns SHIP. The report is saved to `openspec/changes/add-party-brands/reports/html-qa.md`
+- [x] 4.1 html-qa final gate: security first (hostile brand packs: script-bearing SVG marks, markup in brand names, versions and notes, path traversal in mark paths), then colour accessibility (AA on every derived pair in light and dark, distinguishability under CVD simulation), accessibility (axe), console and network, performance (the colour resolution cost on a large model), responsiveness, visual polish, `/code-review` and a Ponytail audit. It returns SHIP. The report is saved to `openspec/changes/add-party-brands/reports/html-qa.md`
 
 ## 5. Package
 

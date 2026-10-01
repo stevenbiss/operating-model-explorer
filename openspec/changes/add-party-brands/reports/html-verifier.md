@@ -45,3 +45,14 @@
 - Add a mark next to the party name in the mobile step list, for consistency.
 - The identical initials for similarly named unbranded parties are deferred. Names and colours still differ, and the remedy is to give those parties brands.
 - QA round-2 MINOR 1 (long word in a party-page heading) and MINOR 3 (an SVG with a leading comment or DOCTYPE) are fixed in the same round.
+
+## Round 3 (targeted): VERIFIED
+- **party-brands › Party identity where the party appears is MET everywhere listed.** That includes the legend, now with marks: 24/24, 6/6 and 12/12 entries.
+- **Phone step list:** all marks shown with their names, and no horizontal scroll.
+- **Long names:** a party name that is a single 34-character word causes no horizontal scroll on any page.
+- **SVG check:** marks starting with a comment or DOCTYPE give no warning, while HTML posing as an SVG still warns.
+- **Regression:** axe found 0 issues across 16 runs, with 0 console errors and 0 requests. All text pairs are at least 4.5:1.
+- **New minor issue (deferred):** a single 38-character word in a role name widens the RACI table by 10px at 375. This predates the change.
+- **Still deferred:** identical initials for unbranded parties with similar names.
+
+Combined with round 2, where every other requirement was MET: **all requirements are MET.**
