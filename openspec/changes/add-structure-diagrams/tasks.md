@@ -21,86 +21,86 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`, at 1280×800, with `@mobile` scenarios also run at 375×812. Node tests cover the model, sheet and geometry logic. Skill trials follow `tests/skill-packs/README.md`, and their results go in `reports/skill-trials.md`.
 
 ### structure-diagrams
-- [ ] 2.1 Diagram with author's own vocabulary
-- [ ] 2.2 Missing bands
-- [ ] 2.3 Sub-bands drawn inside their band
-- [ ] 2.4 Nesting too deep
-- [ ] 2.5 Box in a band with sub-bands
-- [ ] 2.6 Duplicate band id
-- [ ] 2.7 Box content
-- [ ] 2.8 Team box lists its roles
-- [ ] 2.9 Box names both a role and a team
-- [ ] 2.10 Same role in two bands
-- [ ] 2.11 Unused party has no column
-- [ ] 2.12 Line across parties
-- [ ] 2.13 Line down a column
-- [ ] 2.14 Line to the same cell
-- [ ] 2.15 Unknown role in a box
-- [ ] 2.16 Unknown related structure
-- [ ] 2.17 No main diagram
-- [ ] 2.18 Two main diagrams
-- [ ] 2.19 Model without diagrams
-- [ ] 2.20 Relation shown from both sides
-- [ ] 2.21 Drill down from a band
-- [ ] 2.22 Related workstream
-- [ ] 2.23 Deep link to a diagram
-- [ ] 2.24 Back from a drill-down
-- [ ] 2.25 Role box opens the role
-- [ ] 2.26 Your role marked
-- [ ] 2.27 Nothing hidden
-- [ ] 2.28 Removed box hidden by default
-- [ ] 2.29 Removed box with markers on
-- [ ] 2.30 Tab through a diagram
-- [ ] 2.31 Lines described as text
-- [ ] 2.32 Mobile diagram (@mobile)
-- [ ] 2.33 Many parties
-- [ ] 2.34 Sample diagrams load
+- [x] 2.1 Diagram with author's own vocabulary
+- [x] 2.2 Missing bands
+- [x] 2.3 Sub-bands drawn inside their band
+- [x] 2.4 Nesting too deep
+- [x] 2.5 Box in a band with sub-bands
+- [x] 2.6 Duplicate band id
+- [x] 2.7 Box content
+- [x] 2.8 Team box lists its roles
+- [x] 2.9 Box names both a role and a team
+- [x] 2.10 Same role in two bands
+- [x] 2.11 Unused party has no column
+- [x] 2.12 Line across parties
+- [x] 2.13 Line down a column
+- [x] 2.14 Line to the same cell
+- [x] 2.15 Unknown role in a box
+- [x] 2.16 Unknown related structure
+- [x] 2.17 No main diagram
+- [x] 2.18 Two main diagrams
+- [x] 2.19 Model without diagrams
+- [x] 2.20 Relation shown from both sides
+- [x] 2.21 Drill down from a band
+- [x] 2.22 Related workstream
+- [x] 2.23 Deep link to a diagram
+- [x] 2.24 Back from a drill-down
+- [x] 2.25 Role box opens the role
+- [x] 2.26 Your role marked
+- [x] 2.27 Nothing hidden
+- [x] 2.28 Removed box hidden by default
+- [x] 2.29 Removed box with markers on
+- [x] 2.30 Tab through a diagram
+- [x] 2.31 Lines described as text
+- [x] 2.32 Mobile diagram (@mobile)
+- [x] 2.33 Many parties
+- [x] 2.34 Sample diagrams load
 
 ### content-schema
-- [ ] 2.35 Minimal valid model
-- [ ] 2.36 Missing model file
-- [ ] 2.37 Structure found by type, not folder
-- [ ] 2.38 Sample exercises every type
-- [ ] 2.39 Missing required field
-- [ ] 2.40 Duplicate id
-- [ ] 2.41 Structure and workstream cannot share an id
-- [ ] 2.42 Unknown owner
-- [ ] 2.43 Unknown party on a line
+- [x] 2.35 Minimal valid model
+- [x] 2.36 Missing model file
+- [x] 2.37 Structure found by type, not folder
+- [x] 2.38 Sample exercises every type
+- [x] 2.39 Missing required field
+- [x] 2.40 Duplicate id
+- [x] 2.41 Structure and workstream cannot share an id
+- [x] 2.42 Unknown owner
+- [x] 2.43 Unknown party on a line
 
 ### capture-sheet
-- [ ] 2.44 Acme capture sheet loads cleanly
-- [ ] 2.45 Missing required section
-- [ ] 2.46 Structure section recognised
-- [ ] 2.47 Missing required column
-- [ ] 2.48 Columns in a different order
-- [ ] 2.49 Lines table missing a column
-- [ ] 2.50 Structure written in a sheet
-- [ ] 2.51 Unknown band name in a box
-- [ ] 2.52 Role and team both filled
-- [ ] 2.53 Missing Bands subsection
-- [ ] 2.54 Sample parity
+- [x] 2.44 Acme capture sheet loads cleanly
+- [x] 2.45 Missing required section
+- [x] 2.46 Structure section recognised
+- [x] 2.47 Missing required column
+- [x] 2.48 Columns in a different order
+- [x] 2.49 Lines table missing a column
+- [x] 2.50 Structure written in a sheet
+- [x] 2.51 Unknown band name in a box
+- [x] 2.52 Role and team both filled
+- [x] 2.53 Missing Bands subsection
+- [x] 2.54 Sample parity
 
 ### explorer-views
-- [ ] 2.55 Overview content
-- [ ] 2.56 Main diagram first
-- [ ] 2.57 Outline workstream
-- [ ] 2.58 Related diagrams on a workstream
-- [ ] 2.59 Role across processes
-- [ ] 2.60 Role in diagrams
-- [ ] 2.61 Find a step
-- [ ] 2.62 Find a person on a diagram
+- [x] 2.55 Overview content
+- [x] 2.56 Main diagram first
+- [x] 2.57 Outline workstream
+- [x] 2.58 Related diagrams on a workstream
+- [x] 2.59 Role across processes
+- [x] 2.60 Role in diagrams
+- [x] 2.61 Find a step
+- [x] 2.62 Find a person on a diagram
 
 ### theming
-- [ ] 2.63 Rename workstream
-- [ ] 2.64 Rename structure
+- [x] 2.63 Rename workstream
+- [x] 2.64 Rename structure
 
 ### authoring-skill
-- [ ] 2.65 Rich context gives a draft first
-- [ ] 2.66 Thin context starts an interview
-- [ ] 2.67 Org slides become structure sections
-- [ ] 2.68 Unclear main diagram
+- [x] 2.65 Rich context gives a draft first
+- [x] 2.66 Thin context starts an interview
+- [x] 2.67 Org slides become structure sections
+- [x] 2.68 Unclear main diagram
 
-- [ ] 2.69 The full existing suite (`npm run test:unit` and `npm test`) still passes, with no regressions in the swimlane, persona, brand or labels tests
+- [x] 2.69 The full existing suite (`npm run test:unit` and `npm test`) still passes, with no regressions in the swimlane, persona, brand or labels tests
 
 ## 3. Verify
 

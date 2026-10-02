@@ -591,6 +591,31 @@ test('2.1 / 2.17 the Acme capture sheet loads cleanly and gives exactly the samp
   assert.deepEqual(byName(sheet.model), byName(folder.model));
 });
 
+test('2.54 sample parity: the sheet and the folder give the same structures, with the same bands, boxes, lines and relations', () => {
+  // Compared by name, so ids derived differently in the two forms still match.
+  const view = (m) => {
+    const el = m.elements;
+    const n = (id) => (el[id] ? el[id].name : id);
+    return m.order.structure.map((id) => {
+      const s = el[id];
+      const band = (b) => [b.name, b.opens ? n(b.opens) : null, (b.bands || []).map(band)];
+      const bandName = (bid) => (s.bands.flatMap((b) => [b, ...b.bands]).find((b) => b.id === bid) || {}).name;
+      return {
+        name: s.name, kind: s.kind, main: s.main === true, summary: s.summary,
+        bands: s.bands.map(band),
+        boxes: s.boxes.map((b) => [bandName(b.band), n(b.role || b.team), b.role ? 'role' : 'team', b.name, b.note, b.change && b.change.status, b.change && b.change.today]),
+        lines: s.lines.map((l) => [bandName(l.from.band), n(l.from.party), bandName(l.to.band), n(l.to.party), l.label]),
+        related: s.related.map(n), relatedAll: s.relatedAll.map(n), workstreams: s.workstreams.map(n),
+      };
+    });
+  };
+  const sheet = view(loadModel(readSampleSheet()).model);
+  const folder = view(loadModel(readFolder(SAMPLE)).model);
+  assert.equal(sheet.length, 2);
+  assert.ok(sheet.every((s) => s.boxes.length && s.lines.length));
+  assert.deepEqual(sheet, folder);
+});
+
 // ---------- template and format spec (1.8) ----------
 
 test('2.18 the blank template loads without crashing, lists what is missing, and keeps no guidance', () => {
