@@ -97,3 +97,38 @@ None.
 
 ## Overall: SHIP
 No blockers. Fix S1 and S2 before the 1.3.0 release (task 5.2).
+
+# html-qa re-check after fix round 2
+
+**Verdict: SHIP.** No blockers and no major findings. All seven fixed items are confirmed in the running app, and there are no regressions. The orchestrator saved this report.
+
+## Results
+- `npm run build` passes, at 366.0 KB.
+- Unit tests: **212 / 212**.
+- Playwright: **243 / 243** (0 flaky).
+- The evidence is in the workspace's gitignored `scratch/qa-add-structure-diagrams/r2/`.
+
+## Fixed items, all confirmed
+
+| Item | Evidence |
+|---|---|
+| **S1** | 84-character and 66-character (no spaces) kinds: 0 px of page overflow on `#/`, `#/d/…` and `#/search`, at 375, 768 and 1280. |
+| **S2** | Both Summit/Globex and Harbour/Globex list "Related to: Globex, Partnership leadership", in the accessibility tree and visibly at 375. |
+| **N1** | The accessible name is exactly "Acme Corp, Partnership leadership". |
+| **N3** | The error appears in folder and sheet form, as the only message, and export is disabled. It matches the new spec scenario. |
+| **N4** | A 61-character label on a vertical line: 192 × 33 px, 0 overlaps and 0 split words, at 1280 and 768. |
+| **N6** | The breadcrumb reads "Acme + Globex partnership › Partnership structure". |
+| **N8** | The xss and labels suites now cover the `#/d/` routes in the author preview and the snapshot. |
+
+## Regression
+- **Security:** CLEAN in all 8 runs (folder and sheet, author and snapshot, 1280 and 375).
+- **Accessibility:** axe found 0 violations across 36 page checks (9 pages × 2 widths × light and dark).
+- **Line geometry:** 0 endpoints off a cell edge, and 0 markers, across 7 resizes, 125% text and light and dark.
+- **Console and network:** clean.
+- **Code review:** no bugs.
+- **Ponytail:** lean. S2 removed code, and N3 is 3 lines.
+
+## Minor findings (optional)
+- **M1.** Long labels on horizontal lines are still capped at 72 px, so they become tall pills. They overlap nothing, and the guide says to keep labels short.
+- **M2.** `.tag` is styled in two places in `src/styles.css`. The two rules could be merged.
+- N2, N5 and N7 stay open, as agreed.
