@@ -6,48 +6,53 @@ Lets each operating model carry its own look and language (colours, fonts, logo 
 ## Requirements
 
 ### Requirement: Theme file
-A model MAY include `theme.md`, whose header defines `colors` (primary, accent, background, surface, text, and a palette for parties and lanes), `fonts` (a font file in `assets/`, or a system font stack), an optional `logo` (an image in `assets/`) and optional `labels`. The theme SHALL apply everywhere in the viewer, including exported snapshots.
+A model MAY include `theme.md`, whose header defines `labels` (see Terminology labels). The theme controls terminology only. The frame's look always comes from the engine (see Default theme), and party identity comes from brand packs (see party-brands). The keys `colors`, `fonts`, `logo` and `palette` are **retired**. A theme that still sets any of them SHALL load, and the report SHALL show one warning per retired key, naming it and saying that it is ignored and what replaces it.
+
+#### Scenario: Labels applied
+- **WHEN** a theme sets only `labels: { workstream: "Value stream", workstreams: "Value streams" }`
+- **THEN** the viewer uses "Value stream" and the report shows no theme messages
 
 #### Scenario: Custom colours applied
-- **WHEN** a theme sets the primary colour to `#0b1f4d` and the model is previewed
-- **THEN** primary UI elements (header, active navigation, selected items) use `#0b1f4d`
+- **WHEN** a theme sets `colors.primary: "#0b1f4d"`
+- **THEN** the report shows a warning that `colors` is ignored and party colours now come from brand packs, the frame uses the engine's neutral colours, and export remains enabled
 
 #### Scenario: Logo shown
-- **WHEN** the theme sets `logo: assets/logo.svg`
-- **THEN** the logo appears in the viewer header of the preview and of the exported snapshot, with the model name as alt text
+- **WHEN** a theme sets `logo: assets/logo.svg`
+- **THEN** the report shows a warning that `logo` is ignored, and the header shows the model name with the party marks from brand packs (see party-brands › Header lockup)
 
 ### Requirement: Default theme
-When no `theme.md` is present, the engine SHALL use a neutral built-in theme that meets WCAG AA contrast and supports both light and dark colour schemes, following the viewer's system setting.
+The engine SHALL always draw the frame (backgrounds, surfaces, text, navigation, buttons, headings and body typography) with its own neutral theme, whether or not `theme.md` is present. The neutral theme SHALL meet WCAG AA contrast and support both light and dark colour schemes, following the viewer's system setting.
 
 #### Scenario: No theme file
 - **WHEN** a model without `theme.md` is previewed
-- **THEN** the default theme is used, and the report shows no theme errors
+- **THEN** the neutral theme is used, and the report shows no theme messages
 
 #### Scenario: Dark mode
-- **WHEN** the default theme is in use and the viewer's system prefers dark mode
+- **WHEN** the viewer's system prefers dark mode
 - **THEN** the viewer renders with dark backgrounds and light text
 
 ### Requirement: Terminology labels
-The theme SHALL be able to rename the engine's terms: at least model, party, team, role, persona, workstream, process, step and key messages, each in singular and plural. Every visible label SHALL use the configured term. Unset terms SHALL keep their defaults.
+The theme SHALL be able to rename the engine's terms: at least model, party, team, role, persona, workstream, process, step, structure and key messages, each in singular and plural. Every visible label SHALL use the configured term. Unset terms SHALL keep their defaults.
 
 #### Scenario: Rename workstream
 - **WHEN** the theme sets `labels: { workstream: "Value stream", workstreams: "Value streams" }`
 - **THEN** navigation, headings, breadcrumbs and search results say "Value stream" or "Value streams", and "workstream" does not appear in the viewer UI
 
-### Requirement: Accessible theme colours
-The engine SHALL check theme text/background colour pairs and warn when their contrast is below WCAG AA (4.5:1 for normal text).
-
-#### Scenario: Low-contrast theme
-- **WHEN** a theme sets text `#999999` on background `#ffffff`
-- **THEN** the report shows a warning naming the two colours, their contrast ratio and the required minimum
+#### Scenario: Rename structure
+- **WHEN** the theme sets `labels: { structure: "Org model", structures: "Org models" }`
+- **THEN** the overview list, diagram headings, Related panels and search results say "Org model" or "Org models", and "structure" does not appear in the viewer UI
 
 ### Requirement: Offline assets only
-Fonts and images SHALL come from the content folder or the system, and SHALL be embedded in the exported snapshot. A theme that references a URL SHALL produce an error.
+Brand marks and images used in narrative SHALL come from the model folder, and SHALL be embedded in the exported snapshot. A brand pack mark or a narrative image that references a URL SHALL be an error.
 
 #### Scenario: Remote font rejected
 - **WHEN** a theme sets its font to `https://fonts.example.com/brand.woff2`
-- **THEN** the report shows an error explaining that fonts must be files in `assets/`
+- **THEN** the report shows a warning that `fonts` is retired and ignored, no font is fetched, and the frame uses the engine's fonts
+
+#### Scenario: Remote mark rejected
+- **WHEN** a brand pack sets `marks.mark: https://example.com/mark.svg`
+- **THEN** the report shows an error explaining that marks must be files in the brand pack's folder
 
 #### Scenario: Missing asset
-- **WHEN** a theme sets `logo: assets/missing.png` and the file is absent
+- **WHEN** a narrative image references `assets/missing.png` and the file is absent
 - **THEN** the report shows an error naming the missing file

@@ -6,7 +6,7 @@ Defines what an operating model is made of and how authors write it down: a fold
 ## Requirements
 
 ### Requirement: Content folder layout
-A model SHALL be a folder containing exactly one `model.md` at its root and, optionally, `theme.md` and the subfolders `parties/`, `teams/`, `roles/`, `personas/`, `workstreams/`, `processes/` and `assets/` (images). The engine SHALL identify each element by its header `type`, not by its folder. The folders are a convention for authors.
+A model SHALL be a folder containing exactly one `model.md` at its root. It MAY also contain `theme.md` and the subfolders `parties/`, `teams/`, `roles/`, `personas/`, `workstreams/`, `processes/`, `structures/`, `assets/` (images) and `brands/` (brand packs, one folder per brand; see party-brands). The engine SHALL identify each element by its header `type`, not by its folder. The folders are a convention for authors. Files under `brands/` SHALL be read only as brand packs, never as elements.
 
 #### Scenario: Minimal valid model
 - **WHEN** a folder containing only a valid `model.md` is loaded in author mode
@@ -16,6 +16,14 @@ A model SHALL be a folder containing exactly one `model.md` at its root and, opt
 #### Scenario: Missing model file
 - **WHEN** a folder with no `model.md` is loaded
 - **THEN** the validation report shows the error "No model.md found at the top of the folder" and export is disabled
+
+#### Scenario: Brand packs are not elements
+- **WHEN** a model folder contains `brands/globex/brand.md`
+- **THEN** it is read as a brand pack, and it isn't reported as an unknown element or a file without a type
+
+#### Scenario: Structure found by type, not folder
+- **WHEN** a file with `type: structure` is placed in `roles/` instead of `structures/`
+- **THEN** it loads as a structure and the report shows no error about its location
 
 ### Requirement: File format
 Each content file SHALL consist of a YAML header between two `---` lines, followed by an optional Markdown body. The header SHALL hold structured fields. The body SHALL hold narrative, and the engine SHALL render it as formatted text wherever that element is described. Raw HTML in the body SHALL be shown as text, not executed.
@@ -41,12 +49,13 @@ The schema SHALL define these element types, each with a required `id` (kebab-ca
 - `persona`: a viewer type. It maps to one or more roles and has an entry point.
 - `workstream`: summary, the parties involved, and `detail: detailed | outline`.
 - `process`: belongs to one workstream, and has an ordered list of `steps`.
+- `structure`: an author-designed relationship diagram with `bands`, `boxes` and optional `lines`, `kind`, `summary`, `related`, `workstreams` and `main` (see structure-diagrams).
 
 Each step SHALL have an `id` (unique within its process), a `name` and an `owner` (a role). A step MAY also have `raci` (a role → R/A/C/I map), `inputs`, `outputs`, `systems`, `kpis`, `next` (the step ids that follow, with optional labels for decision branches) and `description`. When `next` is omitted, a step SHALL flow to the following step in the list.
 
 #### Scenario: Sample exercises every type
 - **WHEN** `examples/acme-sample/` is loaded
-- **THEN** it contains at least one element of every type and at least one decision step with two labelled branches
+- **THEN** it contains at least one element of every type, including `structure`, and at least one decision step with two labelled branches
 - **AND** the validation report shows no errors
 
 #### Scenario: Missing required field
@@ -57,12 +66,20 @@ Each step SHALL have an `id` (unique within its process), a `name` and an `owner
 - **WHEN** two files declare `id: account-lead`
 - **THEN** the report shows an error that names both files
 
+#### Scenario: Structure and workstream cannot share an id
+- **WHEN** a structure and a workstream both declare `id: presales`
+- **THEN** the report shows a duplicate id error naming both files
+
 ### Requirement: References between elements
-Every field that refers to another element (owner, party, team, workstream, persona roles, RACI keys, `next`) SHALL be checked, and an unknown id SHALL be reported as an error that suggests the closest existing id.
+Every field that refers to another element (owner, party, team, workstream, persona roles, RACI keys, `next`, and a structure's box roles and teams, line parties, `related`, `workstreams` and band `opens`) SHALL be checked, and an unknown id SHALL be reported as an error that suggests the closest existing id.
 
 #### Scenario: Unknown owner
 - **WHEN** a step's owner is `sol-arch` and no such role exists but `solution-architect` does
 - **THEN** the report shows an error naming the process file, the step, the unknown id and the suggestion "Did you mean solution-architect?"
+
+#### Scenario: Unknown party on a line
+- **WHEN** a structure's line names the party `globx` and the party `globex` exists
+- **THEN** the report shows an error naming the structure file, the unknown id and "Did you mean globex?"
 
 ### Requirement: Optional current vs future state
 Any element or step MAY carry a `change` field with `status` (`new`, `changed`, `removed` or `unchanged`) and an optional `today` description. Models without any `change` data SHALL be valid and SHALL show no change-related UI.

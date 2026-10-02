@@ -34,7 +34,7 @@ The format spec, template, example and interview guide SHALL be plain Markdown w
 - **THEN** there are no matches
 
 ### Requirement: Draft first, interview when context is thin
-When the colleague provides substantial material (for example a deck, notes or tables covering parties, roles and at least one process), the skill SHALL produce a complete draft capture sheet before asking questions. When the material is too thin to draft from, it SHALL interview the colleague, one question at a time, in this order: purpose and key messages, parties, roles, workstreams, processes, personas.
+When the colleague provides substantial material (for example a deck, notes or tables covering parties, roles and at least one process or org diagram), the skill SHALL produce a complete draft capture sheet before asking questions. When the material is too thin to draft from, it SHALL interview the colleague, one question at a time, in this order: purpose and key messages, parties, roles, workstreams, processes, structure diagrams, personas.
 
 #### Scenario: Rich context gives a draft first
 - **WHEN** the skill is given the fictional "rich" context pack in `tests/skill-packs/rich/`
@@ -121,3 +121,30 @@ Each release SHALL attach, from one build: `operating-model-author.zip` (the mai
 #### Scenario: Release assets
 - **WHEN** a release is published
 - **THEN** it has exactly those three files, and the engine inside the zip has the same checksum as the standalone engine attached to the release
+
+### Requirement: Brands from the library
+When the colleague asks to use brands from a brand library and gives its location, the skill SHALL:
+- copy each chosen brand pack folder, unchanged, into `brands/<id>/` next to the capture sheet;
+- fill in the Parties table's `Brand` column;
+- list each pack's id and version under `## Sources`.
+
+The skill SHALL NOT edit a pack's contents. If a named brand isn't in the library, it SHALL ask rather than invent colours or marks. The output-location rules, including the public-repo warning, apply to the copied packs too.
+
+#### Scenario: Packs copied, not altered
+- **WHEN** the skill is given the fictional brand library in `tests/skill-packs/brand-library/` and asked to use Acme and Globex (skill trial)
+- **THEN** the output folder has `brands/acme/` and `brands/globex/`, byte-identical to the library copies, the Brand column names both, Sources lists both ids with their versions, and the sheet validates with 0 errors when loaded as a folder
+
+#### Scenario: Brand not in the library
+- **WHEN** the colleague asks for a brand that isn't in the library (skill trial)
+- **THEN** the skill says it isn't there and asks what to do, and it writes no invented pack
+
+### Requirement: Structure diagrams from org material
+When the material includes org charts, collaboration models or similar relationship slides, the skill SHALL draft one `## Structure:` section per diagram, using the author's own band names and kinds, mapping each box to an existing or newly drafted role or team, carrying people's names and extra labels into the `Name` and `Note` columns, and turning relationships into undirected lines between cells. It SHALL mark one diagram `Main: yes` only when the material makes clear which diagram covers the whole company or partnership; otherwise it SHALL record that as an open question. Boxes or relationships it cannot place SHALL be recorded as open questions, not guessed.
+
+#### Scenario: Org slides become structure sections
+- **WHEN** the skill is given the fictional "org-chart" pack in `tests/skill-packs/org-chart/`, which holds a partnership slide and a sub-programme slide
+- **THEN** the draft sheet has two Structure sections, exactly one marked `Main: yes`, with related diagrams linked, and it loads in the engine with no errors
+
+#### Scenario: Unclear main diagram
+- **WHEN** the material has two diagrams and neither clearly covers the whole partnership
+- **THEN** the sheet's Open questions ask which diagram is the main one

@@ -6,7 +6,7 @@ Defines the capture sheet: one readable Markdown document that holds a whole ope
 ## Requirements
 
 ### Requirement: One document, fixed sections
-A capture sheet SHALL be a single Markdown file whose first heading is `# Operating model: <name>`. The engine SHALL recognise these `##` sections by heading: `Purpose`, `Key messages`, `About this model`, `Parties`, `Teams`, `Roles`, `Workstreams`, one `Process: <name>` section per process, `Personas`, `Theme`, `Notes: <element name>`, `Open questions` and `Sources`. The sections `Purpose`, `Key messages`, `Parties` and `Roles` SHALL be required. Any other `##` heading SHALL produce a warning naming it. HTML comments (`<!-- … -->`) SHALL be ignored, so templates can carry guidance.
+A capture sheet SHALL be a single Markdown file whose first heading is `# Operating model: <name>`. The engine SHALL recognise these `##` sections by heading: `Purpose`, `Key messages`, `About this model`, `Parties`, `Teams`, `Roles`, `Workstreams`, one `Process: <name>` section per process, one `Structure: <name>` section per structure diagram, `Personas`, `Theme`, `Notes: <element name>`, `Open questions` and `Sources`. The sections `Purpose`, `Key messages`, `Parties` and `Roles` SHALL be required. Any other `##` heading SHALL produce a warning naming it. HTML comments (`<!-- … -->`) SHALL be ignored, so templates can carry guidance.
 
 #### Scenario: Acme capture sheet loads cleanly
 - **WHEN** `examples/acme-capture-sheet/capture-sheet.md` is loaded in author mode together with its `assets/` folder (Load folder or a `.zip`)
@@ -16,8 +16,12 @@ A capture sheet SHALL be a single Markdown file whose first heading is `# Operat
 - **WHEN** a capture sheet with no `## Roles` section is loaded
 - **THEN** the report shows an error saying the Roles section is missing, with a fix naming the heading to add
 
+#### Scenario: Structure section recognised
+- **WHEN** a sheet has a `## Structure: Partnership` section
+- **THEN** no unknown-section warning is shown, and the preview offers a "Partnership" diagram
+
 ### Requirement: Tables recognised by column name
-Parties, teams, roles, workstreams, process steps, RACI and personas SHALL be written as Markdown tables. Columns SHALL be recognised by header name, ignoring case and spacing, in any order. Each table SHALL have its required columns (for example `Role` and `Party` for roles), and optional columns MAY be left out or left empty. An unrecognised column SHALL produce a warning. A missing required column SHALL be an error naming the table and the column.
+Parties, teams, roles, workstreams, process steps, RACI, personas, and structure bands, boxes and lines SHALL be written as Markdown tables. Columns SHALL be recognised by header name, ignoring case and spacing, in any order. Each table SHALL have its required columns (for example `Role` and `Party` for roles), and optional columns MAY be left out or left empty. An unrecognised column SHALL produce a warning. A missing required column SHALL be an error naming the table and the column.
 
 #### Scenario: Missing required column
 - **WHEN** a Roles table has no `Party` column
@@ -26,6 +30,10 @@ Parties, teams, roles, workstreams, process steps, RACI and personas SHALL be wr
 #### Scenario: Columns in a different order
 - **WHEN** a Roles table lists its columns as `Summary | Party | Role`
 - **THEN** it loads exactly as it does with the columns in the order `Role | Party | Summary`
+
+#### Scenario: Lines table missing a column
+- **WHEN** a structure's Lines table has no `To party` column
+- **THEN** the report shows an error naming the structure's Lines table and the missing `To party` column
 
 ### Requirement: Things are referred to by name
 Authors SHALL refer to parties, teams, roles, workstreams, processes and steps by their names, not ids. The engine SHALL derive each id from its name, in lowercase and hyphenated. An optional `ID` column, or an `ID:` line under the title, MAY set an id explicitly. Name matching SHALL ignore case, extra spaces and punctuation. An unknown name SHALL be an error naming the section and row, with a "Did you mean …?" suggestion when a close match exists. Two elements of the same type with the same name SHALL be an error. When elements of different types would derive the same id (for example a workstream and a process both called "Win the work"), the engine SHALL keep the names as written and make the ids unique by appending the type (e.g. `win-the-work-process`), with no message. A clash between ids an author set explicitly SHALL be an error, worded in capture-sheet terms and naming both sections.
@@ -72,11 +80,15 @@ A `## Personas` section SHALL be a table with the columns `Persona`, `Roles` (ro
 - **THEN** the "Qualify an opportunity" process opens
 
 ### Requirement: Theme section
-An optional `## Theme` section SHALL hold `Key: value` lines for colours, fonts, the logo and labels (e.g. `Primary colour: #0b1f4d`, `Logo: assets/logo.svg`, `Label workstream: Value stream`). A logo or font SHALL be read from an `assets/` folder loaded alongside the sheet. The theming rules (contrast, offline assets only) SHALL apply unchanged.
+An optional `## Theme` section SHALL hold `Label <term>: <value>` lines for terminology (e.g. `Label workstream: Value stream`). Lines for the retired keys (colours, fonts, logo, palette) SHALL load with one warning each, saying the line is ignored and that party colours and marks now come from brand packs.
 
 #### Scenario: Theme from the sheet
-- **WHEN** the Acme sheet is loaded together with its `assets/` folder
-- **THEN** the preview uses the theme's primary colour, shows the logo, and says "Value stream" instead of "Workstream"
+- **WHEN** the Acme sheet is loaded together with its folder
+- **THEN** the preview says "Value stream" instead of "Workstream", and the report shows no theme messages
+
+#### Scenario: Retired theme line
+- **WHEN** a sheet's Theme section contains `Primary colour: #0b1f4d`
+- **THEN** the report shows a warning naming that line as ignored, and export remains enabled
 
 ### Requirement: Narrative text
 The paragraphs under `## Purpose` SHALL become the model's purpose, and `## About this model` SHALL become the model's narrative. A `## Notes: <element name>` section SHALL attach its text as the narrative of the named element (a workstream, party, role and so on), and an unknown name SHALL be an error with a suggestion. Narrative SHALL be rendered with the same Markdown rules as content files: raw HTML is shown as text, never executed.
@@ -127,3 +139,39 @@ A capture sheet SHALL declare its format version on a `Format: <n>` line under t
 #### Scenario: Missing format line
 - **WHEN** a sheet with no `Format:` line is loaded
 - **THEN** it loads as the current format, and the report shows a warning suggesting the `Format:` line be added
+
+### Requirement: Brand column in Parties
+The Parties table MAY have a `Brand` column naming a brand pack id for each party. Brand packs SHALL be read from the `brands/` folder next to the sheet, when the sheet is loaded as a folder or `.zip`. An empty cell SHALL mean the party has no brand.
+
+#### Scenario: Brands from the sheet's folder
+- **WHEN** the Acme capture-sheet folder, with `brands/acme/` and `brands/globex/`, is loaded and its Parties table names those brands
+- **THEN** the report shows 0 errors and 0 warnings, and each party is shown with its brand's colour and mark
+
+### Requirement: Structure sections
+Each `## Structure: <name>` section SHALL describe one structure. It SHALL be able to start with these lines: `Kind:`, `Summary:`, `Main: yes`, `Related:` (structure names separated by semicolons), `Workstreams:` (workstream names separated by semicolons), `Change:`, `Today:` and `ID:`. These are followed by the subsections:
+- `### Bands` (required): a table with the columns `Band` (required), `Inside` (the name of the parent band, for a sub-band) and `Opens` (a structure name). Bands are drawn in row order.
+- `### Boxes` (required): a table with the columns `Band` (required), `Role`, `Team`, `Name`, `Note`, `Change` and `Today`. Exactly one of `Role` or `Team` is filled in each row. Boxes are placed in row order.
+- `### Lines` (optional): a table with the columns `From band`, `From party`, `To band` and `To party` (all required) and `Label`.
+- `### Notes` (optional): rendered as the diagram's narrative.
+
+Bands SHALL be referred to by name, and band names SHALL be unique within their structure. Roles, teams, parties, structures and workstreams SHALL be referred to by name, under the same rules as elsewhere in the sheet. A sheet and a folder describing the same structures SHALL produce the same model.
+
+#### Scenario: Structure written in a sheet
+- **WHEN** a sheet has a Structure section with two bands, one of them inside the other, three boxes and one labelled line
+- **THEN** the preview shows the diagram with the sub-band inside its band, the three boxes in their party columns and the labelled line
+
+#### Scenario: Unknown band name in a box
+- **WHEN** a Boxes row names the band "Deliver" and the structure has a band "Delivery"
+- **THEN** the report shows an error naming the structure, the Boxes row and "Did you mean Delivery?"
+
+#### Scenario: Role and team both filled
+- **WHEN** a Boxes row fills in both `Role` and `Team`
+- **THEN** the report shows an error naming the structure and the row, saying to fill in only one
+
+#### Scenario: Missing Bands subsection
+- **WHEN** a Structure section has no `### Bands` subsection
+- **THEN** the report shows an error naming the structure and the missing subsection
+
+#### Scenario: Sample parity
+- **WHEN** `examples/acme-capture-sheet/capture-sheet.md` and `examples/acme-sample/` are both loaded
+- **THEN** they produce the same structures, with the same bands, boxes, lines and relations
