@@ -158,10 +158,11 @@ export function validate(docs) {
   const nameOf = (id) => (byId.get(id) && typeof byId.get(id).name === 'string' ? byId.get(id).name : id);
   const checkRef = (at, label, value, type, pool = idsOf(type)) => {
     if (typeof value !== 'string' || pool.includes(value)) return;
-    const other = type !== 'step' && byId.get(value);
+    // Steps and bands have ids of their own, so an element with the same id is no clue.
+    const other = type !== 'step' && type !== 'band' && byId.get(value);
     const problem = other
       ? `The ${label} "${value}" is a ${other.type}, not a ${type}.`
-      : `The ${label} "${value}" does not match any ${type}${type === 'step' ? ' in this process' : ''}.`;
+      : `The ${label} "${value}" does not match any ${type}${{ step: ' in this process', band: ' in this structure' }[type] || ''}.`;
     const guess = closest(value, pool);
     add({ level: 'error', ...at, problem, fix: guess ? `Did you mean ${guess}?` : `Use the id of an existing ${type}, or add a ${type} with this id.` });
   };
@@ -213,9 +214,102 @@ export function validate(docs) {
         });
         break;
       }
+      case 'structure':
+        structureChecks(doc, h, at, ref);
+        break;
     }
   }
+
+  // Exactly one main diagram, once there are any diagrams (design D3).
+  const structures = typed.filter((d) => d.header.type === 'structure');
+  const mains = structures.filter((d) => d.header.main === true);
+  if (structures.length && mains.length !== 1) {
+    const involved = mains.length ? mains : structures;
+    const names = new Intl.ListFormat('en').format(involved.map((d) => `"${typeof d.header.name === 'string' ? d.header.name : d.header.id}"`));
+    const first = involved[0];
+    const sheet = !!first.where;
+    add({
+      level: 'error',
+      file: first.file,
+      ...whereOf(first),
+      element: typeof first.header.id === 'string' ? first.header.id : undefined,
+      problem: mains.length
+        ? `More than one structure is marked as the main diagram: ${names}. Exactly one can be the main diagram.`
+        : `None of the structures is marked as the main diagram. One structure must be the main diagram, the one that covers the whole company or partnership: ${names}.`,
+      fix: mains.length
+        ? `Keep ${sheet ? '"Main: yes"' : '"main: true"'} on the structure that covers the whole company or partnership, and remove it from the others.`
+        : `Add ${sheet ? 'the line "Main: yes" under its heading' : '"main: true" to its header'}.`,
+    });
+  }
   return messages;
+
+  // Bands, boxes, lines and relations inside one structure (design D3). A capture sheet's reader has already
+  // matched every name (ref is then a no-op), so only the shape checks run for it.
+  function structureChecks(doc, h, at, ref) {
+    const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+    const bandAt = (id) => (doc.bandWhere && doc.bandWhere[id] ? { ...at, where: doc.bandWhere[id] } : at);
+    const bands = []; // [{ b, parent }], in order, one level of sub-bands
+    for (const b of list(h.bands).filter(isObj)) {
+      bands.push({ b, parent: null });
+      for (const c of list(b.bands).filter(isObj)) {
+        bands.push({ b: c, parent: b });
+        if (Array.isArray(c.bands)) add({ level: 'error', ...bandAt(c.id), problem: `The band "${c.name || c.id}" is a sub-band with bands of its own. Bands can be nested only one level deep.`, fix: `Move the bands inside "${c.name || c.id}" up a level, or make it a band of its own.` });
+      }
+    }
+    const bandIds = [];
+    const bandName = (id) => ((bands.find((x) => x.b.id === id) || {}).b || {}).name || id;
+    for (const { b } of bands) {
+      if (typeof b.id !== 'string') continue;
+      if (bandIds.includes(b.id)) add({ level: 'error', ...bandAt(b.id), problem: `Two bands in this structure use the id "${b.id}".`, fix: 'Give each band in a structure its own id.' });
+      bandIds.push(b.id);
+      ref(at, '"opens" structure', b.opens, 'structure');
+      if (b.opens === h.id) add({ level: 'warning', ...bandAt(b.id), problem: `The band "${b.name || b.id}" opens this same structure.`, fix: 'Point "opens" at another structure, or remove it.' });
+    }
+    for (const r of list(h.related)) ref(at, 'related structure', r, 'structure');
+    if (list(h.related).includes(h.id)) add({ level: 'warning', ...at, problem: 'This structure lists itself as related.', fix: 'Remove it from its own related structures.' });
+    for (const w of list(h.workstreams)) ref(at, 'workstream', w, 'workstream');
+
+    list(h.boxes).forEach((box, i) => {
+      if (!isObj(box)) return;
+      const bat = doc.boxWhere && doc.boxWhere[i] ? { ...at, where: doc.boxWhere[i] } : at;
+      ref(bat, 'band', box.band, 'band', bandIds);
+      const holder = bands.find((x) => x.b.id === box.band);
+      const subs = holder && !holder.parent ? list(holder.b.bands).filter(isObj).map((c) => c.name || c.id) : [];
+      if (subs.length) {
+        const who = nameOf(typeof box.role === 'string' ? box.role : box.team);
+        add({ level: 'error', ...bat, problem: `The box for "${who}" is in the band "${holder.b.name || holder.b.id}", which has sub-bands. A band with sub-bands can't hold boxes of its own.`, fix: `Put the box in one of its sub-bands: ${new Intl.ListFormat('en', { type: 'disjunction' }).format(subs)}.` });
+      }
+      const both = 'role' in box && 'team' in box;
+      if (both || !('role' in box || 'team' in box)) {
+        add({
+          level: 'error',
+          ...bat,
+          problem: both ? `The box in the band "${bandName(box.band)}" names both a role and a team. A box names either a role or a team.` : `The box in the band "${bandName(box.band)}" names neither a role nor a team.`,
+          fix: both ? (doc.where ? 'Fill in only one of the Role and Team columns.' : 'Keep only one of "role" and "team".') : doc.where ? 'Fill in the Role or the Team column.' : 'Add "role:" or "team:" to the box.',
+        });
+      }
+      ref(bat, 'role', box.role, 'role');
+      ref(bat, 'team', box.team, 'team');
+    });
+
+    const pairs = new Set();
+    list(h.lines).forEach((l, i) => {
+      if (!isObj(l)) return;
+      const lat = doc.lineWhere && doc.lineWhere[i] ? { ...at, where: doc.lineWhere[i] } : at;
+      const ends = [l.from, l.to].filter(isObj);
+      for (const e of ends) {
+        ref(lat, 'band', e.band, 'band', bandIds);
+        ref(lat, 'line party', e.party, 'party');
+      }
+      if (ends.length < 2) return;
+      const cell = (e) => `(${bandName(e.band)}, ${nameOf(e.party)})`;
+      const [a, b] = ends.map((e) => JSON.stringify([e.band, e.party]));
+      if (a === b) return add({ level: 'error', ...lat, problem: `This line joins the cell ${cell(l.from)} to itself.`, fix: 'A line joins two different cells. Change one of its ends, or remove the line.' });
+      const pair = [a, b].sort().join();
+      if (pairs.has(pair)) add({ level: 'warning', ...lat, problem: `This line repeats an earlier line between ${cell(l.from)} and ${cell(l.to)}.`, fix: 'Remove one of the two. A line has no direction, so the same two cells in either order are the same line.' });
+      pairs.add(pair);
+    });
+  }
 
   // One letter per cell, and exactly one A per step (design D6). The owner counts as R when it has no letter.
   function raciChecks(s, sat, cellAt) {

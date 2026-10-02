@@ -1,7 +1,7 @@
-// Hash routes (design D7): #/, #/w/<id>, #/p/<id>, #/p/<id>/s/<step>, #/r/<id>, #/e/<id>, #/search, #/me,
+// Hash routes (design D7): #/, #/w/<id>, #/p/<id>, #/p/<id>/s/<step>, #/d/<id> (a structure), #/r/<id>, #/e/<id>, #/search, #/me,
 // with ?persona=<id>&changes=1&only=1&q=<text>. Hash routing works from file:// and gives Back/Forward.
 
-const VIEWS = { w: 'workstream', p: 'process', r: 'role', e: 'element' };
+const VIEWS = { w: 'workstream', p: 'process', d: 'structure', r: 'role', e: 'element' };
 
 export function parseRoute(hash) {
   const [path, query = ''] = (hash || '').replace(/^#\/?/, '').split('?');

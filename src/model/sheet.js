@@ -56,11 +56,16 @@ const TABLES = {
   workstream: [['Workstream', 'name', 1], ['Summary', 'summary', 1], ['Parties', 'parties'], ['Detail', 'detail', 1], ...CHANGE],
   persona: [['Persona', 'name', 1], ['Roles', 'roles', 1], ['Starts at', 'entry', 1], ['Summary', 'summary'], ...CHANGE],
   step: [['#', 'num', 1], ['Step', 'name', 1], ['Owner', 'owner', 1], ['Description', 'description'], ['Inputs', 'inputs'], ['Outputs', 'outputs'], ['Systems', 'systems'], ['KPIs', 'kpis'], ['Next', 'next'], ...CHANGE],
+  // A structure's tables (design D4). Boxes and lines have no name of their own, so they are keyed by their band.
+  band: [['Band', 'name', 1], ['Inside', 'inside'], ['Opens', 'opens']],
+  box: [['Band', 'band', 1], ['Role', 'role'], ['Team', 'team'], ['Name', 'name'], ['Note', 'note'], ['Change', 'status'], ['Today', 'today']],
+  line: [['From band', 'fromBand', 1], ['From party', 'fromParty', 1], ['To band', 'toBand', 1], ['To party', 'toParty', 1], ['Label', 'label']],
 };
 const SECTION = { party: 'Parties', team: 'Teams', role: 'Roles', workstream: 'Workstreams', persona: 'Personas' };
 const SECTIONS = ['Purpose', 'Key messages', 'About this model', 'Parties', 'Teams', 'Roles', 'Workstreams', 'Personas', 'Theme', 'Open questions', 'Sources'];
 const REQUIRED = ['Purpose', 'Key messages', 'Parties', 'Roles'];
-const WORD = { party: 'party', team: 'team', role: 'role', workstream: 'workstream', process: 'process', persona: 'persona' };
+const WORD = { party: 'party', team: 'team', role: 'role', workstream: 'workstream', process: 'process', structure: 'structure', persona: 'persona' };
+const HOME = { process: 'a "## Process:" section', structure: 'a "## Structure:" section' };
 const LABELS = Object.keys(schemas.theme.properties.labels.properties);
 
 const colKey = (h) => (h.trim() === '#' ? '#' : nameKey(h));
@@ -97,18 +102,17 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
   }
 
   const one = {};
-  const processes = [];
-  const notes = [];
+  const named = { process: [], structure: [], notes: [] };
   for (const s of sections) {
-    const m = s.name.match(/^(process|notes)\s*:\s*(.*)$/i);
+    const m = s.name.match(/^(process|structure|notes)\s*:\s*(.*)$/i);
     if (m) {
-      (m[1].toLowerCase() === 'process' ? processes : notes).push({ ...s, target: m[2].trim() });
+      named[m[1].toLowerCase()].push({ ...s, target: m[2].trim() });
       continue;
     }
     const known = SECTIONS.find((k) => nameKey(k) === nameKey(s.name));
     if (!known) {
       const guess = closest(nameKey(s.name), SECTIONS.map(nameKey));
-      say('warning', s.name, `"## ${s.name}" is not a section the engine knows, so it is ignored.`, guess ? `Did you mean ${SECTIONS.find((k) => nameKey(k) === guess)}?` : `Use one of: ${SECTIONS.join(', ')}, Process: <name> or Notes: <name>.`);
+      say('warning', s.name, `"## ${s.name}" is not a section the engine knows, so it is ignored.`, guess ? `Did you mean ${SECTIONS.find((k) => nameKey(k) === guess)}?` : `Use one of: ${SECTIONS.join(', ')}, Process: <name>, Structure: <name> or Notes: <name>.`);
     } else if (one[known]) say('warning', known, `There are two "${known}" sections, so the second is ignored.`, `Merge them into one "## ${known}" section.`);
     else one[known] = s;
   }
@@ -170,9 +174,26 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     return table;
   }
 
+  // The ### subsections of a Process or Structure section: { main: [tokens before the first ###], <Name>: [tokens] }.
+  function partsOf(s, where, word, known, fix) {
+    const parts = { main: [] };
+    let part = parts.main;
+    for (let i = 0; i < s.blocks.length; i++) {
+      const t = s.blocks[i];
+      if (t.type === 'heading_open' && t.level === 0 && t.tag === 'h3') {
+        const name = s.blocks[i + 1].content.trim();
+        const k = known.find((x) => nameKey(x) === nameKey(name));
+        if (!k) say('warning', where, `"### ${name}" is not a part of a ${word} the engine knows, so it is ignored.`, fix);
+        parts[k || name] = part = [];
+        i += 2;
+      } else part.push(t);
+    }
+    return parts;
+  }
+
   // Table rows as { n, where, get(field) }, with columns found by name, or undefined if there is no table.
-  // Reports unknown and missing columns, and empty required cells. Empty rows are skipped.
-  function rowsOf(blocks, where, spec, label) {
+  // Reports unknown and missing columns, and empty required cells. Empty rows, and rows without a key cell, are skipped.
+  function rowsOf(blocks, where, spec, label, key = 'name') {
     const table = tableOf(blocks, where);
     if (!table) return undefined;
     const at = {};
@@ -189,9 +210,9 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     table.rows.forEach((cells, r) => {
       if (cells.every((c) => !c)) return;
       const get = (field) => (at[field] === undefined ? '' : cells[at[field]] || '');
-      const row = { n: r + 1, get, where: rowLabel(where, r + 1, get('name')) };
+      const row = { n: r + 1, get, where: rowLabel(where, r + 1, get(key)) };
       for (const [name, field, req] of spec) if (req && at[field] !== undefined && !get(field)) say('error', row.where, `This row has no ${name}.`, `Fill in the ${name} column.`);
-      if (get('name')) rows.push(row);
+      if (get(key)) rows.push(row);
     });
     return rows;
   }
@@ -207,7 +228,11 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
 
   // ---------- names ----------
   const names = Object.fromEntries(Object.keys(WORD).map((t) => [t, new Map()]));
-  const taken = new Set();
+  // The model's id is taken first, so a structure named like the model (often the main diagram) gets an id of its own.
+  const head = keyLines(top, 'Top of the sheet', (k) => ['format', 'id', 'version'].includes(k), 'Under the title, only "Format:", "ID:" and "Version:" lines are read. Put the purpose under "## Purpose".');
+  const tm = title !== undefined && title.match(/^Operating model\s*:\s*(.*)$/i);
+  const name = tm ? tm[1].trim() : '';
+  const taken = new Set([head.id || toId(name)]);
   function register(type, name, id, where) {
     const key = nameKey(name);
     if (names[type].has(key)) {
@@ -227,7 +252,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     const hit = names[type].get(nameKey(raw));
     if (hit) return hit.id;
     const guess = closest(nameKey(raw), [...names[type].keys()]);
-    const home = type === 'process' ? 'a "## Process:" section' : `the ${SECTION[type]} section`;
+    const home = HOME[type] || `the ${SECTION[type]} section`;
     say('error', where, `The ${what} "${raw}" does not match any ${WORD[type]}.`, guess ? `Did you mean ${names[type].get(guess).name}?` : `Use the name of a ${WORD[type]} from ${home}, or add it there.`);
     return toId(raw);
   }
@@ -241,21 +266,9 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     if (s && REQUIRED.includes(SECTION[type]) && !rows[type].length) say('error', SECTION[type], `The ${SECTION[type]} table has no ${SECTION[type].toLowerCase()} yet.`, `Add one row per ${WORD[type]} to the table.`);
   }
 
-  const procs = processes.map((s) => {
+  const procs = named.process.map((s) => {
     const where = s.target ? `Process: ${s.target}` : 'Process (no name)';
-    // ### subsections: RACI and Notes.
-    const parts = { main: [] };
-    let part = parts.main;
-    for (let i = 0; i < s.blocks.length; i++) {
-      const t = s.blocks[i];
-      if (t.type === 'heading_open' && t.level === 0 && t.tag === 'h3') {
-        const name = s.blocks[i + 1].content.trim();
-        const k = ['RACI', 'Notes'].find((x) => nameKey(x) === nameKey(name));
-        if (!k) say('warning', where, `"### ${name}" is not a part of a process the engine knows, so it is ignored.`, 'Use "### RACI" for the RACI matrix and "### Notes" for the narrative.');
-        parts[k || name] = part = [];
-        i += 2;
-      } else part.push(t);
-    }
+    const parts = partsOf(s, where, 'process', ['RACI', 'Notes'], 'Use "### RACI" for the RACI matrix and "### Notes" for the narrative.');
     const main = parts.main;
     const kv = keyLines(main, where, (k) => ['workstream', 'summary', 'id', 'change', 'today'].includes(k), 'A process section has "Workstream:", "Summary:", "Change:" and "Today:" lines, then the step table. Put narrative under "### Notes".');
     if (!s.target) say('error', where, 'This process heading has no name.', 'Write the name after "Process:", e.g. "## Process: Qualify an opportunity".');
@@ -267,16 +280,23 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     return { s, where, parts, kv, id, steps: steps || [] };
   });
 
+  // Structures register their names first too, so Related and Opens can name a later structure (design D4).
+  const structs = named.structure.map((s) => {
+    const where = s.target ? `Structure: ${s.target}` : 'Structure (no name)';
+    const parts = partsOf(s, where, 'structure', ['Bands', 'Boxes', 'Lines', 'Notes'], 'Use "### Bands", "### Boxes" and "### Lines" for the tables and "### Notes" for the narrative.');
+    const kv = keyLines(parts.main, where, (k) => ['kind', 'summary', 'main', 'related', 'workstreams', 'change', 'today', 'id'].includes(k), 'A structure section has "Kind:", "Summary:", "Main:", "Related:", "Workstreams:", "Change:" and "Today:" lines, then the ### Bands, ### Boxes and ### Lines tables. Put narrative under "### Notes".');
+    if (!s.target) say('error', where, 'This structure heading has no name.', 'Write the name after "Structure:", e.g. "## Structure: Partnership".');
+    const id = s.target ? register('structure', s.target, kv.id, where) : undefined;
+    return { s, where, parts, kv, id };
+  });
+
   // ---------- build the documents ----------
   const docs = [];
   const doc = (type, where, header, body = '', extra) => docs.push({ file, where, header: { type, ...header }, body, ...extra });
 
   // The model: the title, the lines under it, Purpose, Key messages and About this model.
-  const tm = title !== undefined && title.match(/^Operating model\s*:\s*(.*)$/i);
   if (!tm) say('error', 'Title', 'The sheet does not start with an "# Operating model: <name>" heading.', 'Make the first heading "# Operating model: " followed by the model\'s name.');
   else if (!tm[1]) say('error', 'Title', 'The title has no model name.', 'Write the model\'s name after "Operating model:".');
-  const name = tm ? tm[1].trim() : '';
-  const head = keyLines(top, 'Top of the sheet', (k) => ['format', 'id', 'version'].includes(k), 'Under the title, only "Format:", "ID:" and "Version:" lines are read. Put the purpose under "## Purpose".');
   if (!('format' in head)) say('warning', 'Top of the sheet', `The sheet has no "Format:" line, so it is read as format ${FORMAT}.`, `Add the line "Format: ${FORMAT}" under the title.`);
   else if (!/^\d+$/.test(head.format)) say('error', 'Top of the sheet', `"Format: ${head.format}" is not a format number.`, `Write "Format: ${FORMAT}".`);
   else if (Number(head.format) > FORMAT) say('error', 'Top of the sheet', `This sheet uses capture sheet format ${head.format}, but this engine reads formats up to ${FORMAT}.`, `Open the sheet with a newer version of the engine that reads format ${head.format}, e.g. the one that came with the sheet.`);
@@ -369,6 +389,79 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     );
   }
 
+  for (const { s, where, parts, kv, id } of structs) {
+    // Bands by name, unique within the structure; a band's id is its name in lower case with hyphens.
+    const bw = `${where} › Bands`;
+    const bandRows = parts.Bands && rowsOf(parts.Bands, bw, TABLES.band, 'Bands');
+    if (!parts.Bands) say('error', where, 'This structure has no "### Bands" subsection.', 'Add a "### Bands" heading with a table with the columns Band, Inside and Opens: one row per band, top to bottom.');
+    else if (!bandRows) say('error', bw, 'The Bands subsection has no table.', 'Add a table with a Band column: one row per band, top to bottom.');
+    const byName = new Map();
+    const bandWhere = {};
+    for (const r of bandRows || []) {
+      const k = nameKey(r.get('name'));
+      if (byName.has(k)) {
+        say('error', r.where, `There is already a band called "${byName.get(k).band.name}" in this structure.`, 'Give each band in a structure its own name.');
+        continue;
+      }
+      const band = compact({ id: toId(r.get('name')), name: r.get('name'), opens: find('structure', r.get('opens'), r.where, 'structure to open') });
+      byName.set(k, { band, row: r });
+      bandWhere[band.id] = r.where;
+    }
+    const bandRef = (raw, at, what) => {
+      if (!raw) return undefined;
+      const hit = byName.get(nameKey(raw));
+      if (hit) return hit.band.id;
+      const guess = closest(nameKey(raw), [...byName.keys()]);
+      say('error', at, `The ${what} "${raw}" does not match any band in "${s.target}".`, guess ? `Did you mean ${byName.get(guess).band.name}?` : 'Use the name of a band from the Bands table, or add it there.');
+      return toId(raw);
+    };
+    // Inside names a top-level band. Anything else is reported, and the band stays at the top level.
+    const bands = [];
+    for (const { band, row } of byName.values()) {
+      const inside = row.get('inside');
+      const parent = inside && byName.get(nameKey(inside));
+      if (parent && parent.band !== band && !parent.row.get('inside')) (parent.band.bands ??= []).push(band);
+      else {
+        bands.push(band);
+        if (!inside) continue;
+        if (!parent) bandRef(inside, row.where, 'Inside band');
+        else if (parent.band === band) say('error', row.where, `The band "${band.name}" is inside itself.`, 'Clear its Inside cell, or name another band.');
+        else say('error', row.where, `The band "${band.name}" is inside "${parent.band.name}", which is itself inside another band. Bands can be nested only one level deep.`, `Put "${band.name}" inside a band that is not a sub-band, or clear its Inside cell.`);
+      }
+    }
+
+    const boxRows = parts.Boxes && rowsOf(parts.Boxes, `${where} › Boxes`, TABLES.box, 'Boxes', 'band');
+    if (!parts.Boxes) say('error', where, 'This structure has no "### Boxes" subsection.', 'Add a "### Boxes" heading with a table with the columns Band, Role, Team, Name and Note: one row per box.');
+    else if (!boxRows) say('error', `${where} › Boxes`, 'The Boxes subsection has no table.', 'Add a table with the columns Band, Role, Team, Name and Note: one row per box.');
+    // Both or neither of Role and Team is reported by validate(), at this row.
+    const boxes = (boxRows || []).map((r) => compact({
+      band: bandRef(r.get('band'), r.where, 'band'),
+      role: find('role', r.get('role'), r.where, 'role'),
+      team: find('team', r.get('team'), r.where, 'team'),
+      name: r.get('name'),
+      note: r.get('note'),
+      change: changeOf(r.get('status'), r.get('today'), r.where),
+    }));
+    const lineRows = (parts.Lines && rowsOf(parts.Lines, `${where} › Lines`, TABLES.line, 'Lines', 'fromBand')) || [];
+    const end = (r, side) => compact({ band: bandRef(r.get(`${side}Band`), r.where, `${side === 'from' ? 'From' : 'To'} band`), party: find('party', r.get(`${side}Party`), r.where, `${side === 'from' ? 'From' : 'To'} party`) });
+    const lines = lineRows.map((r) => compact({ from: end(r, 'from'), to: end(r, 'to'), label: r.get('label') }));
+
+    let main;
+    if (/^yes$/i.test(kv.main || '')) main = true;
+    else if (kv.main && !/^no$/i.test(kv.main)) say('error', where, `"Main: ${kv.main}" is not yes or no.`, 'Write "Main: yes" for the main diagram, or leave the line out.');
+    const header = compact({
+      id,
+      name: s.target,
+      kind: kv.kind,
+      summary: kv.summary,
+      main,
+      related: list(kv.related || '').map((x) => find('structure', x, where, 'related structure')),
+      workstreams: list(kv.workstreams || '').map((x) => find('workstream', x, where, 'workstream')),
+      change: changeOf(kv.change, kv.today, where),
+    });
+    doc('structure', where, { ...header, bands, boxes, ...(lines.length && { lines }) }, parts.Notes ? textOf(parts.Notes, 2) : '', { bandWhere, boxWhere: (boxRows || []).map((r) => r.where), lineWhere: lineRows.map((r) => r.where) });
+  }
+
   for (const r of rows.persona) {
     const roles = list(r.get('roles')).map((x) => find('role', x, r.where, 'role'));
     const v = r.get('entry');
@@ -399,7 +492,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
   }
 
   // ---------- narratives for named elements ----------
-  for (const n of notes) {
+  for (const n of named.notes) {
     const where = `Notes: ${n.target}`;
     const hits = Object.keys(WORD).filter((t) => names[t].has(nameKey(n.target)));
     if (hits.length > 1) {
@@ -409,7 +502,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     if (!hits.length) {
       const all = Object.keys(WORD).flatMap((t) => [...names[t].values()]);
       const guess = closest(nameKey(n.target), all.map((x) => nameKey(x.name)));
-      say('error', where, `These notes are for "${n.target}", which does not match the name of anything in the sheet.`, guess ? `Did you mean ${all.find((x) => nameKey(x.name) === guess).name}?` : 'Write the exact name of a party, team, role, workstream, process or persona after "Notes:".');
+      say('error', where, `These notes are for "${n.target}", which does not match the name of anything in the sheet.`, guess ? `Did you mean ${all.find((x) => nameKey(x.name) === guess).name}?` : 'Write the exact name of a party, team, role, workstream, process, structure or persona after "Notes:".');
       continue;
     }
     const id = names[hits[0]].get(nameKey(n.target)).id;

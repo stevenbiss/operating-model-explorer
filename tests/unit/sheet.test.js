@@ -451,7 +451,108 @@ test('folders without a sheet load exactly as before', () => {
   assert.deepEqual(loadModel(readFolder(SAMPLE)).meta, undefined);
 });
 
-// ---------- parity with the sample folder (1.7, design D9) ----------
+// ---------- structure sections (capture-sheet spec › Structure sections, design D4) ----------
+
+const STRUCTURE = `## Structure: Partnership
+
+Kind: Partnership
+Summary: Who leads what.
+Main: yes
+Related: Delivery map
+Workstreams: Presales
+
+### Bands
+
+| Band | Inside | Opens |
+|---|---|---|
+| Leadership | | |
+| Delivery | | |
+| Harbour | Delivery | Delivery map |
+
+### Boxes
+
+| Band | Role | Team | Name | Note | Change | Today |
+|---|---|---|---|---|---|---|
+| Leadership | Account lead | | Sam Example | Grade: Director | | |
+| Harbour | Solution architect | | | | New | |
+| Harbour | | Globex Solutions | | | | |
+
+### Lines
+
+| From band | From party | To band | To party | Label |
+|---|---|---|---|---|
+| Leadership | Acme Corp | Leadership | Globex | Joint steering |
+
+### Notes
+
+#### How it fits
+
+Text.
+`;
+const OTHER = '## Structure: Delivery map\n\n### Bands\n\n| Band |\n|---|\n| One |\n\n### Boxes\n\n| Band | Role |\n|---|---|\n| One | Legal counsel |\n';
+const TEAMS = '## Teams\n\n| Team | Party |\n|---|---|\n| Globex Solutions | Globex |\n';
+const sheetWith = (structure = STRUCTURE, other = OTHER) => [TEAMS, structure, other].reduce((acc, s) => with_(s, acc), BASE);
+
+test('2.46 / 2.50 a Structure section is recognised and read: sub-band inside its band, boxes, a labelled line, relations by name', () => {
+  const r = load(sheetWith());
+  assert.deepEqual(withoutAccountable(r.messages), []);
+  const s = r.model.elements.partnership;
+  assert.deepEqual([s.kind, s.summary, s.main, s.related, s.workstreams], ['Partnership', 'Who leads what.', true, ['delivery-map'], ['presales']]);
+  assert.deepEqual(s.bands, [{ id: 'leadership', name: 'Leadership', bands: [] }, { id: 'delivery', name: 'Delivery', bands: [{ id: 'harbour', name: 'Harbour', opens: 'delivery-map' }] }]);
+  assert.deepEqual(s.boxes, [
+    { band: 'leadership', role: 'account-lead', name: 'Sam Example', note: 'Grade: Director', party: 'acme-corp' },
+    { band: 'harbour', role: 'solution-architect', change: { status: 'new' }, party: 'globex' },
+    { band: 'harbour', team: 'globex-solutions', party: 'globex' },
+  ]);
+  assert.deepEqual(s.lines, [{ from: { band: 'leadership', party: 'acme-corp' }, to: { band: 'leadership', party: 'globex' }, label: 'Joint steering' }]);
+  assert.equal(s.body, '## How it fits\n\nText.');
+  assert.deepEqual(r.model.elements['delivery-map'].relatedAll, ['partnership']);
+});
+
+test('a structure named like the model (often the main diagram) gets an id of its own, with no message', () => {
+  const r = load(sheetWith(STRUCTURE.replace('## Structure: Partnership', '## Structure: Tiny partnership')));
+  assert.deepEqual(withoutAccountable(r.messages), []);
+  assert.equal(r.model.model.id, 'tiny-partnership');
+  assert.ok(r.model.elements['tiny-partnership-structure']);
+});
+
+test('2.51 unknown band name in a box: an error naming the structure, the Boxes row and a suggestion', () => {
+  const m = only(withoutAccountable(load(sheetWith(STRUCTURE.replace('| Harbour | Solution architect |', '| Harbr | Solution architect |'))).messages));
+  assert.equal(m.where, 'Structure: Partnership › Boxes › row 2 (Harbr)');
+  assert.equal(m.fix, 'Did you mean Harbour?');
+});
+
+test('2.52 Role and Team both filled: an error naming the structure and the row, saying to fill in only one', () => {
+  const m = only(withoutAccountable(load(sheetWith(STRUCTURE.replace('| Harbour | | Globex Solutions |', '| Harbour | Account lead | Globex Solutions |'))).messages));
+  assert.equal(m.where, 'Structure: Partnership › Boxes › row 3 (Harbour)');
+  assert.match(m.fix, /only one of the Role and Team columns/);
+});
+
+test('2.53 missing Bands subsection: an error naming the structure and the subsection', () => {
+  const msgs = withoutAccountable(load(sheetWith(STRUCTURE.replace(/### Bands[\s\S]*?(?=### Boxes)/, ''))).messages);
+  const m = msgs.find((x) => /Bands/.test(x.problem));
+  assert.deepEqual([m.level, m.where], ['error', 'Structure: Partnership']);
+  assert.match(m.problem, /no "### Bands" subsection/);
+});
+
+test('2.49 Lines table missing a column: an error naming the structure\'s Lines table and the column', () => {
+  const text = STRUCTURE.replace('| From band | From party | To band | To party | Label |\n|---|---|---|---|---|', '| From band | From party | To band | Label |\n|---|---|---|---|').replace('| Leadership | Globex | Joint steering |', '| Leadership | Joint steering |');
+  const m = withoutAccountable(load(sheetWith(text)).messages).find((x) => /To party/.test(x.problem));
+  assert.deepEqual([m.level, m.where, m.problem], ['error', 'Structure: Partnership › Lines', 'The Lines table has no "To party" column.']);
+});
+
+test('structure sections: bands nested too deep, duplicate band names, unknown Opens, and Main other than yes or no', () => {
+  const text = STRUCTURE.replace('Main: yes', 'Main: maybe')
+    .replace('| Harbour | Delivery | Delivery map |', '| Harbour | Delivery | Delivry map |\n| Pier | Harbour | |\n| leadership | | |');
+  const msgs = withoutAccountable(load(sheetWith(text)).messages).map((m) => `${m.where}: ${m.problem} ${m.fix}`);
+  assert.ok(msgs.some((m) => /^Structure: Partnership: "Main: maybe" is not yes or no\./.test(m)), msgs.join('\n'));
+  assert.ok(msgs.some((m) => /Bands › row 3 \(Harbour\): .*"Delivry map".*Did you mean Delivery map\?/.test(m)));
+  assert.ok(msgs.some((m) => /Bands › row 4 \(Pier\): .*nested only one level deep/.test(m)));
+  assert.ok(msgs.some((m) => /Bands › row 5 \(leadership\): There is already a band called "Leadership"/.test(m)));
+  assert.ok(msgs.some((m) => /None of the structures is marked as the main diagram/.test(m)), 'no main, once Main is not yes');
+});
+
+
 
 // Replace every id with its element's (or step's) name, so models with different ids compare.
 function byName(m) {
@@ -461,7 +562,15 @@ function byName(m) {
   for (const e of Object.values(el)) {
     const x = { ...e, id: e.name };
     for (const k of ['party', 'team', 'workstream']) if (x[k]) x[k] = n(x[k]);
-    for (const k of ['parties', 'roles', 'processes']) if (x[k]) x[k] = x[k].map(n);
+    for (const k of ['parties', 'roles', 'processes', 'structures', 'related', 'relatedAll', 'workstreams']) if (x[k]) x[k] = x[k].map(n);
+    // Structures: band ids are their names in both forms; what they refer to is compared by name.
+    if (e.type === 'structure') {
+      const opens = (b) => ({ ...b, opens: b.opens && n(b.opens), ...(b.bands && { bands: b.bands.map(opens) }) });
+      x.bands = e.bands.map(opens);
+      x.rows = e.rows.map(opens);
+      x.boxes = e.boxes.map((b) => ({ ...b, role: b.role && n(b.role), team: b.team && n(b.team), party: n(b.party) }));
+      x.lines = e.lines.map((l) => ({ ...l, from: { ...l.from, party: n(l.from.party) }, to: { ...l.to, party: n(l.to.party) } }));
+    }
     if (x.entry && x.entry.id) x.entry = { ...x.entry, id: n(x.entry.id) };
     if (x.steps) {
       const names = Object.fromEntries(e.steps.map((s) => [s.id, s.name]));

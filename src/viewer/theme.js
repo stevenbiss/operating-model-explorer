@@ -6,7 +6,8 @@ import { HEX } from '../model/colour.js';
 export const DEFAULT_LABELS = {
   model: 'Model', models: 'Models', party: 'Party', parties: 'Parties', team: 'Team', teams: 'Teams',
   role: 'Role', roles: 'Roles', persona: 'Persona', personas: 'Personas', workstream: 'Workstream', workstreams: 'Workstreams',
-  process: 'Process', processes: 'Processes', step: 'Step', steps: 'Steps', key_message: 'Key message', key_messages: 'Key messages',
+  process: 'Process', processes: 'Processes', step: 'Step', steps: 'Steps', structure: 'Structure', structures: 'Structures',
+  key_message: 'Key message', key_messages: 'Key messages',
 };
 
 // Party colours as custom properties on [data-party="<n>"] (n: the party's position), light and dark, from the colours

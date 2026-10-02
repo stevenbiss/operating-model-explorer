@@ -34,6 +34,8 @@
         "processes": { "type": "string", "description": "Default: Processes" },
         "step": { "type": "string", "description": "Default: Step" },
         "steps": { "type": "string", "description": "Default: Steps" },
+        "structure": { "type": "string", "description": "Default: Structure" },
+        "structures": { "type": "string", "description": "Default: Structures" },
         "key_message": { "type": "string", "description": "Default: Key message" },
         "key_messages": { "type": "string", "description": "Default: Key messages" }
       },

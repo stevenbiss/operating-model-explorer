@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/structure.schema.json",
+  "title": "structure",
+  "description": "A relationship diagram you design: one column per party, rows (bands) you name yourself, boxes that place roles and teams in a band, and plain lines between cells.",
+  "x-edgy": "Organisation (structure view)",
+  "type": "object",
+  "required": ["id", "type", "name", "bands", "boxes"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Unique id: lower-case letters and numbers joined by hyphens, e.g. partnership." },
+    "type": { "enum": ["structure"], "description": "Always structure." },
+    "name": { "type": "string", "description": "The diagram's display name." },
+    "kind": { "type": "string", "description": "Optional label in your own words, e.g. Partnership, Market or Sub-programme. It has no built-in meaning." },
+    "summary": { "type": "string", "description": "One or two sentences about this diagram." },
+    "main": { "type": "boolean", "description": "true for the one diagram that covers the whole company or partnership. A model with diagrams has exactly one." },
+    "related": { "type": "array", "items": { "type": "string" }, "description": "The ids of related structures. Each relation is shown from both sides." },
+    "workstreams": { "type": "array", "items": { "type": "string" }, "description": "The ids of related workstreams." },
+    "bands": {
+      "type": "array",
+      "description": "The rows, top to bottom. A band can hold sub-bands, one level deep.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Id, unique within this structure: lower-case letters and numbers joined by hyphens, e.g. leadership." },
+          "name": { "type": "string", "description": "The band's label." },
+          "opens": { "type": "string", "description": "Optional id of a structure that this band opens (drill down)." },
+          "bands": {
+            "type": "array",
+            "description": "Optional sub-bands, top to bottom. A band with sub-bands holds no boxes of its own.",
+            "items": {
+              "type": "object",
+              "required": ["id", "name"],
+              "properties": {
+                "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Id, unique within this structure: lower-case letters and numbers joined by hyphens, e.g. harbour." },
+                "name": { "type": "string", "description": "The sub-band's label." },
+                "opens": { "type": "string", "description": "Optional id of a structure that this sub-band opens (drill down)." },
+                "bands": { "type": "array", "description": "Not allowed: bands can be nested only one level deep." }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "boxes": {
+      "type": "array",
+      "description": "The boxes, in order. Each places one role or one team in a band, in the column of its party.",
+      "items": {
+        "type": "object",
+        "required": ["band"],
+        "properties": {
+          "band": { "type": "string", "description": "The id of the band (or sub-band) the box sits in." },
+          "role": { "type": "string", "description": "The id of the role in this box. Use role or team, not both." },
+          "team": { "type": "string", "description": "The id of the team in this box. Use role or team, not both." },
+          "name": { "type": "string", "description": "Optional text, e.g. the person who holds the role, or TBA." },
+          "note": { "type": "string", "description": "Optional extra text, e.g. a grade or another title." },
+          "change": {
+            "type": "object",
+            "description": "Optional current vs future state.",
+            "required": ["status"],
+            "properties": {
+              "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+              "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "lines": {
+      "type": "array",
+      "description": "Plain lines between two cells, each given as a band and a party. Lines have no direction.",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": {
+            "type": "object",
+            "description": "One end of the line.",
+            "required": ["band", "party"],
+            "properties": {
+              "band": { "type": "string", "description": "The id of the band." },
+              "party": { "type": "string", "description": "The id of the party (the column)." }
+            },
+            "additionalProperties": false
+          },
+          "to": {
+            "type": "object",
+            "description": "The other end of the line.",
+            "required": ["band", "party"],
+            "properties": {
+              "band": { "type": "string", "description": "The id of the band." },
+              "party": { "type": "string", "description": "The id of the party (the column)." }
+            },
+            "additionalProperties": false
+          },
+          "label": { "type": "string", "description": "Optional text shown with the line, e.g. Joint steering." }
+        },
+        "additionalProperties": false
+      }
+    },
+    "change": {
+      "type": "object",
+      "description": "Optional current vs future state.",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+        "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "id": "partnership",
+      "type": "structure",
+      "name": "Acme + Globex partnership",
+      "kind": "Partnership",
+      "main": true,
+      "related": ["harbour-account"],
+      "workstreams": ["presales"],
+      "bands": [
+        { "id": "leadership", "name": "Partnership leadership" },
+        { "id": "accounts", "name": "Account management", "bands": [
+          { "id": "harbour", "name": "Harbour account", "opens": "harbour-account" },
+          { "id": "summit", "name": "Summit account" }
+        ] }
+      ],
+      "boxes": [
+        { "band": "leadership", "role": "partner-manager", "name": "Sam Example", "note": "Grade: Director" },
+        { "band": "harbour", "team": "globex-solutions" }
+      ],
+      "lines": [
+        { "from": { "band": "leadership", "party": "acme" }, "to": { "band": "leadership", "party": "globex" }, "label": "Joint steering" }
+      ]
+    }
+  ]
+}

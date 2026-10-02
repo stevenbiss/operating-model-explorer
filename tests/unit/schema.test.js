@@ -8,7 +8,7 @@ const names = readdirSync(dir).filter((f) => f.endsWith('.schema.json'));
 const load = (f) => JSON.parse(readFileSync(new URL(f, dir), 'utf8'));
 
 test('there is a schema for every type', () => {
-  assert.deepEqual(names.map((f) => f.split('.')[0]).sort(), ['brand', 'model', 'party', 'persona', 'process', 'role', 'team', 'theme', 'workstream']);
+  assert.deepEqual(names.map((f) => f.split('.')[0]).sort(), ['brand', 'model', 'party', 'persona', 'process', 'role', 'structure', 'team', 'theme', 'workstream']);
 });
 
 for (const f of names) {
@@ -33,7 +33,8 @@ test('every "change" definition is identical', () => {
     const s = load(f);
     if (s.properties.change) defs.push(s.properties.change);
     if (s.properties.steps) defs.push(s.properties.steps.items.properties.change);
+    if (s.properties.boxes) defs.push(s.properties.boxes.items.properties.change);
   }
-  assert.equal(defs.length, 8);
+  assert.equal(defs.length, 10);
   for (const d of defs) assert.deepEqual(d, defs[0]);
 });

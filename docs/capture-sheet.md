@@ -8,8 +8,8 @@ This page is the full format, **format 1**. For a complete real-size sheet, see 
 
 - The first heading is `# Operating model: <name>`. That is how the engine knows the file is a capture sheet.
 - Under the title, a `Format: 1` line says which version of this format the sheet uses.
-- Each part of the model has a `##` section with a fixed heading, such as `## Roles` or `## Process: Build the proposal`.
-- Lists of things (parties, teams, roles, workstreams, steps, personas, the RACI matrix) are Markdown tables. Columns are found by their header, in any order, ignoring case and spaces.
+- Each part of the model has a `##` section with a fixed heading, such as `## Roles`, `## Process: Build the proposal` or `## Structure: Partnership`.
+- Lists of things (parties, teams, roles, workstreams, steps, personas, the RACI matrix, and a structure's bands, boxes and lines) are Markdown tables. Columns are found by their header, in any order, ignoring case and spaces.
 - Things refer to each other **by name**. Names match ignoring case, spaces and punctuation, so `solution  Architect` finds "Solution architect".
 - Different kinds of thing may share a name, such as a workstream and a process both called "Win the work". Every id must still be unique across the whole model, so the engine appends the kind to the id of the one that comes **later** in the sheet (parties, teams, roles, workstreams, personas, then processes, each in table order): the process gets the id `win-the-work-process`. There is no message, and the names stay as written. An id you set yourself (an `ID` column or `ID:` line) is never changed: if it is the same as the id of something earlier in the sheet, the report shows an error naming both places.
 - HTML comments (`<!-- like this -->`) are ignored everywhere, so you can leave guidance in the sheet. A comment ends at the next `-->`. If a `<!--` is never closed, everything from it to the end of the file is ignored, so close every comment you add.
@@ -130,9 +130,10 @@ Version: 1.0
 | `## Roles` | Yes | A table of the roles that do the work. |
 | `## Workstreams` | No | A table of groups of processes. |
 | `## Process: <name>` | No | One section per process: its lines, a step table, a RACI matrix and notes. |
+| `## Structure: <name>` | No | One section per structure diagram: its lines, then Bands, Boxes and Lines tables and notes. |
 | `## Personas` | No | A table of the types of viewer, and where each one starts. |
 | `## Theme` | No | Your own words for terms. |
-| `## Notes: <name>` | No | Text for a party, team, role, workstream, process or persona, shown on its page. |
+| `## Notes: <name>` | No | Text for a party, team, role, workstream, process, structure or persona, shown on its page. |
 | `## Open questions` | No | A checklist of things still to decide. Not included in snapshots. |
 | `## Sources` | No | A list of the material the sheet was drafted from. Not included in snapshots. |
 
@@ -165,7 +166,7 @@ Every table has a header row, a row of dashes, then one row per item:
 - Lists in a cell (parties, roles, inputs, outputs, systems, KPIs) are separated by semicolons: `Acme Corp; Globex`.
 - To put a `|` inside a cell, write `\|`.
 
-Every table can also have these optional columns:
+Every table except a structure's Bands and Lines can also have these optional columns (Boxes have no `ID`):
 
 | Column | What it does |
 |---|---|
@@ -307,9 +308,107 @@ A `Next` that points to a step that doesn't exist in the process is an error nam
 
 `### Notes` is the process's text, shown on the process page. Its headings start at `####` (see [Text](#text-in-purpose-about-this-model-and-notes)).
 
+## Structures
+
+A structure is a relationship diagram you design: how the parties' teams and roles are arranged, and how they relate. Each one has its own section. The diagram has one **column per party** (from each box's role or team), and **bands**: rows you name in your own words, drawn top to bottom. A band can hold sub-bands, one level deep.
+
+```markdown
+## Structure: Acme + Globex partnership
+
+Kind: Partnership
+Summary: Who leads the partnership on each side.
+Main: yes
+Related: Sales team
+Workstreams: Presales
+
+### Bands
+
+| Band | Inside | Opens |
+|---|---|---|
+| Leadership | | |
+| Accounts | | |
+| Harbour account | Accounts | Sales team |
+| Summit account | Accounts | |
+
+### Boxes
+
+| Band | Role | Team | Name | Note |
+|---|---|---|---|---|
+| Leadership | Account lead | | Sam Example | Grade: Director |
+| Leadership | Solution architect | | TBA | |
+| Harbour account | | Acme Sales | | |
+| Summit account | Bid manager | | Alex Sample | |
+
+### Lines
+
+| From band | From party | To band | To party | Label |
+|---|---|---|---|---|
+| Leadership | Acme Corp | Leadership | Globex | Joint steering |
+
+### Notes
+
+#### How to read it
+
+Each account has a named lead on both sides.
+
+## Structure: Sales team
+
+### Bands
+
+| Band |
+|---|
+| Team |
+
+### Boxes
+
+| Band | Role |
+|---|---|
+| Team | Bid manager |
+```
+
+| Line | Required | What it does |
+|---|---|---|
+| `Kind: <text>` | No | A label in your own words, such as Partnership, Market or Sub-programme. It has no built-in meaning. |
+| `Summary: <text>` | No | One or two sentences about the diagram. |
+| `Main: yes` | One structure | Marks the main diagram: the one that covers the whole company or partnership. When a sheet has any structures, exactly one of them has this line. |
+| `Related: <names>` | No | Related structures, separated by semicolons. A relation shows on both diagrams, so write it once. |
+| `Workstreams: <names>` | No | Related workstreams, separated by semicolons. |
+| `Change:` and `Today:` | No | Current vs future state of the whole diagram. |
+| `ID: <id>` | No | An explicit id for the structure. |
+
+**`### Bands`** (required) lists the bands in order, top to bottom:
+
+| Column | Required | What it holds |
+|---|---|---|
+| `Band` | Yes | The band's name. Names must be different within a structure. |
+| `Inside` | No | For a sub-band, the name of the band it sits in. A band with sub-bands holds no boxes of its own, and a sub-band can't have sub-bands. |
+| `Opens` | No | The name of another structure this band opens, so viewers can drill down to it. |
+
+**`### Boxes`** (required) places roles and teams in bands, in row order:
+
+| Column | Required | What it holds |
+|---|---|---|
+| `Band` | Yes | The name of the band (or sub-band) the box sits in. |
+| `Role` or `Team` | One of them | The role or team in the box. Fill in exactly one. A team box also lists the team's roles. The same role can have boxes in several bands. |
+| `Name` | No | Who holds it, or TBA. Names are text, not elements, and search finds them. |
+| `Note` | No | Extra text, such as a grade or another title. |
+| `Change` and `Today` | No | Current vs future state of the box. |
+
+**`### Lines`** (optional) joins two cells. A cell is a band and a party:
+
+| Column | Required | What it holds |
+|---|---|---|
+| `From band` and `From party` | Yes | One end of the line. |
+| `To band` and `To party` | Yes | The other end. A line can't join a cell to itself. |
+| `Label` | No | Text shown with the line, e.g. Joint steering. |
+
+Lines are plain: they have no arrowheads and no direction, so the same two cells in either order are the same line, and a repeated line is a warning. Lines between neighbouring cells read best.
+
+**`### Notes`** (optional) is the diagram's text, shown on its page. Its headings start at `####`.
+
 ## Notes for other elements
 
-`## Notes: <name>` attaches text to the party, team, role, workstream, process or persona with that name:
+`## Notes: <name>` attaches text to the party, team, role, workstream, process, structure or persona with that name:
 
 ```markdown
 ## Notes: Presales
@@ -321,7 +420,7 @@ An unknown name is an error, with a suggestion when one is close. So is a name s
 
 ## Theme
 
-`## Theme` is optional. It holds `Label <term>: <word>` lines, one per line: your word for one of the engine's terms: `model`, `party`, `team`, `role`, `persona`, `workstream`, `process`, `step` and `key message`, each also in the plural (`Label workstreams`). Rename both forms together.
+`## Theme` is optional. It holds `Label <term>: <word>` lines, one per line: your word for one of the engine's terms: `model`, `party`, `team`, `role`, `persona`, `workstream`, `process`, `step`, `structure` and `key message`, each also in the plural (`Label workstreams`). Rename both forms together.
 
 ```markdown
 ## Theme

@@ -123,6 +123,80 @@ Summary: Design, price and review the proposal, then send it to the client.
 2. **Design** first, then **price** from the design.
 3. **Review** as the client would, and loop back if it needs rework.
 
+## Structure: Acme + Globex partnership
+
+Kind: Partnership
+Summary: Who leads the partnership on each side, and how the account teams line up.
+Main: yes
+Related: Harbour account
+Workstreams: Presales
+
+### Bands
+
+| Band | Inside | Opens |
+|---|---|---|
+| Partnership leadership | | |
+| Account management | | |
+| Harbour account | Account management | Harbour account |
+| Summit account | Account management | |
+| Delivery | | |
+
+### Boxes
+
+| Band | Role | Team | Name | Note | Change | Today |
+|---|---|---|---|---|---|---|
+| Partnership leadership | Account lead | | Sam Example | Executive sponsor | | |
+| Partnership leadership | Legal counsel | | | | Removed | Legal counsel sat on the steering group. |
+| Partnership leadership | Partner manager | | Jo Placeholder | Grade: Director | | |
+| Harbour account | Bid manager | | Alex Sample | | | |
+| Harbour account | | Globex Solutions | | | | |
+| Summit account | Bid manager | | TBA | | | |
+| Summit account | Solution architect | | Riley Demo | | | |
+| Delivery | | Acme Delivery | | | | |
+
+### Lines
+
+| From band | From party | To band | To party | Label |
+|---|---|---|---|---|
+| Partnership leadership | Acme Corp | Partnership leadership | Globex | Joint steering |
+| Partnership leadership | Globex | Account management | Globex | |
+| Harbour account | Acme Corp | Harbour account | Globex | Weekly bid call |
+
+### Notes
+
+The partnership is led jointly. Each account has a named lead on both sides, and the Acme delivery team takes over once work is won.
+
+## Structure: Harbour account
+
+Kind: Account
+Summary: The joint team for the Harbour account, from the account leads to delivery.
+
+### Bands
+
+| Band |
+|---|
+| Account leadership |
+| Bid team |
+| Delivery |
+
+### Boxes
+
+| Band | Role | Team | Name | Note |
+|---|---|---|---|---|
+| Account leadership | Account lead | | Sam Example | |
+| Account leadership | Partner manager | | Jo Placeholder | |
+| Bid team | Bid manager | | Alex Sample | |
+| Bid team | Solution architect | | Morgan Test | |
+| Bid team | Pricing analyst | | TBA | Shared with the Summit account |
+| Delivery | | Acme Delivery | | |
+
+### Lines
+
+| From band | From party | To band | To party | Label |
+|---|---|---|---|---|
+| Account leadership | Acme Corp | Account leadership | Globex | |
+| Bid team | Acme Corp | Bid team | Globex | Shared bid plan |
+
 ## Personas
 
 | Persona | Roles | Starts at | Summary |

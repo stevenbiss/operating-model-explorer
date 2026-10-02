@@ -84,6 +84,46 @@ Never combine letters such as A/R: choose R if the role does the work, or A if i
 
 <!-- Optional. The process's narrative. Headings here start at ####. -->
 
+<!--
+## Structure: <name>
+
+Optional: a relationship diagram you design. Copy this whole section (without the comment marks) once per diagram.
+Columns are the parties of the roles and teams in it. Bands are rows you name yourself, top to bottom.
+When the sheet has any structures, exactly one of them has "Main: yes": the one for the whole company or partnership.
+
+Kind: (optional, your own word, e.g. Partnership, Market or Sub-programme)
+Summary: (optional, one or two sentences)
+Main: yes
+Related: (optional, other structures' names, separated by semicolons)
+Workstreams: (optional, workstream names, separated by semicolons)
+
+### Bands
+
+One row per band, top to bottom. Inside: for a sub-band, the band it sits in (one level only).
+Opens: the name of another structure that viewers can drill down to from this band.
+
+| Band | Inside | Opens |
+|---|---|---|
+
+### Boxes
+
+One row per box. Fill in exactly one of Role or Team. Name: who holds it, or TBA. Note: e.g. a grade.
+
+| Band | Role | Team | Name | Note |
+|---|---|---|---|---|
+
+### Lines
+
+Plain lines between two cells (a band and a party), with no direction. Join neighbouring cells where you can.
+
+| From band | From party | To band | To party | Label |
+|---|---|---|---|---|
+
+### Notes
+
+The diagram's narrative. Headings here start at ####.
+-->
+
 ## Personas
 
 <!-- Optional. The types of viewer. Roles: role names separated by semicolons.
@@ -106,7 +146,7 @@ Party colours and marks come from brand packs (the Brand column in Parties), not
 <!--
 ## Notes: <name>
 
-Optional, one section per element: text for the party, team, role, workstream, process or persona
+Optional, one section per element: text for the party, team, role, workstream, process, structure or persona
 with that name, shown on its page.
 -->
 

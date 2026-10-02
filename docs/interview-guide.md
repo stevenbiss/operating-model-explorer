@@ -14,7 +14,7 @@ The author owns the model. Your job is to draft what the material supports, poin
 
 Read everything before asking anything. Then decide:
 
-- **Draft first** when the material covers the parties, the roles and at least one process with its steps. Write a complete draft sheet, validate it, and only then ask about what's missing or unclear. People answer questions far more easily when they can see a draft.
+- **Draft first** when the material covers the parties, the roles and at least one process with its steps or one org diagram. Write a complete draft sheet, validate it, and only then ask about what's missing or unclear. People answer questions far more easily when they can see a draft.
 - **Interview** when the material is too thin to draft from, for example a single paragraph. Don't fill a sheet with guesses. Ask one question at a time, in the order below, and write each section as soon as you have its answers.
 
 ### Question order
@@ -24,9 +24,12 @@ Read everything before asking anything. Then decide:
 3. **Roles.** Which roles do the work, and which party (and team, if any) does each belong to?
 4. **Workstreams.** How does the work group together, from start to finish? Which ones should be mapped in detail now, and which are an outline for later?
 5. **Processes.** For each detailed workstream: which processes, and for each process, its steps in order, who owns each step, where decisions branch, and where the flow ends.
-6. **Personas.** Who will look at the model, which roles do they play, and where should each one start?
+6. **Structure diagrams.** Is there an org chart, collaboration model or similar picture of how the parties are arranged? For each one: its rows (in the author's own words), which roles or teams sit in each row on each side, who holds them, and which of them work together. Which diagram covers the whole company or partnership (the main one)?
+7. **Personas.** Who will look at the model, which roles do they play, and where should each one start?
 
 Ask about the RACI for each process once its steps are agreed (see section 4). Teams, brands (section 7), the theme, Notes and current-versus-future detail are optional: offer them, but don't push.
+
+**Structure diagrams from org material.** Write one `## Structure:` section per diagram in the material. Use the material's own row names as bands, and its own word for the diagram as `Kind`. Put each box's role or team in the `Role` or `Team` column (add the role or team to its table if it is missing, and tag that as an `(assumption)`), the person's name in `Name` and any extra label, such as a grade or a title in the other party, in `Note`. Turn each relationship into a line between two cells, a band and a party; lines have no direction, so drop arrowheads. Mark `Main: yes` only when the material makes clear which diagram covers the whole company or partnership; otherwise ask which one it is, under `## Open questions`. A box or relationship you can't place is an open question, never a guess.
 
 ## 3. Gaps, assumptions and contradictions
 

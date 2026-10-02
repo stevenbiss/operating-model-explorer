@@ -18,7 +18,7 @@ test('the sample loads with 0 errors and 0 warnings', () => {
 test('the sample has every element type', () => {
   assert.equal(model.model.id, 'acme-sample');
   assert.ok(model.theme);
-  for (const t of ['party', 'team', 'role', 'persona', 'workstream', 'process']) assert.ok(model.order[t].length, t);
+  for (const t of ['party', 'team', 'role', 'persona', 'workstream', 'process', 'structure']) assert.ok(model.order[t].length, t);
   assert.ok(allSteps.length);
   assert.equal(model.order.party.length, 2);
   assert.ok(model.order.role.length >= 6);
@@ -44,6 +44,21 @@ test('the sample has a decision with two labelled branches and a rework loop', (
     return el[p].edges.some((e) => ids.indexOf(e.to) < ids.indexOf(e.from));
   });
   assert.ok(back, 'a back-edge');
+});
+
+test('2.34 the sample diagrams: a main one and a related one, covering every structure feature', () => {
+  const st = model.order.structure.map((id) => el[id]);
+  const main = st.filter((s) => s.main);
+  assert.equal(main.length, 1);
+  assert.ok(main[0].relatedAll.length, 'a related diagram');
+  const all = (f) => st.some(f);
+  assert.ok(all((s) => s.bands.some((b) => b.bands.length)), 'sub-bands');
+  assert.ok(all((s) => s.rows.some((r) => r.opens && el[r.opens])), 'a band that opens another diagram');
+  assert.ok(all((s) => s.boxes.some((b) => b.team)), 'a team box');
+  assert.ok(all((s) => s.boxes.some((b) => b.name && b.note)), 'a box with name and note text');
+  assert.ok(all((s) => s.lines.some((l) => l.label)), 'a labelled line');
+  assert.ok(all((s) => s.workstreams.length), 'a related workstream');
+  assert.ok(all((s) => s.boxes.some((b) => b.change)), 'a box with a change');
 });
 
 test('the sample has change data: new, changed and removed, each with today', () => {

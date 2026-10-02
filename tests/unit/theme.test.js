@@ -73,11 +73,21 @@ test('labels: overrides replace defaults, unset terms keep them', () => {
 });
 
 test('routes round-trip, including persona and change markers', () => {
-  for (const h of ['#/', '#/w/presales', '#/p/qualify-opportunity', '#/p/build-proposal/s/review-proposal?persona=acme-account-lead&changes=1', '#/r/account-lead', '#/e/acme', '#/search?q=bid', '#/me?persona=x&only=1']) {
+  for (const h of ['#/', '#/w/presales', '#/d/harbour-account?persona=x&changes=1', '#/p/qualify-opportunity', '#/p/build-proposal/s/review-proposal?persona=acme-account-lead&changes=1', '#/r/account-lead', '#/e/acme', '#/search?q=bid', '#/me?persona=x&only=1']) {
     assert.equal(formatRoute(parseRoute(h)), h);
   }
   assert.deepEqual(parseRoute(''), { view: 'overview', persona: null, changes: false, only: false, q: '' });
   assert.equal(parseRoute('#/p/x/s/y').step, 'y');
+});
+
+test('2.64 structure labels: default "Structure"/"Structures", renameable, and a rename in one form only warns', () => {
+  assert.deepEqual([labeller(null)('structure'), labeller(null)('structures')], ['Structure', 'Structures']);
+  const r = withTheme('labels:\n  structure: Org model\n  structures: Org models\n');
+  assert.deepEqual(r.messages, []);
+  const L = labeller(toSnapshot(r.model).theme);
+  assert.deepEqual([L('structures'), L.lower('structure'), L.a('structure')], ['Org models', 'org model', 'an org model']);
+  assert.match(withTheme('labels:\n  structure: Org model\n').messages[0].fix, /structures: Org models/);
+  assert.equal(parseRoute('#/d/harbour-account').view, 'structure');
 });
 
 test('a label renamed in only one form: a warning suggesting the missing form', () => {

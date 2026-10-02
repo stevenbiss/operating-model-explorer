@@ -5,6 +5,7 @@ import { flow, isRemoved, nextOf, prevOf } from '../model/layout.js';
 import { formatRoute, parseRoute } from './route.js';
 import { labeller, partyCss } from './theme.js';
 import { swimlaneSvg } from './swimlane.js';
+import { mountLines, structureHtml } from './structure.js';
 import { esc } from './esc.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 
@@ -59,7 +60,8 @@ const nameOf = (id) => (E[id] ? E[id].name : id);
 const plural = (n, one, many) => `${n} ${n === 1 ? L.lower(one) : L.lower(many)}`;
 const hasChanges = () =>
   Object.values(E).some((x) => x.change && STATUS[x.change.status]) ||
-  M.order.process.some((p) => E[p].steps.some((s) => s.change && STATUS[s.change.status]));
+  M.order.process.some((p) => E[p].steps.some((s) => s.change && STATUS[s.change.status])) ||
+  M.order.structure.some((s) => E[s].boxes.some((b) => b.change && STATUS[b.change.status]));
 const detailed = () => M.order.process.filter((p) => !(E[E[p].workstream] && E[E[p].workstream].detail === 'outline'));
 // Party identity (party-brands spec, design D4/D5). A party's colours come from the CSS for data-party="<its position>"
 // (partyCss); "none" is the neutral fallback. Marks are only ever <img> data URIs, never inline SVG, so nothing in one runs.
@@ -235,6 +237,7 @@ function onRoute() {
   F = null;
   chrome();
   main.innerHTML = view();
+  mountLines(main.querySelector('.sd'), route.view === 'structure' && is(route.id, 'structure') ? E[route.id].lines : []);
   // Keep the selected step in sight when the detail panel narrows the swimlane.
   const sel = main.querySelector('.node[aria-current]');
   const sc = main.querySelector('.swim-scroll');
@@ -307,7 +310,8 @@ const go = (patch, replace) => {
 function crumbs() {
   const c = [[M.model ? esc(M.model.name) : L('model'), href({ view: 'overview' })]]; // names as HTML
   const x = E[route.id];
-  if (route.view === 'workstream' && is(route.id, 'workstream')) c.push([esc(x.name)]);
+  // A structure's breadcrumb is flat: diagrams form a graph, so there is no single path to one (design D7).
+  if ((route.view === 'workstream' && is(route.id, 'workstream')) || (route.view === 'structure' && is(route.id, 'structure'))) c.push([esc(x.name)]);
   if (route.view === 'process' && is(route.id, 'process')) {
     if (is(x.workstream, 'workstream')) c.push([esc(E[x.workstream].name), href({ view: 'workstream', id: x.workstream })]);
     const s = route.step && x.steps.find((st) => st.id === route.step);
@@ -458,6 +462,8 @@ function view() {
       return is(route.id, 'workstream') ? workstream(x) : notFound();
     case 'process':
       return is(route.id, 'process') ? processView(x) : notFound();
+    case 'structure':
+      return is(route.id, 'structure') ? structureView(x) : notFound();
     case 'role':
       return is(route.id, 'role') ? role(x) : notFound();
     case 'element':
@@ -479,6 +485,7 @@ const head = (eyebrow, x, extra = '', party = null) =>
 function overview() {
   const m = M.model || {};
   const ws = M.order.workstream.map((id) => E[id]);
+  const st = M.order.structure.filter((id) => E[id].main === true).concat(M.order.structure.filter((id) => E[id].main !== true)); // the main one first
   return `<div class="page">
 <section class="hero">
   <p class="eyebrow">${L('model')}</p>
@@ -488,6 +495,7 @@ function overview() {
 </section>
 ${list(m.key_messages).length ? `<section class="section" aria-labelledby="om-km-h"><h2 id="om-km-h">${L('key_messages')}</h2>${messagesHtml()}</section>` : ''}
 ${ws.length ? `<section class="section" aria-labelledby="om-ws-h"><h2 id="om-ws-h">${L('workstreams')}</h2><ul class="cards">${ws.map(wsCard).join('')}</ul></section>` : ''}
+${st.length ? `<section class="section" aria-labelledby="om-st-h" data-testid="structure-list"><h2 id="om-st-h">${L('structures')}</h2><ul class="cards">${st.map(structureCard).join('')}</ul></section>` : ''}
 ${M.order.party.length ? `<section class="section" aria-labelledby="om-pa-h"><h2 id="om-pa-h">${L('parties')}</h2><ul class="cards cards-sm">${M.order.party.map(partyCard).join('')}</ul></section>` : ''}
 ${M.order.persona.length ? `<section class="section" aria-labelledby="om-pe-h"><h2 id="om-pe-h">Start from your perspective</h2><p class="section-lead">Each ${L.lower('persona')} opens where it matters most to them. Nothing is hidden from anyone.</p><ul class="doors doors-grid">${personaButtons()}</ul></section>` : ''}
 </div>`;
@@ -503,6 +511,16 @@ function wsCard(w) {
     <span class="dots">${list(w.parties).filter((p) => is(p, 'party')).map((p) => mark(p)).join('')}</span></p>
   </a></li>`;
 }
+
+const mainTag = (s) => (s.main === true ? `<span class="tag tag-main" data-testid="main-structure">Main ${L.lower('structure')}</span>` : '');
+
+function structureCard(id) {
+  const s = E[id];
+  return `<li><a class="card" href="${href({ view: 'structure', id })}" data-testid="structure-card-${esc(id)}">
+    <h3>${esc(s.name)}</h3>${s.summary ? `<p>${esc(s.summary)}</p>` : ''}
+    <p class="card-meta">${mainTag(s)}${s.kind ? `<span class="tag">${esc(s.kind)}</span>` : ''}${badge(s.change)}</p></a></li>`;
+}
+const structureChip = (id) => `<a class="chip" href="${href({ view: 'structure', id })}">${esc(E[id].name)}</a>`;
 
 function partyCard(id) {
   const p = E[id];
@@ -528,6 +546,7 @@ ${outline
   ? `<p class="note">This ${L.lower('workstream')} is shown in outline only. Its ${L.lower('processes')} are not detailed yet.</p>`
   : `<section class="section" aria-labelledby="om-pr-h"><h2 id="om-pr-h">${L('processes')}</h2>${w.processes.length ? `<ul class="cards">${w.processes.map((p) => processCard(E[p])).join('')}</ul>` : `<p class="note">No ${L.lower('processes')} yet.</p>`}</section>
 ${roles.length ? `<section class="section"><h2>${L('roles')} involved</h2><p class="chips">${roles.map(roleChip).join('')}</p></section>` : ''}`}
+${list(w.structures).length ? `<section class="section" data-testid="workstream-structures"><h2>Related ${L.lower('structures')}</h2><p class="chips">${w.structures.map(structureChip).join('')}</p></section>` : ''}
 </div>`;
 }
 
@@ -629,6 +648,30 @@ function stepDetail(s) {
 </aside>`;
 }
 
+// A structure diagram (structure-diagrams spec). Columns are the parties of its shown boxes and its line ends, so a
+// party used only by a hidden (removed) box gets no column. Persona boxes are emphasised; nothing is hidden.
+function structureView(s) {
+  const ends = new Set(s.lines.flatMap((l) => [l.from.party, l.to.party]));
+  const parties = s.parties.filter((p) => ends.has(p) || s.boxes.some((b) => b.party === p && visible(b)));
+  const roles = personaRoles();
+  const mineBox = (b) => roles.has(b.role) || (!!b.team && [...roles].some((r) => is(r, 'role') && E[r].team === b.team));
+  const rel = s.relatedAll.filter((id) => is(id, 'structure'));
+  const ws = s.workstreams.filter((id) => is(id, 'workstream'));
+  return `<div class="page page-wide">
+<header class="page-head"><p class="eyebrow">${L('structure')}</p><h1 tabindex="-1">${esc(s.name)}</h1>
+  ${mainTag(s) || s.kind || badge(s.change) ? `<div class="tags">${mainTag(s)}${s.kind ? `<span class="tag" data-testid="structure-kind">${esc(s.kind)}</span>` : ''}${badge(s.change)}</div>` : ''}
+  ${s.summary ? `<p class="lead">${esc(s.summary)}</p>` : ''}${today(s)}</header>
+<section class="section" aria-labelledby="om-sd-h"><h2 id="om-sd-h">${L('roles')} and ${L.lower('teams')} by ${L.lower('party')}</h2>
+  <div class="sd-scroll" data-testid="structure-diagram">${structureHtml({ m: M, L, s, parties, dp, mark: (p) => mark(p, false), visible, mine: mineBox, badge: (c) => badge(c), href })}</div>
+</section>
+${rel.length || ws.length ? `<section class="section" aria-labelledby="om-rel-h" data-testid="structure-related"><h2 id="om-rel-h">Related</h2>
+  ${rel.length ? `<div class="group"><h3>${L('structures')}</h3><p class="chips">${rel.map(structureChip).join('')}</p></div>` : ''}
+  ${ws.length ? `<div class="group"><h3>${L('workstreams')}</h3><p class="chips">${ws.map((w) => `<a class="chip" href="${href({ view: 'workstream', id: w })}">${esc(E[w].name)}</a>`).join('')}</p></div>` : ''}
+</section>` : ''}
+${s.body ? `<section class="section about"><h2>About this ${L.lower('structure')}</h2><div class="prose">${renderMarkdown(s.body)}</div></section>` : ''}
+</div>`;
+}
+
 function stepsFor(roles, filter = () => true) {
   return M.order.process
     .map((p) => ({ p: E[p], steps: E[p].steps.filter((s) => [...roles].some((r) => involved(s, r)) && filter(s)) }))
@@ -639,11 +682,14 @@ function role(r) {
   const party = is(r.party, 'party') ? `<a class="ptag"${dp(r.party)} href="${href({ view: 'element', id: r.party })}">${mark(r.party, false)}${esc(E[r.party].name)}</a>` : '';
   const team = is(r.team, 'team') ? ` · <a href="${href({ view: 'element', id: r.team })}">${esc(E[r.team].name)}</a>` : '';
   const groups = stepsFor([r.id], visible);
+  const diagrams = list(r.structures).filter((s) => E[s].boxes.some((b) => b.role === r.id && visible(b)));
   return `<div class="page">
 ${head(`${L('role')}${party ? ` · ${party}` : ''}${team}`, r, mine(r.id) ? `<span class="cue">Your ${L.lower('role')}</span>` : '')}
 <section class="section" aria-labelledby="om-where-h"><h2 id="om-where-h">Where this ${L.lower('role')} takes part</h2>
 ${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a></h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${s.owner === r.id ? '<span class="tag">Owner</span>' : ''}${s.raci[r.id] ? letterHtml(s.raci[r.id]) : ''}${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">Not part of any ${L.lower('steps')} yet.</p>`}
-</section></div>`;
+</section>
+${diagrams.length ? `<section class="section" data-testid="role-structures"><h2>${L('structures')} with this ${L.lower('role')}</h2><p class="chips">${diagrams.map(structureChip).join('')}</p></section>` : ''}
+</div>`;
 }
 
 function element(x) {
@@ -661,20 +707,24 @@ ${x.type === 'persona' ? `<p><button type="button" class="btn btn-primary" data-
 function search() {
   const q = route.q.trim().toLowerCase();
   const hit = (...v) => q && v.some((t) => typeof t === 'string' && t.toLowerCase().includes(q));
-  const types = ['workstream', 'process', 'step', 'role', 'team', 'party', 'persona'];
-  const plurals = { workstream: 'workstreams', process: 'processes', step: 'steps', role: 'roles', team: 'teams', party: 'parties', persona: 'personas' };
+  const types = ['workstream', 'process', 'step', 'structure', 'role', 'team', 'party', 'persona'];
+  const plurals = { workstream: 'workstreams', process: 'processes', step: 'steps', structure: 'structures', role: 'roles', team: 'teams', party: 'parties', persona: 'personas' };
   const targets = {
     workstream: (x) => href({ view: 'workstream', id: x.id }),
     process: (x) => href({ view: 'process', id: x.id }),
     step: stepHref,
+    structure: (x) => href({ view: 'structure', id: x.id }),
     role: (x) => href({ view: 'role', id: x.id }),
   };
+  // A match in a box's name or note text lists its structure, with the matched box as the result's context (design D9).
+  const boxHit = (x) => x.type === 'structure' && x.boxes.find((b) => visible(b) && hit(b.name, b.note));
   const groups = types
     .map((t) => {
-      const items = t === 'step' ? M.order.process.flatMap((p) => E[p].steps.filter((s) => visible(s) && hit(s.name, s.description))) : M.order[t].map((id) => E[id]).filter((x) => visible(x) && hit(x.name, x.summary, x.purpose));
+      const items = t === 'step' ? M.order.process.flatMap((p) => E[p].steps.filter((s) => visible(s) && hit(s.name, s.description))) : M.order[t].map((id) => E[id]).filter((x) => visible(x) && (hit(x.name, x.summary, x.purpose) || boxHit(x)));
       return { t, items };
     })
     .filter((g) => g.items.length);
+  const boxCtx = (b) => (b ? `<span class="result-ctx" data-testid="search-box-match">${esc([b.name, b.note].filter(Boolean).join(' · '))} · ${esc(nameOf(b.role || b.team))}</span>` : '');
   const n = groups.reduce((a, g) => a + g.items.length, 0);
   return `<div class="page">
 <header class="page-head"><p class="eyebrow">Search</p><h1 tabindex="-1">${q ? `Results for “${esc(route.q)}”` : 'Search'}</h1>
@@ -682,7 +732,7 @@ function search() {
 ${groups
   .map(
     (g) => `<section class="section" data-testid="search-group-${g.t}"><h2>${L(plurals[g.t])} <span class="count">${g.items.length}</span></h2><ul class="results">${g.items
-      .map((x) => `<li><a href="${(targets[g.t] || ((y) => href({ view: 'element', id: y.id })))(x)}" data-testid="search-result">${esc(x.name)}</a>${g.t === 'step' ? `<span class="result-ctx">${L('process')}: ${esc(E[x.process].name)}</span>` : ''}${badge(x.change)}</li>`)
+      .map((x) => `<li><a href="${(targets[g.t] || ((y) => href({ view: 'element', id: y.id })))(x)}" data-testid="search-result">${esc(x.name)}</a>${g.t === 'step' ? `<span class="result-ctx">${L('process')}: ${esc(E[x.process].name)}</span>` : ''}${boxCtx(boxHit(x))}${badge(x.change)}</li>`)
       .join('')}</ul></section>`,
   )
   .join('')}

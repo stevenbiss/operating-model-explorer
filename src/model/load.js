@@ -7,7 +7,7 @@ import { imageRefs, markdownTexts } from './markdown.js';
 import { isSheet, nameKey, sheetToDocs, toId } from './sheet.js';
 import { colourMessages, resolvePartyColours } from './colour.js';
 
-const ELEMENT_TYPES = ['party', 'team', 'role', 'persona', 'workstream', 'process'];
+const ELEMENT_TYPES = ['party', 'team', 'role', 'persona', 'workstream', 'process', 'structure'];
 const decoder = new TextDecoder();
 const MARK_KB = 200;
 
@@ -198,8 +198,32 @@ export function buildModel(docs, assets = {}, brands = {}) {
   const el = out.elements;
   for (const id of out.order.workstream) el[id].processes = out.order.process.filter((p) => el[p].workstream === id);
   for (const id of out.order.process) resolveSteps(el[id], el);
+  // Structures (design D8): resolved bands, boxes and columns, and the relations each view reads, worked out once.
+  const st = out.order.structure;
+  for (const id of st) resolveStructure(el[id], el, out.order.party);
+  for (const id of st) el[id].relatedAll = st.filter((s) => s !== id && (el[id].related.includes(s) || el[s].related.includes(id)));
+  for (const id of out.order.workstream) el[id].structures = st.filter((s) => el[s].workstreams.includes(id));
+  for (const id of out.order.role) el[id].structures = st.filter((s) => el[s].boxes.some((b) => b.role === id));
   out.partyColours = resolvePartyColours(out.order.party.map((id) => el[id]), brands);
   return out;
+}
+
+// Tolerant, like resolveSteps: anything malformed is dropped (validation reports it), so a preview still renders.
+// rows: the leaf bands top to bottom, each with its parent band (or null). Each box gets its role's or team's party.
+// parties: the diagram's columns, in model order, for every box and line end (the viewer drops hidden boxes' parties).
+function resolveStructure(s, el, partyOrder) {
+  const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+  const objs = (v) => (Array.isArray(v) ? v.filter(isObj) : []);
+  const ids = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []);
+  s.bands = objs(s.bands).map((b) => ({ ...b, bands: objs(b.bands).map(({ bands, ...c }) => c) }));
+  s.rows = s.bands.flatMap(({ bands, ...b }) => (bands.length ? bands.map((c) => ({ ...c, parent: b.id })) : [{ ...b, parent: null }]));
+  const partyOf = (id, type) => (el[id] && el[id].type === type ? el[id].party : null);
+  s.boxes = objs(s.boxes).map((b) => ({ ...b, party: partyOf(b.role, 'role') || partyOf(b.team, 'team') }));
+  s.lines = objs(s.lines).filter((l) => isObj(l.from) && isObj(l.to));
+  s.related = ids(s.related);
+  s.workstreams = ids(s.workstreams);
+  const used = new Set([...s.boxes.map((b) => b.party), ...s.lines.flatMap((l) => [l.from.party, l.to.party])]);
+  s.parties = partyOrder.filter((p) => used.has(p));
 }
 
 function resolveSteps(p, el) {

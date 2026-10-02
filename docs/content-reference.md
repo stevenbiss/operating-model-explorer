@@ -257,6 +257,85 @@ steps:
 ---
 ```
 
+## structure
+
+A relationship diagram you design: one column per party, rows (bands) you name yourself, boxes that place roles and teams in a band, and plain lines between cells.
+
+**EDGY concept:** Organisation (structure view)
+
+| Field | Required | Value | Description |
+|---|---|---|---|
+| `id` | Yes | text | Unique id: lower-case letters and numbers joined by hyphens, e.g. partnership. |
+| `type` | Yes | one of: structure | Always structure. |
+| `name` | Yes | text | The diagram's display name. |
+| `kind` | No | text | Optional label in your own words, e.g. Partnership, Market or Sub-programme. It has no built-in meaning. |
+| `summary` | No | text | One or two sentences about this diagram. |
+| `main` | No | true or false | true for the one diagram that covers the whole company or partnership. A model with diagrams has exactly one. |
+| `related` | No | list of text | The ids of related structures. Each relation is shown from both sides. |
+| `workstreams` | No | list of text | The ids of related workstreams. |
+| `bands` | Yes | list of groups of fields | The rows, top to bottom. A band can hold sub-bands, one level deep. |
+| `bands[].id` | Yes | text | Id, unique within this structure: lower-case letters and numbers joined by hyphens, e.g. leadership. |
+| `bands[].name` | Yes | text | The band's label. |
+| `bands[].opens` | No | text | Optional id of a structure that this band opens (drill down). |
+| `bands[].bands` | No | list of groups of fields | Optional sub-bands, top to bottom. A band with sub-bands holds no boxes of its own. |
+| `bands[].bands[].id` | Yes | text | Id, unique within this structure: lower-case letters and numbers joined by hyphens, e.g. harbour. |
+| `bands[].bands[].name` | Yes | text | The sub-band's label. |
+| `bands[].bands[].opens` | No | text | Optional id of a structure that this sub-band opens (drill down). |
+| `bands[].bands[].bands` | No | list | Not allowed: bands can be nested only one level deep. |
+| `boxes` | Yes | list of groups of fields | The boxes, in order. Each places one role or one team in a band, in the column of its party. |
+| `boxes[].band` | Yes | text | The id of the band (or sub-band) the box sits in. |
+| `boxes[].role` | No | text | The id of the role in this box. Use role or team, not both. |
+| `boxes[].team` | No | text | The id of the team in this box. Use role or team, not both. |
+| `boxes[].name` | No | text | Optional text, e.g. the person who holds the role, or TBA. |
+| `boxes[].note` | No | text | Optional extra text, e.g. a grade or another title. |
+| `boxes[].change` | No | group of fields | Optional current vs future state. |
+| `boxes[].change.status` | Yes | one of: new, changed, removed, unchanged | How this element differs from today. |
+| `boxes[].change.today` | No | text | How it works today, shown next to the future state. |
+| `lines` | No | list of groups of fields | Plain lines between two cells, each given as a band and a party. Lines have no direction. |
+| `lines[].from` | Yes | group of fields | One end of the line. |
+| `lines[].from.band` | Yes | text | The id of the band. |
+| `lines[].from.party` | Yes | text | The id of the party (the column). |
+| `lines[].to` | Yes | group of fields | The other end of the line. |
+| `lines[].to.band` | Yes | text | The id of the band. |
+| `lines[].to.party` | Yes | text | The id of the party (the column). |
+| `lines[].label` | No | text | Optional text shown with the line, e.g. Joint steering. |
+| `change` | No | group of fields | Optional current vs future state. |
+| `change.status` | Yes | one of: new, changed, removed, unchanged | How this element differs from today. |
+| `change.today` | No | text | How it works today, shown next to the future state. |
+
+**Example**
+
+```yaml
+---
+id: partnership
+type: structure
+name: Acme + Globex partnership
+kind: Partnership
+main: true
+related:
+  - harbour-account
+workstreams:
+  - presales
+bands:
+  - id: leadership
+    name: Partnership leadership
+  - id: accounts
+    name: Account management
+    bands: [{id: harbour, name: Harbour account, opens: harbour-account}, {id: summit, name: Summit account}]
+boxes:
+  - band: leadership
+    role: partner-manager
+    name: Sam Example
+    note: 'Grade: Director'
+  - band: harbour
+    team: globex-solutions
+lines:
+  - from: {band: leadership, party: acme}
+    to: {band: leadership, party: globex}
+    label: Joint steering
+---
+```
+
 ## theme
 
 Optional words used for each term, in theme.md at the top of the folder. The frame always uses the engine's neutral theme, and each party's colours and mark come from its brand pack.
@@ -289,6 +368,8 @@ Optional words used for each term, in theme.md at the top of the folder. The fra
 | `labels.processes` | No | text | Default: Processes |
 | `labels.step` | No | text | Default: Step |
 | `labels.steps` | No | text | Default: Steps |
+| `labels.structure` | No | text | Default: Structure |
+| `labels.structures` | No | text | Default: Structures |
 | `labels.key_message` | No | text | Default: Key message |
 | `labels.key_messages` | No | text | Default: Key messages |
 

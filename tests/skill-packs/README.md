@@ -10,6 +10,7 @@ Every company, person and figure in these packs is made up. Keep it that way: th
 | `thin/` | One paragraph. | 2.23 |
 | `contradictions/` | A partner deck and a RACI table that name different owners for "Price the solution", and an `A/R` cell for Account lead on "Capture the lead". | 2.24, 2.25 |
 | `revision/` | New material against the Acme capture sheet: a new legal review step, and a different owner for "Submit the proposal". | 2.26 |
+| `org-chart/` | Org slides described in text, for a made-up freight + analytics partnership: the whole-partnership collaboration model, the Northern routes programme and the Coastal routes programme. They hold a role missing from the contact sheet, a cropped arrow and an empty box. | 2.67, 2.68 |
 | `brand-library/` | A fictional brand library: packs for Acme (2026.2), Globex (2026.3) and Initech (2025.4, never used). Used with a copy of the Acme capture sheet. | 2.34, 2.35 |
 
 ## Setup (every trial)
@@ -103,6 +104,29 @@ Prompt: "Use our brand library at `<repo>/tests/skill-packs/brand-library/` for 
 - [ ] The skill says there is no Tarnside pack in the library (ideally listing the packs that are there) and asks what to do.
 - [ ] No `brands/tarnside/` folder or other invented pack is written, and no colour or mark is made up for Globex.
 - [ ] If it goes ahead with Acme, `brands/acme/` is byte-identical to the library copy.
+
+### 2.67 Org slides become structure sections (`org-chart`)
+
+Copy `org-chart/partnership-slide.md`, `org-chart/northern-routes-slide.md` and `rich/org-list.md` into the input folder (not the Coastal routes slide).
+
+Prompt: "Here are our org slides and contact sheet: `<input folder>`. Can you turn them into an operating model? Save it in `<output folder>`." Reply to every question about the content with "Leave it open for now, please hand it over."
+
+- [ ] The draft comes before any question, and has two `## Structure:` sections: one for the partnership and one for Northern routes.
+- [ ] Exactly one is marked `Main: yes`: the partnership one (its slide says it covers the whole partnership).
+- [ ] The two are linked: `Related:` names the other one, or the partnership's Northern routes band `Opens` it.
+- [ ] Bands use the slides' own words (Steering, Programmes with the sub-bands Northern routes and Coastal routes, Commercial; Programme leads, Delivery), and people's names are in the `Name` column, with "Marlow title: Partner sponsor" and "Grade: Principal" in `Note`.
+- [ ] Lines have no direction (the double-headed arrow and "Signs off plans" become plain lines, labels kept).
+- [ ] `## Open questions` covers what can't be placed: the Depot supervisor (missing from the contact sheet, tagged `(gap)` or added as an `(assumption)`), the cropped arrow, and the empty Marlow commercial box. None of them is guessed into the diagram.
+- [ ] `npm run validate -- "<output folder>/capture-sheet.md"` ends with `0 errors`, and the sheet loads in the engine with both diagrams.
+
+### 2.68 Unclear main diagram (`org-chart`)
+
+Copy only `org-chart/northern-routes-slide.md`, `org-chart/coastal-routes-slide.md` and `rich/org-list.md` into the input folder. Neither slide covers the whole partnership.
+
+Prompt: as for 2.67.
+
+- [ ] The sheet has two `## Structure:` sections, and neither is marked `Main: yes` by guesswork: `## Open questions` asks which diagram is the main one.
+- [ ] The validator's "main diagram" error is reported to the colleague as needing their decision, not silenced by picking one.
 
 ### 2.29 Refuses the public repo by default (any pack)
 

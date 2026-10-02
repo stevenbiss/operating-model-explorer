@@ -36,6 +36,7 @@ my-model/
   personas/         the types of viewer, and where each one starts
   workstreams/      groups of processes
   processes/        one file per process, with its steps
+  structures/       one file per structure diagram (how the parties are arranged)
   brands/           brand packs copied from the brand library, one folder each (brands/acme/)
   assets/           images used in the text
 ```
@@ -58,7 +59,7 @@ The account lead is the **single point of contact** for the client.
 ```
 
 - `id` is how other files refer to this one. Use lower-case words joined by hyphens (`account-lead`). Every id must be unique across the whole model. Step ids only need to be unique within their process.
-- `type` is one of `model`, `party`, `team`, `role`, `persona`, `workstream`, `process` or `theme`. A brand pack's `brand.md` has no `type`: the engine knows it by its place, `brands/<id>/brand.md`.
+- `type` is one of `model`, `party`, `team`, `role`, `persona`, `workstream`, `process`, `structure` or `theme`. A brand pack's `brand.md` has no `type`: the engine knows it by its place, `brands/<id>/brand.md`.
 - The text after the header is shown wherever the element is described. Headings, lists and **bold** all work. HTML is shown as plain text, never run.
 
 ## Processes and steps
@@ -97,6 +98,46 @@ steps:
 - Also available: `description`, `inputs`, `outputs`, `systems` and `kpis`.
 
 Keep a process to about **12 steps or fewer**. If it grows beyond that, split it into two processes. Large diagrams are hard to read, especially on small screens.
+
+## Structure diagrams
+
+Processes show how work flows. A **structure** shows how the parties are arranged around it: who leads on each side, how the account or programme teams line up, and who works with whom. You design each diagram yourself, from the parties, teams and roles already in the model.
+
+```yaml
+---
+id: partnership
+type: structure
+name: Acme + Globex partnership
+kind: Partnership
+main: true
+related: [harbour-account]
+workstreams: [presales]
+bands:
+  - { id: leadership, name: Partnership leadership }
+  - id: accounts
+    name: Account management
+    bands:
+      - { id: harbour, name: Harbour account, opens: harbour-account }
+      - { id: summit, name: Summit account }
+boxes:
+  - { band: leadership, role: account-lead, name: Sam Example, note: "Grade: Director" }
+  - { band: leadership, role: partner-manager }
+  - { band: harbour, team: globex-solutions }
+lines:
+  - from: { band: leadership, party: acme }
+    to: { band: leadership, party: globex }
+    label: Joint steering
+---
+```
+
+- **Columns are parties.** Each box goes in the column of its role's or team's party. Columns follow the model's party order, and only parties the diagram uses get one.
+- **Bands are your rows,** top to bottom, named in your own words: "Partnership leadership", "Strategic", "Market teams". The engine gives them no meaning. A band can hold sub-bands, one level deep, and then holds no boxes of its own. Order the bands so seniority reads from the top.
+- **Boxes** place a role or a team (never both) in a band. `name` says who holds it (or TBA) and `note` adds a grade or another title. A team box lists the team's roles. The same role can appear in several bands, each with its own name.
+- **Lines** join two cells (a band and a party). They are plain, with no arrowheads, and an optional `label`. Draw lines between **neighbouring cells**: a line between cells far apart passes behind the cells in between. Every line is also written out as text in its cells, for screen readers and small screens.
+- **Main and related:** when a model has diagrams, exactly one is `main: true`, the one that covers the whole company or partnership. It is listed first. `related` links diagrams both ways, so write each link once. `workstreams` links a diagram to workstreams, and a band's `opens` lets viewers drill down from that band to another diagram.
+- `kind` is a free label, such as Partnership, Market or Sub-programme. `change` works on the diagram and on each box, as for other elements.
+
+Keep a diagram to a handful of parties and about a dozen bands. Split a large organisation into a main diagram and related diagrams for each part.
 
 ## Personas
 

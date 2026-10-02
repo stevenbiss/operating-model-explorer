@@ -428,6 +428,72 @@ main { padding: 36px 24px 72px; }
 .flow-end { margin: 0; font-size: 0.85rem; color: var(--om-muted); }
 .about { max-width: 820px; }
 
+/* ---------- structure diagrams (add-structure-diagrams D5, D6) ---------- */
+
+/* A wide diagram scrolls inside its own box, never the page. Columns: one or two band-label columns, then one per
+   party. Cells keep a margin on each side, so the gutters between them carry the lines and their labels. */
+.sd-scroll { overflow-x: auto; overscroll-behavior-x: contain; padding: 4px 0 8px; }
+.sd {
+  position: relative; display: grid; min-width: min-content; row-gap: 28px;
+  grid-template-columns: repeat(var(--sd-labels), minmax(7.5rem, 10rem)) repeat(var(--sd-cols), minmax(14rem, 1fr));
+}
+.sd-head, .sd-cell { position: relative; z-index: 1; margin-inline: 40px; }
+.sd-head {
+  --mk: 22px; display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px;
+  background: var(--p-band); color: var(--p-band-text); font-weight: 700; overflow-wrap: anywhere;
+}
+.sd-band {
+  margin: 0; padding: 10px 12px; font-size: 0.95rem; overflow-wrap: anywhere;
+  border-left: 3px solid var(--om-link); border-radius: 0 10px 10px 0; background: color-mix(in srgb, var(--om-text) 4%, var(--om-surface));
+}
+.sd-sub { margin-left: 8px; font-size: 0.9rem; font-weight: 600; border-left-color: color-mix(in srgb, var(--om-link) 45%, var(--om-border)); }
+.sd-open { display: block; width: max-content; margin-top: 4px; font-size: 0.8rem; font-weight: 700; }
+.sd-open::after { content: " →" / ""; }
+.sd-cell { min-height: 56px; padding: 10px; background: var(--p-tint); border: 1px solid color-mix(in srgb, var(--p-band) 40%, var(--om-border)); border-radius: 12px; }
+.sd-empty { background: transparent; border-style: dashed; border-color: var(--om-border); }
+.sd-cell-h { --mk: 18px; display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 0.85rem; }
+.sd-boxes { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.sd-box {
+  display: grid; gap: 2px; padding: 9px 12px; color: var(--om-text); text-decoration: none; overflow-wrap: anywhere;
+  background: var(--om-surface); border: 1px solid var(--om-border); border-left: 4px solid var(--p-band); border-radius: 10px;
+}
+.sd-box:hover { border-color: var(--om-link); border-left-color: var(--p-band); }
+.sd-box-title { font-weight: 700; color: var(--om-link); }
+.sd-box-name { font-weight: 600; }
+.sd-box-note, .sd-roles { font-size: 0.85rem; color: var(--om-muted); }
+.sd-roles { margin: 2px 0 0; padding-left: 1.1em; }
+.sd-box .tags { margin: 4px 0 0; }
+.sd-box.mine { border-color: var(--om-accent); border-left-color: var(--p-band); box-shadow: inset 0 0 0 1px var(--om-accent); }
+.sd-box.status-removed { border-style: dashed; border-left-style: solid; }
+.sd-today { margin-top: 4px; padding: 4px 8px; font-size: 0.85rem; border-left: 3px solid var(--om-changed); background: color-mix(in srgb, var(--om-changed) 9%, var(--om-surface)); }
+.sd-today .k { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.sd-rel { margin: 8px 0 0; padding: 0; list-style: none; font-size: 0.85rem; color: var(--om-muted); }
+/* Lines sit behind the cells, so only their gutter parts show; labels sit on top, on a pill. Plain: no arrowheads. */
+.sd-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }
+.sd-line { stroke: var(--om-line); stroke-width: 2; }
+.sd-labels { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.sd-label {
+  position: absolute; max-width: 72px; padding: 1px 7px; transform: translate(-50%, -50%); text-align: center;
+  font-size: 0.7rem; font-weight: 700; line-height: 1.3; color: var(--om-text); overflow-wrap: break-word;
+  background: color-mix(in srgb, var(--om-text) 6%, var(--om-surface)); border: 1px solid var(--om-border); border-radius: 9px;
+}
+.tag-main { border-color: var(--om-link); background: var(--om-tint); }
+
+/* What only a screen reader needs on a wide screen: each cell's party and band, and its lines written out. */
+@media (min-width: 768px) {
+  .sd-cell-h, .sd-rel { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+}
+/* Below 768px the same DOM becomes a stacked list: bands as headings, then each party with its boxes and lines. */
+@media (max-width: 767px) {
+  .sd-scroll { overflow: visible; padding: 0; }
+  .sd { display: block; min-width: 0; }
+  .sd-corner, .sd-head, .sd-lines, .sd-labels, .sd-empty { display: none; }
+  .sd-band { margin: 20px 0 10px; }
+  .sd-sub { margin-left: 12px; }
+  .sd-cell { margin: 0 0 10px; }
+  .sd-cell:not([data-parent=""]) { margin-left: 12px; }
+}
+
 /* role profile, what matters for me, search */
 .group { margin-top: 22px; }
 .group h3, .group > h2 { margin: 0 0 8px; font-size: 1.1rem; }

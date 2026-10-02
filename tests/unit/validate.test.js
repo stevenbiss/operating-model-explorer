@@ -228,3 +228,144 @@ test('2.44 the sample: every step has exactly one A, and no messages', () => {
 test('validator: a model document that is not model.md counts as the model (one model document)', () => {
   assert.deepEqual(loadModel(files({ 'overview.md': MODEL })).messages, []);
 });
+
+// ---------- structures (structure-diagrams and content-schema specs, design D3, D8) ----------
+
+const ORG = {
+  ...ROLES,
+  'parties/globex.md': '---\nid: globex\ntype: party\nname: Globex\n---\n',
+  'teams/gs.md': '---\nid: globex-solutions\ntype: team\nname: Globex Solutions\nparty: globex\n---\n',
+  'roles/pm.md': '---\nid: partner-manager\ntype: role\nname: Partner manager\nparty: globex\nteam: globex-solutions\n---\n',
+};
+// A structure file, main unless told otherwise. Bands: Leadership, then Accounts holding Harbour and Summit.
+const BANDS = 'bands:\n  - { id: leadership, name: Leadership }\n  - id: accounts\n    name: Accounts\n    bands:\n      - { id: harbour, name: Harbour }\n      - { id: summit, name: Summit }\n';
+const structure = (id, extra = '', { main = true, bands = BANDS, boxes = 'boxes:\n  - { band: leadership, role: account-lead }\n' } = {}) =>
+  `---\nid: ${id}\ntype: structure\nname: ${id[0].toUpperCase()}${id.slice(1)}\n${main ? 'main: true\n' : ''}${bands}${boxes}${extra}---\n`;
+const runS = (s, more = {}) => run({ ...ORG, 'structures/s.md': s, ...more });
+
+test('2.1 a structure in the author\'s own words, with sub-bands, a team box, name and note text and a labelled line: no messages', () => {
+  const s = structure('partnership', 'kind: Local market\nrelated: [harbour]\nworkstreams: [presales]\nlines:\n  - { from: { band: leadership, party: acme }, to: { band: leadership, party: globex }, label: Joint steering }\n', {
+    boxes: 'boxes:\n  - { band: leadership, role: account-lead, name: Sam Example, note: "Grade: Director" }\n  - { band: harbour, team: globex-solutions }\n  - { band: summit, role: account-lead, name: Alex Sample }\n',
+  });
+  assert.deepEqual(runS(s, { 'structures/h.md': structure('harbour', '', { main: false }) }), []);
+});
+
+test('2.37 a structure is found by its type, not its folder', () => {
+  assert.deepEqual(run({ ...ORG, 'roles/oops.md': structure('partnership') }), []);
+});
+
+test('2.2 missing bands: an error naming the structure and the field', () => {
+  const m = only(runS(structure('partnership', '', { bands: '', boxes: 'boxes: []\n' })));
+  assert.deepEqual([m.level, m.file, m.element], ['error', 'structures/s.md', 'partnership']);
+  assert.match(m.problem, /"bands" is missing/);
+});
+
+test('2.4 nesting too deep: an error naming the band, saying bands nest only one level deep', () => {
+  const m = only(runS(structure('partnership', '', { bands: 'bands:\n  - id: a\n    name: A\n    bands:\n      - id: b\n        name: B\n        bands: [{ id: c, name: C }]\n', boxes: 'boxes:\n  - { band: b, role: account-lead }\n' })));
+  assert.equal(m.element, 'partnership');
+  assert.match(m.problem, /"B".*nested only one level deep/);
+});
+
+test('2.5 a box in a band with sub-bands: an error naming the band and suggesting its sub-bands', () => {
+  const m = only(runS(structure('partnership', '', { boxes: 'boxes:\n  - { band: accounts, role: account-lead }\n' })));
+  assert.match(m.problem, /in the band "Accounts", which has sub-bands/);
+  assert.match(m.fix, /Harbour or Summit/);
+});
+
+test('2.6 duplicate band id: an error naming the structure and the id', () => {
+  const m = only(runS(structure('partnership', '', { bands: 'bands:\n  - { id: delivery, name: Delivery }\n  - { id: delivery, name: Delivery again }\n', boxes: 'boxes:\n  - { band: delivery, role: account-lead }\n' })));
+  assert.equal(m.element, 'partnership');
+  assert.match(m.problem, /Two bands .* "delivery"/);
+});
+
+test('2.9 a box with both a role and a team, or neither: an error naming the box\'s band', () => {
+  const both = only(runS(structure('partnership', '', { boxes: 'boxes:\n  - { band: harbour, role: account-lead, team: globex-solutions }\n' })));
+  assert.match(both.problem, /band "Harbour" names both a role and a team/);
+  assert.match(both.fix, /only one of "role" and "team"/);
+  assert.match(only(runS(structure('partnership', '', { boxes: 'boxes:\n  - { band: harbour, name: TBA }\n' }))).problem, /names neither a role nor a team/);
+});
+
+test('2.15 unknown role in a box: an error naming the structure, the id and a suggestion', () => {
+  const m = only(runS(structure('partnership', '', { boxes: 'boxes:\n  - { band: leadership, role: acount-lead }\n' })));
+  assert.deepEqual([m.element, m.fix], ['partnership', 'Did you mean account-lead?']);
+  assert.match(m.problem, /"acount-lead"/);
+});
+
+test('2.16 unknown related structure: suggests the closest structure', () => {
+  const m = only(runS(structure('partnership', 'related: [harbor]\n'), { 'structures/h.md': structure('harbour', '', { main: false }) }));
+  assert.match(m.problem, /related structure "harbor"/);
+  assert.equal(m.fix, 'Did you mean harbour?');
+});
+
+test('2.43 unknown party on a line: names the structure file, the id and a suggestion', () => {
+  const m = only(runS(structure('partnership', 'lines:\n  - { from: { band: leadership, party: acme }, to: { band: leadership, party: globx } }\n')));
+  assert.deepEqual([m.file, m.fix], ['structures/s.md', 'Did you mean globex?']);
+  assert.match(m.problem, /"globx"/);
+});
+
+test('every other reference is checked: box band and team, line band, opens and workstreams', () => {
+  const msgs = runS(structure('partnership', 'workstreams: [presale]\nlines:\n  - { from: { band: leadershp, party: acme }, to: { band: leadership, party: globex } }\n', {
+    bands: 'bands:\n  - { id: leadership, name: Leadership, opens: harbor }\n',
+    boxes: 'boxes:\n  - { band: leader, role: account-lead }\n  - { band: leadership, team: globex-solution }\n',
+  }), { 'structures/h.md': structure('harbour', '', { main: false }) });
+  assert.deepEqual(msgs.map((m) => m.fix).sort(), ['Did you mean globex-solutions?', 'Did you mean harbour?', 'Did you mean leadership?', 'Did you mean leadership?', 'Did you mean presales?']);
+  assert.ok(msgs.some((m) => m.problem === 'The band "leader" does not match any band in this structure.'));
+});
+
+test('2.14 a line whose two ends are the same cell: an error naming the cell', () => {
+  const m = only(runS(structure('partnership', 'lines:\n  - { from: { band: harbour, party: globex }, to: { band: harbour, party: globex } }\n')));
+  assert.equal(m.level, 'error');
+  assert.match(m.problem, /\(Harbour, Globex\) to itself/);
+});
+
+test('a repeated line, in either order, is a warning', () => {
+  const l = (a, b) => `  - { from: { band: leadership, party: ${a} }, to: { band: leadership, party: ${b} } }\n`;
+  const m = only(runS(structure('partnership', `lines:\n${l('acme', 'globex')}${l('globex', 'acme')}`)));
+  assert.equal(m.level, 'warning');
+  assert.match(m.problem, /repeats an earlier line/);
+});
+
+test('a structure that relates to or opens itself is a warning', () => {
+  const msgs = runS(structure('partnership', 'related: [partnership]\n', { bands: 'bands:\n  - { id: leadership, name: Leadership, opens: partnership }\n' }));
+  assert.deepEqual(msgs.map((m) => m.level), ['warning', 'warning']);
+  assert.match(msgs.map((m) => m.problem).join(), /opens this same structure.*lists itself as related/);
+});
+
+test('2.17 no main diagram: one error naming both structures', () => {
+  const m = only(run({ ...ORG, 'structures/a.md': structure('alpha', '', { main: false }), 'structures/b.md': structure('beta', '', { main: false }) }));
+  assert.equal(m.level, 'error');
+  assert.match(m.problem, /must be the main diagram.*"Alpha" and "Beta"/);
+});
+
+test('2.18 two main diagrams: one error naming both', () => {
+  const m = only(run({ ...ORG, 'structures/a.md': structure('alpha'), 'structures/b.md': structure('beta'), 'structures/c.md': structure('gamma', '', { main: false }) }));
+  assert.match(m.problem, /More than one .*"Alpha" and "Beta"\./);
+});
+
+test('2.19 a model without structures needs no main diagram', () => {
+  assert.deepEqual(run(ORG), []);
+});
+
+test('2.41 a structure and a workstream cannot share an id', () => {
+  const m = only(runS(structure('presales')));
+  // Both files are named: the message's own file, and the other one in the problem.
+  assert.deepEqual([m.level, m.file, m.problem], ['error', 'workstreams/w.md', 'The id "presales" is also used by structures/s.md.']);
+});
+
+test('structures are normalised at load: rows with parents, boxes with parties, columns and both-way relations', () => {
+  const s = structure('partnership', 'related: [harbour]\nworkstreams: [presales]\nlines:\n  - { from: { band: harbour, party: acme }, to: { band: harbour, party: globex } }\n', {
+    boxes: 'boxes:\n  - { band: leadership, role: account-lead }\n  - { band: summit, team: globex-solutions }\n',
+  });
+  const initech = '---\nid: initech\ntype: party\nname: Initech\n---\n';
+  const { model, messages } = loadModel(files({ 'model.md': MODEL, ...ORG, 'parties/initech.md': initech, 'structures/s.md': s, 'structures/h.md': structure('harbour', '', { main: false }) }));
+  assert.deepEqual(withoutAccountable(messages), []);
+  const p = model.elements.partnership;
+  assert.deepEqual(p.rows.map((r) => [r.id, r.parent]), [['leadership', null], ['harbour', 'accounts'], ['summit', 'accounts']]);
+  assert.deepEqual(p.boxes.map((b) => b.party), ['acme', 'globex']);
+  assert.deepEqual(p.parties, ['acme', 'globex'], 'model party order, with the unused Initech left out');
+  assert.deepEqual(model.order.structure, ['harbour', 'partnership']);
+  assert.deepEqual([p.relatedAll, model.elements.harbour.relatedAll], [['harbour'], ['partnership']], 'related both ways');
+  assert.deepEqual(model.elements.presales.structures, ['partnership']);
+  assert.deepEqual(model.elements['account-lead'].structures, ['harbour', 'partnership']);
+  assert.deepEqual(model.elements['solution-architect'].structures, []);
+});
