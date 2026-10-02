@@ -122,5 +122,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 ## 5. Package
 
 - [x] 5.1 Build, export the Acme demo from its capture-sheet folder, rebuild the checksums, run the full tests, commit and push
-- [ ] 5.2 Bump the version to 1.3.0 across the bundle, tag it, and publish the release with `gh` (skill zip, engine, demo; notes from the template, mentioning that v1.2 engines ignore Structure sections; checksums). Verify by downloading and checking the checksums
+- [x] 5.2 Bump the version to 1.3.0 across the bundle, tag it, and publish the release with `gh` (skill zip, engine, demo; notes from the template, mentioning that v1.2 engines ignore Structure sections; checksums). Verify by downloading and checking the checksums
 - [x] 5.3 dist/operating-model-explorer.html built, self-contained, and README updated
