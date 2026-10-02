@@ -107,12 +107,12 @@ There were no failures, so there are no screenshots to report.
 6. **`theming › Terminology labels: all 9 terms renamed` (`labels-all.spec.js`) has a coverage gap.** It doesn't visit `#/d/…` routes or rename `structure`. It still passes, and 2.64 covers the structure rename separately.
 
 ## Files
-- `tests\e2e\structure-diagrams.spec.js` (new)
-- `tests\unit\sheet.test.js` (the 2.54 test was added)
-- `tests\fixtures\structure-org\` (new)
-- `tests\fixtures\structure-wide\` (new)
-- `openspec\changes\add-structure-diagrams\reports\skill-trials.md` (new)
-- `openspec\changes\add-structure-diagrams\tasks.md` (2.1 to 2.69 ticked)
+- `tests/e2e/structure-diagrams.spec.js` (new)
+- `tests/unit/sheet.test.js` (the 2.54 test was added)
+- `tests/fixtures/structure-org/` (new)
+- `tests/fixtures/structure-wide/` (new)
+- `openspec/changes/add-structure-diagrams/reports/skill-trials.md` (new)
+- `openspec/changes/add-structure-diagrams/tasks.md` (2.1 to 2.69 ticked)
 
 Nothing was committed.
 
