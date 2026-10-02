@@ -109,7 +109,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate:
+- [x] 4.1 html-qa final gate:
   - security: markup and script in band names, box name and note text, line labels and kinds, all shown as text;
   - accessibility: axe on the diagram at 1280 and 375, focus order, the screen-reader cell text;
   - line geometry after resize and in dark mode;
