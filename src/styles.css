@@ -191,6 +191,8 @@ main { padding: 36px 24px 72px; }
   font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1.5; white-space: nowrap;
   color: var(--om-text); background: color-mix(in srgb, var(--om-text) 5%, var(--om-surface));
 }
+/* A tag can hold free text (a structure's kind), so a long one wraps instead of widening the page. */
+.tag { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .tag-done::before { content: "✓ " / ""; }
 .badge-new { border-color: var(--om-new); background: color-mix(in srgb, var(--om-new) 14%, var(--om-surface)); }
 .badge-changed { border-color: var(--om-changed); background: color-mix(in srgb, var(--om-changed) 14%, var(--om-surface)); }
@@ -474,9 +476,10 @@ main { padding: 36px 24px 72px; }
 .sd-labels { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .sd-label {
   position: absolute; max-width: 72px; padding: 1px 7px; transform: translate(-50%, -50%); text-align: center;
-  font-size: 0.7rem; font-weight: 700; line-height: 1.3; color: var(--om-text); overflow-wrap: break-word;
+  font-size: 0.7rem; font-weight: 700; line-height: 1.3; color: var(--om-text); overflow-wrap: break-word; hyphens: auto;
   background: color-mix(in srgb, var(--om-text) 6%, var(--om-surface)); border: 1px solid var(--om-border); border-radius: 9px;
 }
+.sd-label-v { width: max-content; max-width: 12rem; }
 .tag-main { border-color: var(--om-link); background: var(--om-tint); }
 
 /* What only a screen reader needs on a wide screen: each cell's party and band, and its lines written out. */

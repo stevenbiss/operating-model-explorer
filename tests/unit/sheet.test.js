@@ -541,6 +541,12 @@ test('2.49 Lines table missing a column: an error naming the structure\'s Lines 
   assert.deepEqual([m.level, m.where, m.problem], ['error', 'Structure: Partnership › Lines', 'The Lines table has no "To party" column.']);
 });
 
+test('html-qa N3 a Lines row joining a band to its own sub-band in one column: an error naming the row', () => {
+  const m = only(withoutAccountable(load(sheetWith(STRUCTURE.replace('| Leadership | Acme Corp | Leadership | Globex | Joint steering |', '| Delivery | Globex | Harbour | Globex | |'))).messages));
+  assert.deepEqual([m.level, m.where], ['error', 'Structure: Partnership › Lines › row 1 (Delivery)']);
+  assert.match(m.problem, /band "Delivery" to its own sub-band "Harbour" in the Globex column/);
+});
+
 test('structure sections: bands nested too deep, duplicate band names, unknown Opens, and Main other than yes or no', () => {
   const text = STRUCTURE.replace('Main: yes', 'Main: maybe')
     .replace('| Harbour | Delivery | Delivery map |', '| Harbour | Delivery | Delivry map |\n| Pier | Harbour | |\n| leadership | | |');

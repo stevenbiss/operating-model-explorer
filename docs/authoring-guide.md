@@ -107,7 +107,7 @@ Processes show how work flows. A **structure** shows how the parties are arrange
 ---
 id: partnership
 type: structure
-name: Acme + Globex partnership
+name: Partnership structure
 kind: Partnership
 main: true
 related: [harbour-account]
@@ -133,7 +133,7 @@ lines:
 - **Columns are parties.** Each box goes in the column of its role's or team's party. Columns follow the model's party order, and only parties the diagram uses get one.
 - **Bands are your rows,** top to bottom, named in your own words: "Partnership leadership", "Strategic", "Market teams". The engine gives them no meaning. A band can hold sub-bands, one level deep, and then holds no boxes of its own. Order the bands so seniority reads from the top.
 - **Boxes** place a role or a team (never both) in a band. `name` says who holds it (or TBA) and `note` adds a grade or another title. A team box lists the team's roles. The same role can appear in several bands, each with its own name.
-- **Lines** join two cells (a band and a party). They are plain, with no arrowheads, and an optional `label`. Draw lines between **neighbouring cells**: a line between cells far apart passes behind the cells in between. Every line is also written out as text in its cells, for screen readers and small screens.
+- **Lines** join two cells (a band and a party). They are plain, with no arrowheads, and an optional `label`. Draw lines between **neighbouring cells**: a line between cells far apart passes behind the cells in between. Keep `label` to two or three short words ("Joint steering", "Weekly call"): it sits on a small pill in the gap between cells, so a long label wraps and can cover the boxes beside it. Every line is also written out as text in its cells, for screen readers and small screens.
 - **Main and related:** when a model has diagrams, exactly one is `main: true`, the one that covers the whole company or partnership. It is listed first. `related` links diagrams both ways, so write each link once. `workstreams` links a diagram to workstreams, and a band's `opens` lets viewers drill down from that band to another diagram.
 - `kind` is a free label, such as Partnership, Market or Sub-programme. `change` works on the diagram and on each box, as for other elements.
 

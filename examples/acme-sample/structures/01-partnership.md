@@ -1,7 +1,7 @@
 ---
-id: acme-globex-partnership
+id: partnership-structure
 type: structure
-name: Acme + Globex partnership
+name: Partnership structure
 kind: Partnership
 summary: Who leads the partnership on each side, and how the account teams line up.
 main: true

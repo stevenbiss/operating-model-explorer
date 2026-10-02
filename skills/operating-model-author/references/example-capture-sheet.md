@@ -125,7 +125,7 @@ Summary: Design, price and review the proposal, then send it to the client.
 2. **Design** first, then **price** from the design.
 3. **Review** as the client would, and loop back if it needs rework.
 
-## Structure: Acme + Globex partnership
+## Structure: Partnership structure
 
 Kind: Partnership
 Summary: Who leads the partnership on each side, and how the account teams line up.

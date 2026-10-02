@@ -305,6 +305,10 @@ export function validate(docs) {
       const cell = (e) => `(${bandName(e.band)}, ${nameOf(e.party)})`;
       const [a, b] = ends.map((e) => JSON.stringify([e.band, e.party]));
       if (a === b) return add({ level: 'error', ...lat, problem: `This line joins the cell ${cell(l.from)} to itself.`, fix: 'A line joins two different cells. Change one of its ends, or remove the line.' });
+      // A parent band's cell is its sub-band cells in that column, so a line from one to the other joins a cell to part of itself.
+      const parentOf = (e) => ((bands.find((x) => x.b.id === e.band) || {}).parent || {}).id;
+      const [sub, top] = parentOf(l.from) === l.to.band ? [l.from, l.to] : [l.to, l.from];
+      if (sub.party === top.party && parentOf(sub) && parentOf(sub) === top.band) return add({ level: 'error', ...lat, problem: `This line joins the band "${bandName(top.band)}" to its own sub-band "${bandName(sub.band)}" in the ${nameOf(sub.party)} column, so it has nothing to join.`, fix: 'A line joins two different cells. Point one end at another band or party, or remove the line.' });
       const pair = [a, b].sort().join();
       if (pairs.has(pair)) add({ level: 'warning', ...lat, problem: `This line repeats an earlier line between ${cell(l.from)} and ${cell(l.to)}.`, fix: 'Remove one of the two. A line has no direction, so the same two cells in either order are the same line.' });
       pairs.add(pair);

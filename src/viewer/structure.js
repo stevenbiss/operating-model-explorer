@@ -16,8 +16,8 @@ export function structureHtml(ctx) {
   const col = (i) => labels + 1 + i;
   const open = (b) => (el[b.opens] && el[b.opens].type === 'structure' ? ` <a class="sd-open" href="${ctx.href({ view: 'structure', id: b.opens })}" data-testid="band-open-${esc(b.id)}">Open<span class="vh"> ${esc(el[b.opens].name)}</span></a>` : '');
 
-  // "Related to" text for a cell: every line with an end in it. A line to a parent band is listed in its first sub-band's cells.
-  const at = (end, row, p) => end.party === p && (end.band === row.id || (end.band === row.parent && s.rows.find((r) => r.parent === row.parent) === row));
+  // "Related to" text for a cell: every line with an end in it. A line to a parent band is listed in each of its sub-band cells.
+  const at = (end, row, p) => end.party === p && (end.band === row.id || end.band === row.parent);
   const related = (row, p) =>
     s.lines.flatMap((l) => [[l.from, l.to], [l.to, l.from]].filter(([a]) => at(a, row, p)).map(([, b]) => `<li>Related to: ${esc(name(b.party))}, ${esc(bandName(b.band))}${l.label ? `: “${esc(l.label)}”` : ''}</li>`));
 
@@ -43,7 +43,7 @@ export function structureHtml(ctx) {
         const attrs = `class="sd-cell${boxes.length || rel.length ? '' : ' sd-empty'}"${ctx.dp(p)} data-band="${esc(row.id)}" data-parent="${esc(row.parent || '')}" data-col="${esc(p)}" style="grid-column:${col(i)};grid-row:${r}" data-testid="structure-cell-${esc(row.id)}-${esc(p)}"`;
         if (!boxes.length && !rel.length) return `<div ${attrs}></div>`;
         return `<div ${attrs}>
-  <h${level} class="sd-cell-h">${ctx.mark(p)}${esc(name(p))}<span class="vh">, ${esc(row.name)}</span></h${level}>
+  <h${level} class="sd-cell-h" aria-label="${esc(name(p))}, ${esc(row.name)}">${ctx.mark(p)}${esc(name(p))}</h${level}>
   ${boxes.length ? `<ul class="sd-boxes">${boxes.map(([b, n]) => box(b, n)).join('')}</ul>` : ''}
   ${rel.length ? `<ul class="sd-rel" data-testid="structure-related-text">${rel.join('')}</ul>` : ''}
 </div>`;
@@ -86,7 +86,8 @@ export function mountLines(sd, lines) {
     const segs = lineGeometry(cells, lines).filter(Boolean);
     const n = (v) => Math.round(v * 10) / 10;
     svg.innerHTML = segs.map((g) => `<line class="sd-line" x1="${n(g.x1)}" y1="${n(g.y1)}" x2="${n(g.x2)}" y2="${n(g.y2)}" data-testid="structure-line"/>`).join('');
-    pills.innerHTML = segs.filter((g) => g.label).map((g) => `<span class="sd-label" style="left:${n(g.lx)}px;top:${n(g.ly)}px" data-testid="structure-line-label">${esc(g.label)}</span>`).join('');
+    // A label on a mostly vertical line sits in the narrow gap between two rows, so its pill is wider and stays shallow.
+    pills.innerHTML = segs.filter((g) => g.label).map((g) => `<span class="sd-label${Math.abs(g.y2 - g.y1) > Math.abs(g.x2 - g.x1) ? ' sd-label-v' : ''}" style="left:${n(g.lx)}px;top:${n(g.ly)}px" data-testid="structure-line-label">${esc(g.label)}</span>`).join('');
   };
   observer = new ResizeObserver(draw);
   observer.observe(sd);

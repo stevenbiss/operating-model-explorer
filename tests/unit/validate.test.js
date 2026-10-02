@@ -318,6 +318,17 @@ test('2.14 a line whose two ends are the same cell: an error naming the cell', (
   assert.match(m.problem, /\(Harbour, Globex\) to itself/);
 });
 
+test('html-qa N3 a line between a band and its own sub-band in the same column: an error naming both', () => {
+  for (const [a, b] of [['accounts', 'harbour'], ['harbour', 'accounts']]) {
+    const m = only(runS(structure('partnership', `lines:\n  - { from: { band: ${a}, party: globex }, to: { band: ${b}, party: globex } }\n`)));
+    assert.equal(m.level, 'error');
+    assert.match(m.problem, /band "Accounts" to its own sub-band "Harbour" in the Globex column/);
+    assert.match(m.fix, /remove the line/);
+  }
+  // The same two bands in different columns are two different cells.
+  assert.deepEqual(runS(structure('partnership', 'lines:\n  - { from: { band: accounts, party: acme }, to: { band: harbour, party: globex } }\n')), []);
+});
+
 test('a repeated line, in either order, is a warning', () => {
   const l = (a, b) => `  - { from: { band: leadership, party: ${a} }, to: { band: leadership, party: ${b} } }\n`;
   const m = only(runS(structure('partnership', `lines:\n${l('acme', 'globex')}${l('globex', 'acme')}`)));

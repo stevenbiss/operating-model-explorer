@@ -77,6 +77,10 @@ A line SHALL join two cells, each given as a band and a party, and MAY have a `l
 - **WHEN** a line's two ends are both (Delivery, Globex)
 - **THEN** the report shows an error naming the structure and the cell
 
+#### Scenario: Line from a band to its own sub-band
+- **WHEN** a line joins (Programme management, Acme) to its sub-band (Harbour, Acme)
+- **THEN** the report shows an error naming both bands and the party, saying the line has nothing to join
+
 ### Requirement: References inside a structure
 Every reference in a structure SHALL be checked: box bands, roles and teams; line bands and parties; band `opens`; `related`; and `workstreams`. An unknown id SHALL be an error naming the structure, the field and the unknown id, and suggesting the closest existing id. A structure listing itself in `related` or `opens` SHALL be a warning.
 

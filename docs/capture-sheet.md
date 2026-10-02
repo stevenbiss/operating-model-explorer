@@ -313,7 +313,7 @@ A `Next` that points to a step that doesn't exist in the process is an error nam
 A structure is a relationship diagram you design: how the parties' teams and roles are arranged, and how they relate. Each one has its own section. The diagram has one **column per party** (from each box's role or team), and **bands**: rows you name in your own words, drawn top to bottom. A band can hold sub-bands, one level deep.
 
 ```markdown
-## Structure: Acme + Globex partnership
+## Structure: Partnership structure
 
 Kind: Partnership
 Summary: Who leads the partnership on each side.

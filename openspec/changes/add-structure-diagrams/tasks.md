@@ -100,6 +100,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.67 Org slides become structure sections
 - [x] 2.68 Unclear main diagram
 
+- [x] 2.70 Line from a band to its own sub-band (structure-diagrams; unit tests in validate.test.js and sheet.test.js, added in fix round 2)
 - [x] 2.69 The full existing suite (`npm run test:unit` and `npm test`) still passes, with no regressions in the swimlane, persona, brand or labels tests
 
 ## 3. Verify

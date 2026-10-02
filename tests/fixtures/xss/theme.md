@@ -20,4 +20,6 @@ labels:
   steps: '<img src=x onerror="document.body.dataset.pwned=1">steps'
   key_message: '<img src=x onerror="document.body.dataset.pwned=1">key_message'
   key_messages: '<img src=x onerror="document.body.dataset.pwned=1">key_messages'
+  structure: '<img src=x onerror="document.body.dataset.pwned=1">structure'
+  structures: '<img src=x onerror="document.body.dataset.pwned=1">structures'
 ---

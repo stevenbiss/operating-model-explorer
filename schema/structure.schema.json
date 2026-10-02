@@ -118,7 +118,7 @@
     {
       "id": "partnership",
       "type": "structure",
-      "name": "Acme + Globex partnership",
+      "name": "Partnership structure",
       "kind": "Partnership",
       "main": true,
       "related": ["harbour-account"],

@@ -62,3 +62,34 @@ All 13 build tasks are done and ticked in tasks.md.
    - removed boxes are left out of the role profile while markers are off;
    - a line to a parent band is written out in the first sub-band cell of that column.
 6. **The diagram's section heading reads "Roles and teams by party"**, through the labels.
+
+# html-builder report: fix round 2 (QA findings approved by the user)
+
+## Results
+- `npm run build` passes, at 366.0 KB.
+- Unit tests: **212 / 212**.
+- Playwright: **243 / 243**.
+
+## Fixes
+- **S1:**
+  - **Change:** `.tag` now wraps (`max-width: 100%; white-space: normal; overflow-wrap: anywhere`), so a long kind no longer pushes the page wider than the screen at 375px.
+  - **Test:** a 375px snapshot test with a long kind.
+- **S2:**
+  - **Change:** a line that ends at a parent band is now listed in every sub-band cell of that column.
+  - **Test:** a desktop and mobile test.
+- **N1:**
+  - **Change:** the cell heading carries `aria-label="<party>, <band>"`, so its accessible name is exactly "Acme Corp, Leadership".
+- **N3:**
+  - **Change:** a new error, in both folder and sheet form, when a line joins a band to its own sub-band in the same column.
+  - **Tests:** unit tests. The orchestrator added the matching scenario to the spec and task 2.70.
+- **N4:**
+  - **Change:** label pills use `hyphens: auto`, and labels on vertical lines get the `sd-label-v` class (one line, at most 12rem wide).
+  - **Docs:** a "keep line labels short" tip in the authoring guide.
+- **N8:**
+  - **Change:** structure payloads in the xss fixture. `xss-escaping.spec.js` now visits the `#/d/` routes, and `labels-all.spec.js` renames structure/structures and visits a diagram.
+- **N6:**
+  - **Change:** the sample's main diagram is renamed "Partnership structure" in both forms, with the id `partnership-structure`.
+  - **Knock-on:** test 2.64 now strips that name before checking that the word "structure" no longer appears.
+
+## Not done
+N2, N5 and N7 were not in the approved list.

@@ -309,7 +309,7 @@ A relationship diagram you design: one column per party, rows (bands) you name y
 ---
 id: partnership
 type: structure
-name: Acme + Globex partnership
+name: Partnership structure
 kind: Partnership
 main: true
 related:

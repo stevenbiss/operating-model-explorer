@@ -1,6 +1,6 @@
 // html-qa B1 (security): theme labels and content with markup are shown as text, never as markup, in the author
 // preview and in an exported snapshot; and the CSP blocks an inline handler even if one reached the DOM.
-// Fixtures: tests/fixtures/xss (every label and most content fields carry an <img onerror> payload; valid, so it
+// Fixtures: tests/fixtures/xss (every label and most content fields, structures included, carry an <img onerror> payload; valid, so it
 // exports) and tests/fixtures/xss-raci (a RACI value with markup: an error, so preview only).
 import { test, expect, openEngine, loadZip, go, useSnapshot, openSnapshot } from './helpers.js';
 
@@ -9,6 +9,7 @@ const ROUTES = [
   '#/', '#/?persona=lead', '#/w/main-ws', '#/p/flow', '#/p/flow?persona=lead&changes=1', '#/p/flow/s/start?persona=lead&changes=1',
   '#/p/flow/s/design', '#/r/account-lead?changes=1', '#/r/solution-architect?persona=lead', '#/e/alpha', '#/e/alpha-team', '#/e/lead',
   '#/search?q=img', '#/me?persona=lead', '#/me?persona=lead&only=1&changes=1', '#/no/such/page',
+  '#/d/org', '#/d/org?changes=1', '#/d/org?persona=lead&changes=1', '#/d/sub', '#/search?q=Box',
 ];
 const RACI_ROUTES = ['#/p/flow', '#/p/flow/s/start', '#/p/flow/s/start?persona=sa', '#/p/flow?persona=sa', '#/r/solution-architect', '#/me?persona=sa'];
 
@@ -47,6 +48,12 @@ test.describe('markup in labels and content is shown as text', () => {
     await expect(pv.locator('main')).toContainText(`${PAYLOAD}workstreams`);
     await go(page, '#/p/flow/s/start');
     await expect(pv.getByTestId('step-detail')).toContainText(`KPI ${PAYLOAD}`);
+    // html-qa N8: structure fields are shown as text on the diagram page.
+    await go(page, '#/d/org?changes=1');
+    await expect(pv.locator('main h1')).toHaveText(`Structure ${PAYLOAD}`);
+    await expect(pv.getByTestId('structure-kind')).toHaveText(`Kind ${PAYLOAD}`);
+    await expect(pv.getByTestId('structure-diagram')).toContainText(`Box note ${PAYLOAD}`);
+    await expect(pv.getByTestId('structure-line-label').first()).toHaveText(`Line ${PAYLOAD}`);
     // The persona announcement goes through the live region.
     await pv.getByTestId('persona-select').selectOption('lead');
     await expect(pv.getByTestId('announcer')).toHaveText(`Now viewing as Persona ${PAYLOAD}`);
@@ -64,6 +71,10 @@ test.describe('markup in labels and content is shown as text', () => {
     await expect(page.locator('main h1')).toHaveText(`Model ${PAYLOAD}`);
     await expect(page.getByTestId('footer')).toContainText(`Version 1 ${PAYLOAD}`);
     await expect(page).toHaveTitle(`Model ${PAYLOAD}`);
+    await go(page, '#/d/org?changes=1');
+    await expect(page.locator('main h1')).toHaveText(`Structure ${PAYLOAD}`);
+    await expect(page.getByTestId('structure-diagram')).toContainText(`Box today ${PAYLOAD}`);
+    expect(await injected(page)).toEqual(CLEAN);
   });
 
   test('author preview: a RACI value with markup is an error and is shown as text', { tag: '@mobile' }, async ({ page }) => {

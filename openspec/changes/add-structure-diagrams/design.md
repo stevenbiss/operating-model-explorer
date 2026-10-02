@@ -63,7 +63,7 @@ These checks are added after the schema checks:
 - no boxes in a band that has sub-bands;
 - exactly one of `role` or `team` per box;
 - every reference resolves (box band, role and team; line band and party; `opens`; `related`; `workstreams`), using the existing `closest()` helper for suggestions;
-- a line's two ends must be different cells (error), and a repeated line is a warning;
+- a line's two ends must be different cells (error), and so must not be a band and its own sub-band in one column (error); a repeated line is a warning;
 - a structure that relates to or opens itself is a warning;
 - the main-diagram rule: run once over all structures, as an error listing them.
 
@@ -118,7 +118,7 @@ When the model is normalised, build a `relatedOf[id]` map, the union of `related
 - **Party columns:** the parties of a diagram's visible boxes, plus its line ends, sorted by the model's party order.
 
 ### D10. Samples and tests use fictional data only
-The Acme folder and sheet gain a main "Acme + Globex partnership" diagram and a "Harbour account" diagram:
+The Acme folder and sheet gain a main "Partnership structure" diagram and a "Harbour account" diagram:
 - they use only the existing Acme and Globex roles and teams;
 - people's names are clearly fictional (for example "Sam Example");
 - between them they cover sub-bands, `opens`, a team box, name and note text, a labelled line and a related workstream.
@@ -140,4 +140,4 @@ The change is additive. Existing models load unchanged and need no main diagram 
 
 ## Open Questions
 
-- The default word for the element in the viewer: "Structure", or something like "Org model". It can be relabelled per model either way, so this only changes default UI copy. Confirm before the release notes.
+None. The default word in the viewer is "Structure" (confirmed by the user for now); models can relabel it.

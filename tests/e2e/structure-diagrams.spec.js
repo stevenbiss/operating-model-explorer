@@ -228,8 +228,8 @@ test.describe('structure-diagrams (author mode)', () => {
     await expect(page.locator('[data-testid="report-message"][data-level="error"]')).toHaveCount(0);
     await expect(counts(page)).toContainText('0 errors');
     await skipPrompt(page);
-    await pv(page).getByTestId('structure-card-acme-globex-partnership').click();
-    await expect(pv(page).locator('main h1')).toHaveText('Acme + Globex partnership');
+    await pv(page).getByTestId('structure-card-partnership-structure').click();
+    await expect(pv(page).locator('main h1')).toHaveText('Partnership structure');
     // Sub-bands
     await expect(pv(page).locator('.sd-band.sd-sub')).toHaveText([/^Harbour account/, /^Summit account$/]);
     // A team box (lists its roles)
@@ -301,7 +301,7 @@ test.describe('structure-diagrams (author mode)', () => {
     await expect(pv(page).getByTestId('main-structure')).toHaveText('Main org model');
     await grab();
     // Diagram heading and Related panel
-    await pv(page).getByTestId('structure-card-acme-globex-partnership').click();
+    await pv(page).getByTestId('structure-card-partnership-structure').click();
     await expect(pv(page).locator('main .eyebrow').first()).toHaveText('Org model');
     await expect(pv(page).getByTestId('structure-related').locator('h3').first()).toHaveText('Org models');
     await grab();
@@ -322,9 +322,11 @@ test.describe('structure-diagrams (author mode)', () => {
     await go(page, '#/w/presales');
     await expect(pv(page).getByTestId('workstream-structures').locator('h2')).toContainText('org models');
     await grab();
-    for (const t of texts) expect(t).not.toMatch(/structure/i);
+    // The sample's main diagram is called "Partnership structure": content, which may use the default word.
+    const own = (t) => t.split('Partnership structure').join('');
+    for (const t of texts) expect(own(t)).not.toMatch(/structure/i);
     const attrs = await pv(page).locator('[aria-label], [title]').evaluateAll((els) => els.map((e) => `${e.getAttribute('aria-label') || ''} ${e.getAttribute('title') || ''}`).join(' | '));
-    expect(attrs).not.toMatch(/structure/i);
+    expect(own(attrs)).not.toMatch(/structure/i);
   });
 });
 
@@ -644,7 +646,9 @@ test.describe('structure-diagrams (exported fixture)', () => {
     const c = cell(page, 'leadership', 'acme');
     const aria = await c.ariaSnapshot();
     // The cell's band and party, and the related cell with the line's label, all exposed to assistive technology.
-    expect(aria).toMatch(/heading "Acme Corp\s*, Leadership"/);
+    expect(aria).toContain('heading "Acme Corp, Leadership"');
+    // html-qa N1: no stray space before the comma.
+    await expect(c.locator('.sd-cell-h')).toHaveAccessibleName('Acme Corp, Leadership');
     expect(aria).toContain('Related to: Globex, Leadership: “Joint steering”');
     expect(aria).toContain('Related to: Acme Corp, Delivery');
     // And from the other end.
@@ -708,7 +712,7 @@ test.describe('structure-diagrams (exported fixture)', () => {
 // ---------------------------------------------------------------------------------------------------------------
 test.describe('structure-diagrams (exported sample)', () => {
   const snap = useSnapshot('sample');
-  const MAIN = '#/d/acme-globex-partnership';
+  const MAIN = '#/d/partnership-structure';
 
   test('2.21 structure-diagrams › Drill down from a band', { tag: '@mobile' }, async ({ page }) => {
     await openSnapshot(page, snap, MAIN);
@@ -720,13 +724,13 @@ test.describe('structure-diagrams (exported sample)', () => {
   test('2.24 structure-diagrams › Back from a drill-down', async ({ page }) => {
     await openSnapshot(page, snap);
     await skipPrompt(page);
-    await page.getByTestId('structure-card-acme-globex-partnership').click();
-    await expect(page.locator('main h1')).toHaveText('Acme + Globex partnership');
+    await page.getByTestId('structure-card-partnership-structure').click();
+    await expect(page.locator('main h1')).toHaveText('Partnership structure');
     await page.getByTestId('band-open-harbour-account').click();
     await expect(page.locator('main h1')).toHaveText('Harbour account');
     await page.goBack();
-    await expect(page.locator('main h1')).toHaveText('Acme + Globex partnership');
-    await expect(page).toHaveURL(/#\/d\/acme-globex-partnership/);
+    await expect(page.locator('main h1')).toHaveText('Partnership structure');
+    await expect(page).toHaveURL(/#\/d\/partnership-structure/);
   });
 
   test('2.32 structure-diagrams › Mobile diagram', { tag: '@mobile-only' }, async ({ page }) => {
@@ -775,9 +779,18 @@ test.describe('structure-diagrams (exported sample)', () => {
     await expect(main.getByTestId('party-card-globex')).toBeVisible();
     await expect(main.getByTestId('workstream-card-presales')).toBeVisible();
     await expect(main.getByTestId('workstream-card-delivery')).toBeVisible();
-    await expect(main.getByTestId('structure-card-acme-globex-partnership')).toContainText('Acme + Globex partnership');
+    await expect(main.getByTestId('structure-card-partnership-structure')).toContainText('Partnership structure');
     await expect(main.getByTestId('structure-card-harbour-account')).toContainText('Harbour account');
     await expect(main.getByTestId('key-messages').locator('li p')).toHaveCount(3);
+  });
+
+  test('html-qa S2 a line to a parent band is described in every sub-band cell of that column', { tag: '@mobile' }, async ({ page }) => {
+    await openSnapshot(page, snap, MAIN);
+    // (Partnership leadership, Globex) to (Account management, Globex): Account management holds Harbour and Summit.
+    for (const band of ['harbour-account', 'summit-account']) {
+      await expect(cell(page, band, 'globex').getByTestId('structure-related-text')).toContainText('Related to: Globex, Partnership leadership');
+    }
+    await expect(cell(page, 'partnership-leadership', 'globex').getByTestId('structure-related-text')).toContainText('Related to: Globex, Account management');
   });
 
   test('2.63 theming › Rename workstream (diagram pages)', async ({ page }) => {
@@ -789,6 +802,22 @@ test.describe('structure-diagrams (exported sample)', () => {
     }
     await openSnapshot(page, snap, MAIN);
     await expect(page.getByTestId('structure-related').locator('h3', { hasText: 'Value streams' })).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+test.describe('structure-diagrams (long kind)', () => {
+  const KIND = 'Joint venture between two regional delivery organisations and their shared account teams';
+  const snap = useSnapshot(variant('acme-sample', 'long-kind', { 'structures/01-partnership.md': (t) => t.replace('kind: Partnership', `kind: ${KIND}`) }));
+
+  test('html-qa S1 a long kind wraps, so the page does not scroll sideways at 375px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 800 });
+    for (const hash of ['#/', '#/d/partnership-structure']) {
+      await openSnapshot(page, snap, hash);
+      await skipPrompt(page);
+      await expect(page.locator('.tag', { hasText: KIND }).first()).toBeVisible();
+      expect(await noHorizontalScroll(page), `${hash}: no horizontal page scroll`).toBe(true);
+    }
   });
 });
 
