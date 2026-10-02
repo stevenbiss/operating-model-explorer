@@ -1,10 +1,10 @@
 # Operating Model Explorer
 
-An engine that turns an operating model, written as one capture sheet or a folder of Markdown files, into one interactive HTML file. Viewers can start from their own persona and explore at their own pace: the model overview, workstreams, process swimlanes and step detail. Everyone sees the same model and the same key messages.
+An engine that turns an operating model, written as one capture sheet or a folder of Markdown files, into one interactive HTML file. Viewers can start from their own persona and explore at their own pace: the model overview, structure diagrams, workstreams, process swimlanes and step detail. Everyone sees the same model and the same key messages.
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.2.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.2.0)). It adds party brands: each party shown in its own brand colour and mark, from brand packs copied into the model, inside a neutral frame. Theme colours, fonts, logo and palette are retired. Built, tested (181 end-to-end and 174 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-party-brands/reports/`.
+**Status:** v1.3.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.3.0)). It adds structure diagrams: relationship diagrams you design yourself, showing how each party's teams and roles sit in bands and relate to each other, linked to other diagrams and workstreams. Built, tested (243 end-to-end and 212 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-structure-diagrams/reports/`.
 
 
 ## For authors
@@ -14,6 +14,18 @@ You need a current Chrome or Edge (Safari and Firefox work too, but can only loa
 ### The easy route: a capture sheet
 
 A **capture sheet** is one Markdown file with fixed headings and a table for each list of things (parties, roles, steps, a RACI matrix), referring to everything by name. Clients and colleagues can review and comment on it as one document before anything is built. Copy `templates/capture-sheet.md`, see `examples/acme-capture-sheet/capture-sheet.md` for a complete fictional example, and `docs/capture-sheet.md` for the format. In the engine, choose **Load capture sheet** (or **Load folder** on a folder holding the sheet and its `brands/` or `assets/`).
+
+### Structure diagrams: who sits where, and who works with whom
+
+From v1.3.0, a model can hold relationship diagrams that you design from scratch, the same way you design processes. Use them for a partnership's collaboration model, a sub-programme's team, a market or a division.
+
+- **Columns are the parties.** Each box sits in the column of its role's or team's party, in that party's brand colour.
+- **Bands are rows you name yourself**, top to bottom (for example "Leadership", "Programme management"), with one optional level of sub-bands.
+- **Boxes** place an existing role or team in a band. They can carry a name (who holds it, or TBA) and a note (for example a grade).
+- **Lines** join two cells (a band and a party) to show a relationship. They are plain, with no direction, and can have a short label.
+- **Diagrams link to each other** and to workstreams, in any combination, and a band can open another diagram so viewers can drill down. If a model has any diagrams, exactly one is the **main** diagram, covering the whole company or partnership.
+- In a capture sheet, write one `## Structure: <name>` section per diagram, with `Bands`, `Boxes` and `Lines` tables. In a content folder, use one `type: structure` file per diagram in `structures/`. See `docs/capture-sheet.md` (Structures) and `docs/authoring-guide.md` (Structure diagrams).
+- Viewers can open a box's role or team, search for a name on a box, and see their own roles marked "Your role". On a phone, each diagram becomes a stacked list.
 
 ### Brands: each party in its own colour and mark
 
