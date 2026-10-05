@@ -28,7 +28,7 @@
   Verify with unit tests in `tests/unit/sheet.test.js`
 - [x] 1.7 Swimlane rendering in `src/viewer/swimlane.js` (D3, D9):
   - the committees group heading;
-  - a committee lane header with its name, a link, and members as "Role · Party · letter" with marks;
+  - a committee lane header with its name and a link only (members only in the step panel, per the user's 2026-10-05 change);
   - a "<Committee> member · <letter>" line on each member's own lane header;
   - the "By committee" badge on nodes.
 
@@ -62,102 +62,102 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`, at 1280×800, with `@mobile` scenarios also run at 375×812. Node tests cover the model, sheet and layout logic. Skill trials follow `tests/skill-packs/README.md`, and their results go in `reports/skill-trials.md`.
 
 ### committees
-- [ ] 2.1 Committee loads from a folder
-- [ ] 2.2 Committee with no members
-- [ ] 2.3 Member without a valid letter
-- [ ] 2.4 Unknown member
-- [ ] 2.5 No accountable member
-- [ ] 2.6 One accountable member
-- [ ] 2.7 Accountable members from one party
-- [ ] 2.8 Committee that owns nothing
-- [ ] 2.9 Same name as a role
-- [ ] 2.10 Committee owns a decision
-- [ ] 2.11 Committee owns a working step
-- [ ] 2.12 Joint accountability
-- [ ] 2.13 Others informed on the step
-- [ ] 2.14 A non-member marked A
-- [ ] 2.15 A member given a letter on the step
-- [ ] 2.16 Committee lane and badge
-- [ ] 2.17 Membership shown in the member's own lane
-- [ ] 2.18 Two committees in one process
-- [ ] 2.19 Lane header opens the committee
-- [ ] 2.20 Open the committee decision
-- [ ] 2.21 Handoff into a committee
-- [ ] 2.22 Committee page content
-- [ ] 2.23 Deep link to a committee
-- [ ] 2.24 Keyboard into a committee step
-- [ ] 2.25 Accessible name
-- [ ] 2.26 Mobile committee step (@mobile)
-- [ ] 2.27 Sample committee loads
+- [x] 2.1 Committee loads from a folder
+- [x] 2.2 Committee with no members
+- [x] 2.3 Member without a valid letter
+- [x] 2.4 Unknown member
+- [x] 2.5 No accountable member
+- [x] 2.6 One accountable member
+- [x] 2.7 Accountable members from one party
+- [x] 2.8 Committee that owns nothing
+- [x] 2.9 Same name as a role
+- [x] 2.10 Committee owns a decision
+- [x] 2.11 Committee owns a working step
+- [x] 2.12 Joint accountability
+- [x] 2.13 Others informed on the step
+- [x] 2.14 A non-member marked A
+- [x] 2.15 A member given a letter on the step
+- [x] 2.16 Committee lane and badge
+- [x] 2.17 Membership shown in the member's own lane
+- [x] 2.18 Two committees in one process
+- [x] 2.19 Lane header opens the committee
+- [x] 2.20 Open the committee decision
+- [x] 2.21 Handoff into a committee
+- [x] 2.22 Committee page content
+- [x] 2.23 Deep link to a committee
+- [x] 2.24 Keyboard into a committee step
+- [x] 2.25 Accessible name
+- [x] 2.26 Mobile committee step (@mobile)
+- [x] 2.27 Sample committee loads
 
 ### content-schema
-- [ ] 2.28 Minimal valid model
-- [ ] 2.29 Missing model file
-- [ ] 2.30 Brand packs are not elements
-- [ ] 2.31 Structure found by type, not folder
-- [ ] 2.32 Committee found by type, not folder
-- [ ] 2.33 Sample exercises every type
-- [ ] 2.34 Missing required field
-- [ ] 2.35 Duplicate id
-- [ ] 2.36 Structure and workstream cannot share an id
-- [ ] 2.37 Unknown owner
-- [ ] 2.38 Unknown owner close to a committee
-- [ ] 2.39 Unknown party on a line
-- [ ] 2.40 Live step with a removed owner
-- [ ] 2.41 Live step with a removed committee
-- [ ] 2.42 No accountable role
-- [ ] 2.43 Two accountable roles
-- [ ] 2.44 Committee counts as accountable
-- [ ] 2.45 Sample stays clean
+- [x] 2.28 Minimal valid model
+- [x] 2.29 Missing model file
+- [x] 2.30 Brand packs are not elements
+- [x] 2.31 Structure found by type, not folder
+- [x] 2.32 Committee found by type, not folder
+- [x] 2.33 Sample exercises every type
+- [x] 2.34 Missing required field
+- [x] 2.35 Duplicate id
+- [x] 2.36 Structure and workstream cannot share an id
+- [x] 2.37 Unknown owner
+- [x] 2.38 Unknown owner close to a committee
+- [x] 2.39 Unknown party on a line
+- [x] 2.40 Live step with a removed owner
+- [x] 2.41 Live step with a removed committee
+- [x] 2.42 No accountable role
+- [x] 2.43 Two accountable roles
+- [x] 2.44 Committee counts as accountable
+- [x] 2.45 Sample stays clean
 
 ### capture-sheet
-- [ ] 2.46 Acme capture sheet loads cleanly
-- [ ] 2.47 Missing required section
-- [ ] 2.48 Structure section recognised
-- [ ] 2.49 Committees section recognised
-- [ ] 2.50 Owner written with different case
-- [ ] 2.51 Unknown name with a suggestion
-- [ ] 2.52 Same name for a workstream and a process
-- [ ] 2.53 Same name for a role and a committee
-- [ ] 2.54 Committee owns a step in a sheet
-- [ ] 2.55 Unknown member in a sheet
-- [ ] 2.56 Member without a letter in a sheet
-- [ ] 2.57 Missing Members column
+- [x] 2.46 Acme capture sheet loads cleanly
+- [x] 2.47 Missing required section
+- [x] 2.48 Structure section recognised
+- [x] 2.49 Committees section recognised
+- [x] 2.50 Owner written with different case
+- [x] 2.51 Unknown name with a suggestion
+- [x] 2.52 Same name for a workstream and a process
+- [x] 2.53 Same name for a role and a committee
+- [x] 2.54 Committee owns a step in a sheet
+- [x] 2.55 Unknown member in a sheet
+- [x] 2.56 Member without a letter in a sheet
+- [x] 2.57 Missing Members column
 
 ### explorer-views
-- [ ] 2.58 Lanes and steps
-- [ ] 2.59 Decision branches
-- [ ] 2.60 Cross-party handoff
-- [ ] 2.61 Process without committees
-- [ ] 2.62 Open and move along the flow
-- [ ] 2.63 Committee owner in the detail
-- [ ] 2.64 Role across processes
-- [ ] 2.65 Role in diagrams
-- [ ] 2.66 Role on a committee
-- [ ] 2.67 Find a step
-- [ ] 2.68 Find a person on a diagram
-- [ ] 2.69 Find a committee
-- [ ] 2.70 Mobile swimlane (@mobile)
-- [ ] 2.71 Open a party from search
+- [x] 2.58 Lanes and steps
+- [x] 2.59 Decision branches
+- [x] 2.60 Cross-party handoff
+- [x] 2.61 Process without committees
+- [x] 2.62 Open and move along the flow
+- [x] 2.63 Committee owner in the detail
+- [x] 2.64 Role across processes
+- [x] 2.65 Role in diagrams
+- [x] 2.66 Role on a committee
+- [x] 2.67 Find a step
+- [x] 2.68 Find a person on a diagram
+- [x] 2.69 Find a committee
+- [x] 2.70 Mobile swimlane (@mobile)
+- [x] 2.71 Open a party from search
 
 ### persona-lens
-- [ ] 2.72 Highlighted lanes
-- [ ] 2.73 Your committee
-- [ ] 2.74 Nothing hidden
-- [ ] 2.75 Summary contents
-- [ ] 2.76 Committee step in the summary
-- [ ] 2.77 What changes for me
+- [x] 2.72 Highlighted lanes
+- [x] 2.73 Your committee
+- [x] 2.74 Nothing hidden
+- [x] 2.75 Summary contents
+- [x] 2.76 Committee step in the summary
+- [x] 2.77 What changes for me
 
 ### theming
-- [ ] 2.78 Rename workstream
-- [ ] 2.79 Rename structure
-- [ ] 2.80 Rename committee
+- [x] 2.78 Rename workstream
+- [x] 2.79 Rename structure
+- [x] 2.80 Rename committee
 
 ### authoring-skill
-- [ ] 2.81 Joint decision becomes a committee (skill trial)
-- [ ] 2.82 Unplaced member (skill trial)
+- [x] 2.81 Joint decision becomes a committee (skill trial): walk-through, see reports/skill-trials.md
+- [x] 2.82 Unplaced member (skill trial): walk-through, see reports/skill-trials.md
 
-- [ ] 2.83 The full existing suite (`npm run test:unit` and `npm test`) still passes, with no regressions in the swimlane, persona, brand, structure or labels tests
+- [x] 2.83 The full existing suite (`npm run test:unit` and `npm test`) still passes, with no regressions in the swimlane, persona, brand, structure or labels tests
 
 ## 3. Verify
 

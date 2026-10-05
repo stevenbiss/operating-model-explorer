@@ -58,11 +58,11 @@ A dedicated lane keeps all of that unchanged:
 - `flow()` adds a group `{ committee: true, lanes: [committeeIds] }` directly after the first party group;
 - every helper that today takes a role id takes a committee id as well.
 
-The lane header shows the committee's name, then its members as "Role · Party · letter" lines with each party's mark. Each member's own role lane header gains one line per committee in this process, e.g. "Bid board member · A". These are the existing lane-header cues, so the lane grows to fit like any other cue, and it is never compact. Like a role's lane header, the name links to the committee page.
+The committee lane header shows only the committee's name (user decision, 2026-10-05: the members are shown only in the step's members panel and on the committee page, which keeps the swimlane uncluttered). Each member's own role lane header gains one line per committee in this process, e.g. "Bid board member · A". These are the existing lane-header cues, so the lane grows to fit like any other cue, and it is never compact. Like a role's lane header, the name links to the committee page.
 
 **Confirmed by the user (2026-10-05):** dedicated lanes, all together in the middle, with the two main parties on either side. A process can have two or more committees. Placing them in the middle keeps the joint decisions visually between the two sides they join, and the connectors from each side stay short. A spanning shape and a block above all the parties were both considered and set aside.
 
-All committees go in one block rather than each sitting next to its own member parties, because the user wants the committees together between the two main parties. With three or more parties, the block still sits after the first party group. That case is rare in partnership models, and every lane header names its members' parties.
+All committees go in one block rather than each sitting next to its own member parties, because the user wants the committees together between the two main parties. With three or more parties, the block still sits after the first party group. That case is rare in partnership models, and each member's own lane header names its committee.
 
 ### D4. RACI lives on the committee, with joint accountability *(resolves open question 2; confirmed with changes)*
 The user's direction: a committee has its own RACI. Key members are held accountable for the decision together, there is no single overall owner, and others may be consulted or informed.
@@ -95,7 +95,7 @@ The engine has no decision node type. Restricting committees to "decisions" woul
 - **Members panel (the user's "window"):** clicking or pressing Enter on a committee step opens the existing step detail side panel, as for every step. For committee steps it leads with the committee name, the badge, and a members block with one heading per party (mark and name) listing each member and their letter. Reusing the detail panel keeps the URL, Back, Escape and focus behaviour that the keyboard and deep-link specs already cover. A separate pop-up would duplicate it.
 - **Badge:** `By ${L.lower('committee')}` on the node (below the step name, using the existing badge pill) and in step detail. "Your committee" uses `Your ${L.lower('committee')}`, the same pattern as "Your role".
 - **Accessible name:** `stepLabel()` appends ", by committee: <name>" for committee steps.
-- **Phone list:** `flowList()` shows the committee name, badge and "Role (Party)" members in place of "Role · Party".
+- **Phone list:** `flowList()` shows the committee name and badge in place of "Role · Party", without members, following the same rule as the lane header.
 - **Committee page:** the generic element page (`#/e/<id>`), extended for type `committee` with members by party and owned steps by process. It needs no new route.
 - **Role profile:** a "Committees" list with the role's letter in each. The steps list includes the committee's steps, with that letter.
 - **Persona:** `mine(laneId)` is true for a committee lane when any member is a persona role. A step's `cue()` is true when the persona role is a member of the owning committee.

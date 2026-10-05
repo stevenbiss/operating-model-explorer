@@ -20,6 +20,8 @@ test('a removed role opens as normal, badged while markers are on; a step it sti
   await expect(warning).toContainText('processes/02-build-proposal.md');
   await expect(warning).toContainText('price-solution');
   await expect(warning).toContainText('owned by the role "pricing-analyst", which is marked as removed');
+  // add-committee-decisions 2.40 content-schema › Live step with a removed owner: export remains enabled.
+  await expect(page.getByTestId('export')).toBeEnabled();
 
   const pv = page.getByTestId('preview');
   await pv.getByTestId('persona-skip').click();

@@ -89,11 +89,11 @@ A committee-owned step's RACI SHALL be the committee's member letters, plus any 
 ### Requirement: Committee lanes in the swimlane
 Each committee that owns a shown step in a process SHALL get its own lane. A process MAY have several committees. All committee lanes SHALL form one group under one heading with the committees label ("Committees" by default), stacked in the order their first steps appear. The group SHALL sit in the middle of the swimlane: directly after the first party group shown, in the model's party order, so with two parties the committees sit between them. With only one party group shown, the group SHALL sit after it.
 
-A committee lane's header SHALL show the committee's name, linking to the committee page, and its members grouped by party, each with their RACI letter. Every member SHALL also get its own lane in its party group, like a role that takes part through RACI. That lane's header SHALL list each committee in the process that the role sits on, with the role's letter in it (e.g. "Bid board member · A"). A step owned by a committee SHALL sit in the committee's lane and show a text badge "By committee" (following the committee label).
+A committee lane's header SHALL show only the committee's name, linking to the committee page. It SHALL NOT list the members, which are shown when a committee step is opened (see Members shown when a committee step is opened) and on the committee page. Every member SHALL also get its own lane in its party group, like a role that takes part through RACI. That lane's header SHALL list each committee in the process that the role sits on, with the role's letter in it (e.g. "Bid board member · A"). A step owned by a committee SHALL sit in the committee's lane and show a text badge "By committee" (following the committee label).
 
 #### Scenario: Committee lane and badge
 - **WHEN** the viewer opens a process in which a committee of an Acme role and a Globex role owns one step
-- **THEN** a lane under "Committees" sits between the Acme group and the Globex group, its header names the committee and its members by party with their letters, and the step sits in that lane with a "By committee" badge
+- **THEN** a lane under "Committees" sits between the Acme group and the Globex group, its header shows the committee name only, with no member list, and the step sits in that lane with a "By committee" badge
 
 #### Scenario: Membership shown in the member's own lane
 - **WHEN** the viewer opens the sample's "Qualify an opportunity"
@@ -133,7 +133,7 @@ Activating a committee anywhere SHALL open its page, showing its name, summary, 
 - **THEN** the same committee page is shown
 
 ### Requirement: Keyboard and screen readers
-Committee-owned steps SHALL take part in the swimlane's Tab order, arrow-key movement, Enter and Escape exactly like other steps. A committee-owned step's accessible name SHALL include the committee's name and the words "by committee". Committee lane headers and member lane headers SHALL expose membership and letters as text, not only as marks or colour.
+Committee-owned steps SHALL take part in the swimlane's Tab order, arrow-key movement, Enter and Escape exactly like other steps. A committee-owned step's accessible name SHALL include the committee's name and the words "by committee". Member lane headers SHALL expose membership and letters as text, not only as marks or colour, and the members panel of a committee step SHALL be reachable by keyboard and read as text.
 
 #### Scenario: Keyboard into a committee step
 - **WHEN** a keyboard user tabs to the step before a committee-owned step, presses the Right arrow, then Enter
@@ -144,11 +144,11 @@ Committee-owned steps SHALL take part in the swimlane's Tab order, arrow-key mov
 - **THEN** its accessible name includes the step name, the committee name and "by committee"
 
 ### Requirement: Committees on small screens
-Below 768px, a committee-owned step in the vertical step list SHALL be labelled with the committee's name, a "By committee" badge and its members with their parties, instead of a role and party. Its detail SHALL show the members split by organisation, as on wider screens. The page SHALL NOT scroll horizontally.
+Below 768px, a committee-owned step in the vertical step list SHALL be labelled with the committee's name and a "By committee" badge, instead of a role and party, without listing the members. Its detail SHALL show the members split by organisation, as on wider screens. The page SHALL NOT scroll horizontally.
 
 #### Scenario: Mobile committee step
 - **WHEN** the sample's "Qualify an opportunity" is opened at 375px wide
-- **THEN** "Go or no-go" in the step list shows the bid board's name, the "By committee" badge and its members with their parties, and the page does not scroll horizontally
+- **THEN** "Go or no-go" in the step list shows the bid board's name and the "By committee" badge but no member list, opening it shows the members split by organisation, and the page does not scroll horizontally
 
 ### Requirement: Sample committee
 The Acme sample, in both its folder and capture-sheet forms, SHALL include the committee "Acme + Globex bid board", owning the step "Go or no-go" in "Qualify an opportunity", with the members Account lead (A), Partner manager (A), Solution architect (C) and Bid manager (I). It SHALL use fictional names only, and both forms SHALL still load with 0 errors and 0 warnings and stay in parity.
