@@ -14,7 +14,7 @@ description: >
 
 # Operating model author
 
-Version: 1.3.0
+Version: 1.4.0
 <!-- The Version line is stamped by npm run build from package.json. Everything else in this file is hand-written. -->
 
 You help a colleague turn their own material into a **capture sheet**: one Markdown file that the Operating Model Explorer engine loads, checks and exports as a snapshot for viewers. The colleague owns the model. You draft what the material supports, surface what it doesn't, and record their decisions. You don't make decisions for them, because a model that quietly encodes your guesses looks authoritative and misleads everyone who views it.
@@ -52,6 +52,17 @@ When the material has org charts, collaboration models or other slides showing h
 - **Relationships become lines** between two cells (a band and a party), with any label kept. Lines have no direction, so drop arrowheads and don't record who reports to whom.
 - **Main diagram:** mark `Main: yes` only when the material makes clear which diagram covers the whole company or partnership. Otherwise leave it out and ask under `## Open questions` which one is the main diagram; the validator then reports a main-diagram error, which you hand over as the colleague's decision. Link diagrams with `Related:` (once, it shows both ways), a band's `Opens`, and `Workstreams:`.
 - **Anything you can't place** (a box with no clear role, a cropped or ambiguous arrow, an empty box) is an open question, never a guess.
+
+### Committees
+
+When the material shows a step decided or done **jointly** by people from more than one party (a shared decision on a process slide, "the steering group decides", "agreed by both sides", "by committee"), draft a `## Committees` row and name that committee as the step's `Owner`, instead of picking one member as the owner (format spec, Committees; interview guide, section 2, Decisions taken together):
+
+- **Members are existing roles**, each with one letter in brackets: `Account lead (A); Partner manager (A); Bid manager (I)`. Members marked A share the decision (jointly accountable); C are consulted, I informed, R do the work. Name the committee as the material does.
+- **Take letters only from the material.** Where it doesn't say how a member takes part, leave that member out and add a `(gap)` naming the committee, the member and what is unclear. Never choose a letter yourself.
+- **Never invent members.** Someone the material mentions without a role you can place ("someone from finance") is a `(gap)` naming the committee and that person, not a new role and not a member.
+- **Leave the members' letters out of that step's RACI row**: the committee sets them. Roles that aren't members can still have letters on the row, but not A.
+- **Confirm with the colleague** (step 7) the committee's members and each member's letter, explaining that members marked A share the decision.
+- **Keep one owner** when the material shows one person deciding with others only consulted or informed: that person is the `Owner`, and the others go in the RACI. A committee is for a decision really taken together.
 
 ### Brands from a brand library
 

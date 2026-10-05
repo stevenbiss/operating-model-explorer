@@ -90,6 +90,15 @@ test('2.64 structure labels: default "Structure"/"Structures", renameable, and a
   assert.equal(parseRoute('#/d/harbour-account').view, 'structure');
 });
 
+test('committee labels: default "Committee"/"Committees", renameable in a folder or a sheet, and a rename in one form only warns', () => {
+  assert.deepEqual([labeller(null)('committee'), labeller(null)('committees')], ['Committee', 'Committees']);
+  const r = withTheme('labels:\n  committee: Steering group\n  committees: Steering groups\n');
+  assert.deepEqual(r.messages, []);
+  const L = labeller(toSnapshot(r.model).theme);
+  assert.deepEqual([L('committees'), `By ${L.lower('committee')}`, `Your ${L.lower('committee')}`], ['Steering groups', 'By steering group', 'Your steering group']);
+  assert.match(withTheme('labels:\n  committee: Steering group\n').messages[0].fix, /committees: Steering groups/);
+});
+
 test('a label renamed in only one form: a warning suggesting the missing form', () => {
   const [m, ...rest] = withTheme('labels:\n  workstream: Value stream\n').messages;
   assert.equal(rest.length, 0);

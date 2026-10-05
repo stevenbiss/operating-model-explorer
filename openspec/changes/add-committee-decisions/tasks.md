@@ -2,23 +2,23 @@
 
 ## 1. Build
 
-- [ ] 1.1 Add `schema/committee.schema.json` (D2): id, type, name, summary, members (role id → R/A/C/I, `minProperties: 1`) and change. Register it in `src/model/schemas.js`, and change the step `owner` description in `process.schema.json` to "role or committee". Verify that `docs/content-reference.md` gains a committee section after `npm run build`, and that the schema unit tests pass
-- [ ] 1.2 Committee checks in `src/model/validate.js` (D2, D4, D7):
+- [x] 1.1 Add `schema/committee.schema.json` (D2): id, type, name, summary, members (role id → R/A/C/I, `minProperties: 1`) and change. Register it in `src/model/schemas.js`, and change the step `owner` description in `process.schema.json` to "role or committee". Verify that `docs/content-reference.md` gains a committee section after `npm run build`, and that the schema unit tests pass
+- [x] 1.2 Committee checks in `src/model/validate.js` (D2, D4, D7):
   - owner resolved against roles and committees, with "Did you mean" from both;
   - member references, and member letters with the one-letter wording;
   - the no-A, one-A and A-from-one-party warnings;
   - the owns-no-step warning, the role/committee same-name error and the removed-committee-owner warning.
 
   Verify with a unit test per message in `tests/unit/validate.test.js`
-- [ ] 1.3 Effective RACI and joint accountability (D4):
+- [x] 1.3 Effective RACI and joint accountability (D4):
   - an `effectiveRaci(step)` helper that merges the committee's members with the step's non-member RACI;
   - `raciChecks()` treats a committee step's A members as one joint accountable;
   - warnings for a non-member A and for a member given a letter on the step.
 
   Verify with unit tests for joint A, a non-member I, a non-member A and a member letter on the step
-- [ ] 1.4 Normalise committees at load (D7, D8) in `load.js` and `snapshot.js`: `ownerType`, `parties` on committee steps, a `committeesOf[roleId]` map (with letters) and a `stepsOf[committeeId]` map. Verify with unit tests on a fixture model
-- [ ] 1.5 Committee lanes in `src/model/layout.js` `flow()` (D3, D8): members count as taking part, one committee group directly after the first party group with lanes in first-step order, committee-owned nodes in their committee's lane, and `crossParty` by party sets. Verify with unit tests in `tests/unit/layout.test.js`, including a process with no committees, whose layout must be unchanged
-- [ ] 1.6 Capture sheet (D7) in `src/model/sheet.js`:
+- [x] 1.4 Normalise committees at load (D7, D8) in `load.js` and `snapshot.js`: `ownerType`, `parties` on committee steps, a `committeesOf[roleId]` map (with letters) and a `stepsOf[committeeId]` map. Verify with unit tests on a fixture model
+- [x] 1.5 Committee lanes in `src/model/layout.js` `flow()` (D3, D8): members count as taking part, one committee group directly after the first party group with lanes in first-step order, committee-owned nodes in their committee's lane, and `crossParty` by party sets. Verify with unit tests in `tests/unit/layout.test.js`, including a process with no committees, whose layout must be unchanged
+- [x] 1.6 Capture sheet (D7) in `src/model/sheet.js`:
   - the `## Committees` section and table (Committee, Members, Summary, Change, Today, ID);
   - `Members` items read as `<role> (<letter>)`, with errors for a missing or combined letter;
   - Owner cells resolved across roles and committees;
@@ -26,36 +26,36 @@
   - messages pointing into the sheet.
 
   Verify with unit tests in `tests/unit/sheet.test.js`
-- [ ] 1.7 Swimlane rendering in `src/viewer/swimlane.js` (D3, D9):
+- [x] 1.7 Swimlane rendering in `src/viewer/swimlane.js` (D3, D9):
   - the committees group heading;
   - a committee lane header with its name, a link, and members as "Role · Party · letter" with marks;
   - a "<Committee> member · <letter>" line on each member's own lane header;
   - the "By committee" badge on nodes.
 
   Verify manually at 1280 in light and dark with the sample
-- [ ] 1.8 Viewer pages in `src/viewer/app.js` (D4, D9):
+- [x] 1.8 Viewer pages in `src/viewer/app.js` (D4, D9):
   - the step detail for committee steps leads with the committee name, the badge and the members block split by organisation (party heading with mark, member, letter word, "Accountable, jointly"), then the non-member RACI;
   - the committee element page (members by party with letters, owned steps by process, change badge);
   - the Committees list with letters and the committee steps on role profiles;
   - `stepLabel()` with "by committee", and the phone `flowList()` label.
 
   Verify by clicking through the sample at 1280 and 375
-- [ ] 1.9 Persona and labels (D9): "Your committee" on committee lanes, the step cue for members, the committee letter and committee name in "What matters for me", and `['committee', 'committees']` in `LABEL_PAIRS`, used by the heading, badge, cue, member line and search group. Verify with the sample persona "Acme account lead" and the theme unit tests
-- [ ] 1.10 Fictional sample (D10): `examples/acme-sample/committees/bid-board.md` (Account lead A, Partner manager A, Solution architect C, Bid manager I), "Go or no-go" owned by the bid board with no RACI of its own, and the same in `examples/acme-capture-sheet/capture-sheet.md` (Committees table, Owner, empty RACI row 3). Verify that both load with 0 errors and 0 warnings, and that the parity test and the private-names guard pass
-- [ ] 1.11 Test fixtures, all with fictional names: `committee-basic`, `committee-unknown-member`, `committee-member-letter`, `committee-no-a`, `committee-one-a`, `committee-one-party`, `committee-unused`, `committee-name-clash`, `committee-removed`, `committee-nonmember-a`, `committee-member-on-step`, `committee-labels`, `committee-two` and `sheet-committees`. Verify that each produces exactly its intended messages with `npm run validate`
-- [ ] 1.12 Docs:
+- [x] 1.9 Persona and labels (D9): "Your committee" on committee lanes, the step cue for members, the committee letter and committee name in "What matters for me", and `['committee', 'committees']` in `LABEL_PAIRS`, used by the heading, badge, cue, member line and search group. Verify with the sample persona "Acme account lead" and the theme unit tests
+- [x] 1.10 Fictional sample (D10): `examples/acme-sample/committees/bid-board.md` (Account lead A, Partner manager A, Solution architect C, Bid manager I), "Go or no-go" owned by the bid board with no RACI of its own, and the same in `examples/acme-capture-sheet/capture-sheet.md` (Committees table, Owner, empty RACI row 3). Verify that both load with 0 errors and 0 warnings, and that the parity test and the private-names guard pass
+- [x] 1.11 Test fixtures, all with fictional names: `committee-basic`, `committee-unknown-member`, `committee-member-letter`, `committee-no-a`, `committee-one-a`, `committee-one-party`, `committee-unused`, `committee-name-clash`, `committee-removed`, `committee-nonmember-a`, `committee-member-on-step`, `committee-labels`, `committee-two` and `sheet-committees`. Verify that each produces exactly its intended messages with `npm run validate`
+- [x] 1.12 Docs:
   - `docs/capture-sheet.md`: the Committees section, member letters, and Owner naming a committee;
   - `docs/authoring-guide.md`: when to use a committee and when to use a single owner with RACI, and what joint accountability means;
   - `templates/capture-sheet.md`: a commented Committees section.
 
   Verify that the doc examples parse with `npm run validate`
-- [ ] 1.13 Authoring skill:
+- [x] 1.13 Authoring skill:
   - add a "Committees" step to SKILL.md: draft from joint-decision material, confirm the members and their letters, `(gap)` for unplaced members or unclear letters, and keep one owner when others are only consulted;
   - add a note under processes in `docs/interview-guide.md`;
   - add a fictional `tests/skill-packs/joint-decision/` pack and trial checklist entries in `tests/skill-packs/README.md`, then rebuild the skill folder.
 
   Verify with `npm run build` and the skill-folder-current unit test
-- [ ] 1.14 Version 1.4.0 in `package.json`, and the plugin manifest and skill through the build. Verify with the version unit test
+- [x] 1.14 Version 1.4.0 in `package.json`, and the plugin manifest and skill through the build. Verify with the version unit test
 
 ## 2. Test
 

@@ -6,12 +6,12 @@ const KEY_MESSAGES = [
   'Acme owns the client relationship. Globex owns the solution.',
   'Decide early. Every opportunity gets a go or no-go within five working days.',
 ];
-const PARTY = { 'account-lead': 'acme', 'bid-manager': 'acme', 'delivery-manager': 'acme', 'legal-counsel': 'acme', 'partner-manager': 'globex', 'solution-architect': 'globex', 'pricing-analyst': 'globex' };
-const PARTY_NAME = { acme: 'Acme Corp', globex: 'Globex' };
+const PARTY = { 'bid-board': 'committees', 'account-lead': 'acme', 'bid-manager': 'acme', 'delivery-manager': 'acme', 'legal-counsel': 'acme', 'partner-manager': 'globex', 'solution-architect': 'globex', 'pricing-analyst': 'globex' };
+const PARTY_NAME = { acme: 'Acme Corp', committees: 'Committees', globex: 'Globex' };
 const QUALIFY = [
   ['capture-lead', 'account-lead'],
   ['assess-fit', 'solution-architect'],
-  ['go-no-go', 'account-lead'],
+  ['go-no-go', 'bid-board'],
   ['decline', 'account-lead'],
   ['kick-off-bid', 'bid-manager'],
 ];
@@ -70,10 +70,10 @@ test.describe('explorer-views (exported sample)', () => {
     const lanes = await lane.locator('[data-testid^="lane-"]').evaluateAll((els) =>
       els.map((a) => ({ id: a.dataset.testid.slice(5), y: +a.querySelector('.lane-hit').getAttribute('y'), h: +a.querySelector('.lane-hit').getAttribute('height'), name: a.textContent })),
     );
-    expect(lanes.map((l) => l.id).sort()).toEqual(['account-lead', 'bid-manager', 'delivery-manager', 'partner-manager', 'solution-architect']);
-    // Grouped under the two party names, in bands.
+    expect(lanes.map((l) => l.id).sort()).toEqual(['account-lead', 'bid-board', 'bid-manager', 'delivery-manager', 'partner-manager', 'solution-architect']);
+    // Grouped under the two party names, in bands, with the committee lane between them.
     const bands = await lane.locator('.lane-heads .band').evaluateAll((gs) => gs.map((g) => ({ name: g.querySelector('.band-name').textContent, y: +g.querySelector('.band-bg').getAttribute('y') })));
-    expect(bands.map((b) => b.name)).toEqual(['Acme Corp', 'Globex']);
+    expect(bands.map((b) => b.name)).toEqual(['Acme Corp', 'Committees', 'Globex']);
     for (const l of lanes) {
       const i = bands.findIndex((b) => b.name === PARTY_NAME[PARTY[l.id]]);
       expect(l.y, `${l.id} lane under ${bands[i].name}`).toBeGreaterThan(bands[i].y);
@@ -107,14 +107,17 @@ test.describe('explorer-views (exported sample)', () => {
   });
 
   test('2.28 explorer-views › Cross-party handoff', async ({ page }) => {
+    const style = (l) => l.evaluate((p) => ({ dash: getComputedStyle(p).strokeDasharray, marker: p.getAttribute('marker-end') }));
+    // "Qualify an opportunity" has no same-party handoff since "Go or no-go" is decided by the Acme + Globex bid board.
+    await openSnapshot(page, snap, '#/p/build-proposal');
+    const same = page.locator('svg.swimlane').first().locator('path.edge[data-from="review-proposal"][data-to="submit-proposal"]'); // Acme -> Acme
+    await expect(same).not.toHaveClass(/\bcross\b/);
+    const s = await style(same);
     await openSnapshot(page, snap, '#/p/qualify-opportunity');
     const svg = page.locator('svg.swimlane').first();
     const cross = svg.locator('path.edge[data-from="capture-lead"][data-to="assess-fit"]'); // Acme -> Globex
-    const same = svg.locator('path.edge[data-from="go-no-go"][data-to="decline"]'); // Acme -> Acme
     await expect(cross).toHaveClass(/\bcross\b/);
-    await expect(same).not.toHaveClass(/\bcross\b/);
-    const style = (l) => l.evaluate((p) => ({ dash: getComputedStyle(p).strokeDasharray, marker: p.getAttribute('marker-end') }));
-    const [c, s] = [await style(cross), await style(same)];
+    const c = await style(cross);
     expect(c.dash).not.toBe(s.dash);
     expect(c.marker).not.toBe(s.marker);
     const legend = page.getByTestId('legend');
@@ -247,7 +250,8 @@ test.describe('explorer-views (exported sample)', () => {
     for (const [step, owner] of QUALIFY) {
       const it = lane.getByTestId(`step-${step}`);
       const roleName = { 'account-lead': 'Account lead', 'solution-architect': 'Solution architect', 'bid-manager': 'Bid manager' }[owner];
-      await expect(it.locator('.fi-lane')).toHaveText(`${roleName} · ${PARTY_NAME[PARTY[owner]]}`);
+      const committee = 'Acme + Globex bid board: Account lead (Acme Corp), Bid manager (Acme Corp), Partner manager (Globex), Solution architect (Globex)';
+      await expect(it.locator('.fi-lane')).toHaveText(owner === 'bid-board' ? committee : `${roleName} · ${PARTY_NAME[PARTY[owner]]}`);
       await expect(it.locator('.fi-next')).toHaveText(/^(Next: .+|End of the flow)$/);
     }
     await expect(lane.getByTestId('step-go-no-go').locator('.fi-next')).toHaveText('Next: Kick off the bid (Go), Decline politely (No go)');

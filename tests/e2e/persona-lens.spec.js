@@ -63,10 +63,13 @@ test.describe('persona-lens (exported sample)', () => {
     await openSnapshot(page, snap, '#/p/qualify-opportunity?persona=acme-account-lead');
     await expect(yourLanes(page)).toHaveCount(1);
     await expect(page.getByTestId('lane-account-lead')).toContainText('Your lane');
-    for (const id of ['capture-lead', 'go-no-go', 'decline']) {
+    for (const id of ['capture-lead', 'decline']) {
       await expect(page.getByTestId(`step-${id}`)).toHaveClass(/\bmine\b/);
       await expect(page.getByTestId(`step-${id}`)).toHaveAttribute('aria-label', /Your step\./);
     }
+    // go-no-go: decided by the bid board, which marks the account lead A.
+    await expect(page.getByTestId('step-go-no-go')).toHaveClass(/\bmine\b/);
+    await expect(page.getByTestId('step-go-no-go')).toHaveAttribute('aria-label', /You: A\./);
     // assess-fit: the account lead is consulted, so it is emphasised with "You: C".
     await expect(page.getByTestId('step-assess-fit')).toHaveClass(/\bmine\b/);
     await expect(page.getByTestId('step-assess-fit')).toHaveAttribute('aria-label', /You: C\./);
@@ -119,7 +122,7 @@ test.describe('persona-lens (exported sample)', () => {
   test('2.44 persona-lens › What changes for me', async ({ page }) => {
     for (const [persona, all, name, badge] of [
       ['acme-account-lead', 6, 'Decline politely', 'New'],
-      ['globex-solution-team', 5, 'Kick off the bid', 'Changed'],
+      ['globex-solution-team', 6, 'Kick off the bid', 'Changed'], // includes Go or no-go, where the bid board consults the solution architect
     ]) {
       await openSnapshot(page, snap, `#/me?persona=${persona}`);
       await expect(page.getByTestId('me-step')).toHaveCount(all);

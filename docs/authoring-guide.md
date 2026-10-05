@@ -33,6 +33,7 @@ my-model/
   parties/          the organisations taking part
   teams/            teams inside a party
   roles/            the roles that do the work
+  committees/       groups of roles from any parties that own steps together (optional)
   personas/         the types of viewer, and where each one starts
   workstreams/      groups of processes
   processes/        one file per process, with its steps
@@ -59,12 +60,12 @@ The account lead is the **single point of contact** for the client.
 ```
 
 - `id` is how other files refer to this one. Use lower-case words joined by hyphens (`account-lead`). Every id must be unique across the whole model. Step ids only need to be unique within their process.
-- `type` is one of `model`, `party`, `team`, `role`, `persona`, `workstream`, `process`, `structure` or `theme`. A brand pack's `brand.md` has no `type`: the engine knows it by its place, `brands/<id>/brand.md`.
+- `type` is one of `model`, `party`, `team`, `role`, `committee`, `persona`, `workstream`, `process`, `structure` or `theme`. A brand pack's `brand.md` has no `type`: the engine knows it by its place, `brands/<id>/brand.md`.
 - The text after the header is shown wherever the element is described. Headings, lists and **bold** all work. HTML is shown as plain text, never run.
 
 ## Processes and steps
 
-A process lists its steps in order. Each step needs an `id`, a `name` and an `owner` (a role id), and sits in its owner's lane in the swimlane.
+A process lists its steps in order. Each step needs an `id`, a `name` and an `owner` (a role id, or a [committee](#committees-decisions-taken-together) id), and sits in its owner's lane in the swimlane.
 
 ```yaml
 steps:
@@ -98,6 +99,30 @@ steps:
 - Also available: `description`, `inputs`, `outputs`, `systems` and `kpis`.
 
 Keep a process to about **12 steps or fewer**. If it grows beyond that, split it into two processes. Large diagrams are hard to read, especially on small screens.
+
+## Committees: decisions taken together
+
+Some steps aren't owned by one role: people from both sides decide them together, such as a go or no-go on a joint bid, or a steering group's sign-off. Describe that group as a **committee**, and name it as the step's owner. Don't pick one member as the owner, split the decision into one step per party, or invent a "joint" party to hold it.
+
+```markdown
+---
+id: bid-board
+type: committee
+name: Acme + Globex bid board
+summary: Decides together whether to bid.
+members:
+  account-lead: A
+  partner-manager: A
+  solution-architect: C
+  bid-manager: I
+---
+```
+
+- `members` is the committee's own RACI: each member role, from any party, with **one** letter. Members marked `A` are **jointly accountable**: they share the decision, and no one of them owns it alone. The viewer writes each of them as "Accountable, jointly".
+- A step owned by the committee (`owner: bid-board`) takes its members' letters from the committee, so don't repeat them in the step's `raci`. The step can still give letters to roles that aren't members, such as someone informed, but not `A`: the committee's `A` members already sign it off.
+- In the swimlane the committee gets a lane of its own, between the parties, and the step shows "By committee". Each member's own lane says it sits on the committee, with its letter.
+
+**When to use a committee, and when one owner.** Use a committee only when two or more people, usually from different parties, genuinely make the decision together. When one person decides and the others are only consulted or informed, keep that person as the step's owner and put the others in the step's RACI. The engine warns about a committee with no member marked `A`, with only one (that's a single owner), or whose `A` members all belong to one party (a team may fit better), and about a committee that owns no step. A role and a committee can't share a name.
 
 ## Structure diagrams
 

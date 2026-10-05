@@ -11,9 +11,9 @@ This page is the full format, **format 1**. For a complete real-size sheet, see 
 - The first heading is `# Operating model: <name>`. That is how the engine knows the file is a capture sheet.
 - Under the title, a `Format: 1` line says which version of this format the sheet uses.
 - Each part of the model has a `##` section with a fixed heading, such as `## Roles`, `## Process: Build the proposal` or `## Structure: Partnership`.
-- Lists of things (parties, teams, roles, workstreams, steps, personas, the RACI matrix, and a structure's bands, boxes and lines) are Markdown tables. Columns are found by their header, in any order, ignoring case and spaces.
+- Lists of things (parties, teams, roles, committees, workstreams, steps, personas, the RACI matrix, and a structure's bands, boxes and lines) are Markdown tables. Columns are found by their header, in any order, ignoring case and spaces.
 - Things refer to each other **by name**. Names match ignoring case, spaces and punctuation, so `solution  Architect` finds "Solution architect".
-- Different kinds of thing may share a name, such as a workstream and a process both called "Win the work". Every id must still be unique across the whole model, so the engine appends the kind to the id of the one that comes **later** in the sheet (parties, teams, roles, workstreams, personas, then processes, each in table order): the process gets the id `win-the-work-process`. There is no message, and the names stay as written. An id you set yourself (an `ID` column or `ID:` line) is never changed: if it is the same as the id of something earlier in the sheet, the report shows an error naming both places.
+- Different kinds of thing may share a name, such as a workstream and a process both called "Win the work". The exception is a role and a committee: either can be a step's owner, so a role and a committee with the same name is an error. Every id must still be unique across the whole model, so the engine appends the kind to the id of the one that comes **later** in the sheet (parties, teams, roles, committees, workstreams, personas, then processes, each in table order): the process gets the id `win-the-work-process`. There is no message, and the names stay as written. An id you set yourself (an `ID` column or `ID:` line) is never changed: if it is the same as the id of something earlier in the sheet, the report shows an error naming both places.
 - HTML comments (`<!-- like this -->`) are ignored everywhere, so you can leave guidance in the sheet. A comment ends at the next `-->`. If a `<!--` is never closed, everything from it to the end of the file is ignored, so close every comment you add.
 - **Open questions** and **Sources** are working notes. They are never included in an exported snapshot.
 
@@ -130,12 +130,14 @@ Version: 1.0
 | `## Parties` | Yes | A table of the organisations taking part. |
 | `## Teams` | No | A table of teams inside a party. |
 | `## Roles` | Yes | A table of the roles that do the work. |
+| `## Committees` | No | A table of groups of roles, from any parties, that own steps together. |
+| `## Committees` | No | A table of groups of roles, from any parties, that own steps together. |
 | `## Workstreams` | No | A table of groups of processes. |
 | `## Process: <name>` | No | One section per process: its lines, a step table, a RACI matrix and notes. |
 | `## Structure: <name>` | No | One section per structure diagram: its lines, then Bands, Boxes and Lines tables and notes. |
 | `## Personas` | No | A table of the types of viewer, and where each one starts. |
 | `## Theme` | No | Your own words for terms. |
-| `## Notes: <name>` | No | Text for a party, team, role, workstream, process, structure or persona, shown on its page. |
+| `## Notes: <name>` | No | Text for a party, team, role, committee, workstream, process, structure or persona, shown on its page. |
 | `## Open questions` | No | A checklist of things still to decide. Not included in snapshots. |
 | `## Sources` | No | A list of the material the sheet was drafted from. Not included in snapshots. |
 
@@ -200,6 +202,37 @@ Every table except a structure's Bands and Lines can also have these optional co
 | `Party` | Yes | The name of the party it belongs to. |
 | `Team` | No | The name of its team. |
 | `Summary` | No | What this role does. |
+
+### Committees
+
+A committee is a group of roles, usually from more than one party, that decides or does a step together, such as a bid board or a steering group. Name it as a step's `Owner`, and the step is shown "By committee", in a lane of its own between the parties.
+
+| Column | Required | What it holds |
+|---|---|---|
+| `Committee` | Yes | The committee's name. It can't be the same as a role's name, because either can be a step's owner. |
+| `Members` | Yes | The member roles, separated by semicolons, each with **one** RACI letter in brackets: `A` if they share the decision, `C` if consulted, `I` if informed, `R` if they do the work. |
+| `Summary` | No | What the committee decides. |
+
+```markdown
+## Committees
+
+| Committee | Members | Summary |
+|---|---|---|
+| Bid board | Account lead (A); Solution architect (A); Bid manager (I) | Decides together whether to bid. |
+
+## Process: Decide whether to bid
+
+Workstream: Presales
+
+| # | Step | Owner | Next |
+|---|---|---|---|
+| 1 | Go or no-go | Bid board | End |
+```
+
+- The members marked `A` are **jointly accountable**: they share the decision, and there is no single owner. So a step the committee owns has its A from the committee, and several A members are not a problem.
+- A member's letter is set here, once, not in the RACI matrix. A step the committee owns can still give letters to roles that aren't members, e.g. someone informed.
+- A member with no letter, or more than one (such as `(A/R)`), is an error naming the row and the member. So is a member that isn't a role, with a suggestion when a name is close.
+- A committee with no member marked `A`, with only one (use that role as the owner, with the others in the RACI), or whose `A` members all belong to one party (a team may fit better) is a warning. So is a committee that owns no step. None of these stops the export.
 
 ### Workstreams
 
@@ -275,7 +308,7 @@ Most lost bids were lost **before they started**.
 |---|---|---|
 | `#` | Yes | The step's number, used by `Next` and the RACI matrix. Number the rows 1, 2, 3 and so on. |
 | `Step` | Yes | The step's name. Names must be different within a process. |
-| `Owner` | Yes | The name of the role that owns the step. The step sits in this role's lane. |
+| `Owner` | Yes | The name of the role or [committee](#committees) that owns the step. The step sits in that role's or committee's lane. |
 | `Description` | No | What happens. Markdown is allowed. |
 | `Inputs` | No | What the step needs, separated by semicolons. |
 | `Outputs` | No | What the step produces, separated by semicolons. |
@@ -303,6 +336,7 @@ A `Next` that points to a step that doesn't exist in the process is an error nam
 - Each cell is empty or **one letter**: `R` (responsible: does the work), `A` (accountable: signs it off), `C` (consulted) or `I` (informed).
 - A cell with more than one letter, such as `A/R`, is an error. Choose R if the role does the work, or A if it signs the work off.
 - Every step should have **exactly one A**. A step with no A, or with more than one, is a warning. It doesn't stop the export.
+- A step owned by a committee takes its members' letters from the committee, so leave its row empty for them. Its A is the committee's members marked A, together. Give letters on its row only to roles that aren't members, and never A.
 - The owner counts as R when it has no letter of its own.
 - An unknown role column or step row is an error, with a suggestion when a name is close.
 
@@ -410,7 +444,7 @@ Lines are plain: they have no arrowheads and no direction, so the same two cells
 
 ## Notes for other elements
 
-`## Notes: <name>` attaches text to the party, team, role, workstream, process, structure or persona with that name:
+`## Notes: <name>` attaches text to the party, team, role, committee, workstream, process, structure or persona with that name:
 
 ```markdown
 ## Notes: Presales
@@ -422,7 +456,7 @@ An unknown name is an error, with a suggestion when one is close. So is a name s
 
 ## Theme
 
-`## Theme` is optional. It holds `Label <term>: <word>` lines, one per line: your word for one of the engine's terms: `model`, `party`, `team`, `role`, `persona`, `workstream`, `process`, `step`, `structure` and `key message`, each also in the plural (`Label workstreams`). Rename both forms together.
+`## Theme` is optional. It holds `Label <term>: <word>` lines, one per line: your word for one of the engine's terms: `model`, `party`, `team`, `role`, `committee`, `persona`, `workstream`, `process`, `step`, `structure` and `key message`, each also in the plural (`Label workstreams`). Rename both forms together.
 
 ```markdown
 ## Theme

@@ -49,6 +49,18 @@ export function closest(word, candidates) {
 // More than one RACI letter in a cell, e.g. "A/R" or "RA" (design D6).
 export const COMBINED = /^[RACI]{2,}$|[/,+&]/i;
 
+// Names match ignoring case, spaces and punctuation (capture sheet D4, and a role and a committee's names).
+export const nameKey = (s) => s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
+
+const isMap = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+// A committee-owned step's RACI (committees spec, design D4): the committee's member letters, then the step's own
+// letters for roles that aren't members. members: the owning committee's members, or undefined for a role owner.
+export const effectiveRaci = (raci, members) => {
+  const own = isMap(raci) ? raci : {};
+  if (!isMap(members)) return own;
+  return { ...members, ...Object.fromEntries(Object.entries(own).filter(([r]) => !Object.hasOwn(members, r))) };
+};
+
 // A document's location, and a step's row when the document came from a capture sheet.
 const whereOf = (doc, i) => {
   const w = (i !== undefined && doc.stepWhere && doc.stepWhere[i]) || doc.where;
@@ -132,6 +144,7 @@ export function validate(docs) {
     for (const issue of check(header, schemas[header.type])) {
       if (doc.where && issue.keyword === 'required') continue; // the capture sheet reader reports empty cells itself
       if (issue.keyword === 'enum' && issue.path[2] === 'raci' && COMBINED.test(String(issue.actual).trim())) continue; // worded below
+      if (header.type === 'committee' && issue.path[0] === 'members' && issue.path.length === 2) continue; // worded below, as for RACI
       add(wordIssue(issue, doc));
     }
     typed.push(doc);
@@ -151,22 +164,24 @@ export function validate(docs) {
     // In a capture sheet both are in the same file, so name the other section or row instead.
     if (first && doc.where && first.where && first.file === file) add({ level: 'error', file, ...whereOf(doc), element: header.id, problem: `This has the id "${header.id}", and so does ${first.where}.`, fix: 'Ids must be unique across the whole model. Give one of them a different id: an ID column in its table, or an "ID:" line under its heading.' });
     else if (first) add({ level: 'error', file, ...whereOf(doc), element: header.id, problem: `The id "${header.id}" is also used by ${first.file}.`, fix: 'Ids must be unique across the whole model. Change the id in one of the two files.' });
-    else byId.set(header.id, { file, where: doc.where, type: header.type, name: header.name, removed: removed(header) });
+    else byId.set(header.id, { file, where: doc.where, type: header.type, name: header.name, removed: removed(header), header });
   }
 
   const idsOf = (type) => [...byId].filter(([, v]) => v.type === type).map(([id]) => id);
   const nameOf = (id) => (byId.get(id) && typeof byId.get(id).name === 'string' ? byId.get(id).name : id);
-  const checkRef = (at, label, value, type, pool = idsOf(type)) => {
+  // of: who the reference belongs to, when the file alone does not say, e.g. ' of the committee "Bid board"'.
+  const checkRef = (at, label, value, type, pool = idsOf(type), of = '') => {
     if (typeof value !== 'string' || pool.includes(value)) return;
     // Steps and bands have ids of their own, so an element with the same id is no clue.
     const other = type !== 'step' && type !== 'band' && byId.get(value);
     const problem = other
-      ? `The ${label} "${value}" is a ${other.type}, not a ${type}.`
-      : `The ${label} "${value}" does not match any ${type}${{ step: ' in this process', band: ' in this structure' }[type] || ''}.`;
+      ? `The ${label} "${value}"${of} is a ${other.type}, not a ${type}.`
+      : `The ${label} "${value}"${of} does not match any ${type}${{ step: ' in this process', band: ' in this structure' }[type] || ''}.`;
     const guess = closest(value, pool);
     add({ level: 'error', ...at, problem, fix: guess ? `Did you mean ${guess}?` : `Use the id of an existing ${type}, or add a ${type} with this id.` });
   };
   const list = (v) => (Array.isArray(v) ? v : []);
+  const owners = new Set(typed.filter((d) => d.header.type === 'process').flatMap((d) => list(d.header.steps).map((s) => s && s.owner)));
 
   for (const doc of typed) {
     const h = doc.header;
@@ -202,18 +217,21 @@ export function validate(docs) {
           const sat = { ...at, ...whereOf(doc, i), step: typeof s.id === 'string' ? s.id : undefined };
           if (seen.has(s.id)) add({ level: 'error', ...sat, problem: `Two steps in this process use the id "${s.id}".`, fix: 'Give each step in a process its own id.' });
           seen.add(s.id);
-          ref(sat, 'owner', s.owner, 'role');
+          ref(sat, 'owner', s.owner, 'role or committee', [...idsOf('role'), ...idsOf('committee')]);
           const owner = byId.get(s.owner);
-          if (owner && owner.type === 'role' && owner.removed && !removed(s)) {
-            add({ level: 'warning', ...sat, problem: `This step is owned by the role "${s.owner}", which is marked as removed.`, fix: 'Give the step an owner that stays, or mark the step as removed too (change: status: removed).' });
+          if (owner && ['role', 'committee'].includes(owner.type) && owner.removed && !removed(s)) {
+            add({ level: 'warning', ...sat, problem: `This step is owned by the ${owner.type} "${s.owner}", which is marked as removed.`, fix: 'Give the step an owner that stays, or mark the step as removed too (change: status: removed).' });
           }
           if (s.raci && typeof s.raci === 'object') for (const r of Object.keys(s.raci)) ref(sat, 'RACI role', r, 'role');
           for (const n of list(s.next)) ref(sat, 'next step', typeof n === 'string' ? n : n && n.to, 'step', stepIds);
           // A capture sheet's combined letter is reported at its RACI table row, where it is written.
-          raciChecks(s, sat, doc.raciWhere && doc.raciWhere[i] ? { ...sat, where: doc.raciWhere[i] } : sat);
+          raciChecks(s, sat, doc.raciWhere && doc.raciWhere[i] ? { ...sat, where: doc.raciWhere[i] } : sat, owner && owner.type === 'committee' ? owner : null);
         });
         break;
       }
+      case 'committee':
+        committeeChecks(h, at, ref);
+        break;
       case 'structure':
         structureChecks(doc, h, at, ref);
         break;
@@ -242,6 +260,34 @@ export function validate(docs) {
     });
   }
   return messages;
+
+  // A committee's members and their letters, and what makes it a joint decision (committees spec, design D4).
+  // A capture sheet's reader has already reported its member names and letters, and dropped the bad ones.
+  function committeeChecks(h, at, ref) {
+    const name = typeof h.name === 'string' ? h.name : h.id;
+    const clash = typeof h.name === 'string' && [...byId.values()].find((v) => v.type === 'role' && typeof v.name === 'string' && nameKey(v.name) === nameKey(h.name));
+    if (clash) add({ level: 'error', ...at, problem: `The committee "${name}" has the same name as the role "${clash.name}" (${clash.where || clash.file}). A step's owner can name either, so they need different names.`, fix: 'Rename the committee or the role.' });
+    if (!owners.has(h.id) && !removed(h)) add({ level: 'warning', ...at, problem: `The committee "${name}" doesn't own any step.`, fix: 'Name it as the owner of the steps it decides, or remove it.' });
+    if (!isMap(h.members)) return;
+    const members = Object.entries(h.members);
+    if (!members.length) return add({ level: 'error', ...at, problem: `The committee "${name}" has no members. It needs at least one member role.`, fix: 'List each member role under "members", with one letter, e.g. "account-lead: A".' });
+    for (const [r, v] of members) {
+      ref(at, 'member', r, 'role', idsOf('role'), ` of the committee "${name}"`);
+      if (typeof v === 'string' && /^[RACI]$/.test(v)) continue;
+      const who = nameOf(r);
+      const problem = typeof v === 'string' && v.trim() ? `The committee "${name}" gives ${who} "${v}". Each member has exactly one RACI letter.` : `The committee "${name}" gives ${who} no RACI letter.`;
+      add({ level: 'error', ...at, problem, fix: `Use one of R, A, C or I: A if ${who} shares the decision, C if consulted, I if informed, R if ${who} does the work.` });
+    }
+    const accountable = members.filter(([, v]) => v === 'A').map(([r]) => r);
+    const parties = new Set(accountable.map((r) => byId.get(r) && byId.get(r).header.party));
+    if (!accountable.length) add({ level: 'warning', ...at, problem: `No member of the committee "${name}" is marked A, so it isn't clear who makes the decision.`, fix: 'Which members make the decision together? Mark them A.' });
+    else if (accountable.length === 1) {
+      const who = nameOf(accountable[0]);
+      add({ level: 'warning', ...at, problem: `Only one member of the committee "${name}" is marked A (${who}), so the decision isn't joint.`, fix: `Make ${who} the owner of its steps instead, with the other members in each step's RACI, or mark A the other members who share the decision.` });
+    } else if (parties.size === 1 && !parties.has(undefined)) {
+      add({ level: 'warning', ...at, problem: `The members of the committee "${name}" marked A all belong to ${nameOf([...parties][0])}.`, fix: 'A committee is for a decision taken together across parties. Use a team or a single owner instead, or mark A the members from another party who share the decision.' });
+    }
+  }
 
   // Bands, boxes, lines and relations inside one structure (design D3). A capture sheet's reader has already
   // matched every name (ref is then a no-op), so only the shape checks run for it.
@@ -316,7 +362,10 @@ export function validate(docs) {
   }
 
   // One letter per cell, and exactly one A per step (design D6). The owner counts as R when it has no letter.
-  function raciChecks(s, sat, cellAt) {
+  // A committee-owned step's accountable is the committee's members marked A, jointly (design D4), so it is checked
+  // on the committee. Here only the step's own letters are: a member's letter is set on the committee, and a
+  // non-member can't be A as well.
+  function raciChecks(s, sat, cellAt, committee) {
     const raci = s.raci && typeof s.raci === 'object' && !Array.isArray(s.raci) ? s.raci : {};
     const step = typeof s.name === 'string' ? s.name : s.id;
     let combined = false;
@@ -327,6 +376,16 @@ export function validate(docs) {
       add({ level: 'error', ...cellAt, problem: `${who} has "${v}" on the step "${step}". A role can have only one RACI letter per step.`, fix: `Choose one letter: R if ${who} does the work, or A if ${who} signs the work off.` });
     }
     if (combined) return;
+    if (committee) {
+      const members = isMap(committee.header.members) ? committee.header.members : {};
+      const cname = typeof committee.name === 'string' ? committee.name : s.owner;
+      for (const [r, v] of Object.entries(raci)) {
+        const who = nameOf(r);
+        if (Object.hasOwn(members, r)) add({ level: 'warning', ...cellAt, problem: `${who} has ${v} on the step "${step}", but ${who} is a member of the committee "${cname}", which owns it. Members' letters are set on the committee, so its letter (${members[r]}) is used.`, fix: `Remove ${who} from the step's RACI, or change ${who}'s letter on the committee.` });
+        else if (v === 'A') add({ level: 'warning', ...cellAt, problem: `${who} has A on the step "${step}", but the committee "${cname}" owns it, and its members marked A already sign it off.`, fix: `Change ${who} to R, C or I, or make ${who} a member of the committee.` });
+      }
+      return;
+    }
     const accountable = Object.keys(raci).filter((r) => raci[r] === 'A');
     if (!accountable.length) add({ level: 'warning', ...sat, problem: `No role is accountable (A) for the step "${step}".`, fix: 'Who signs this step off? Mark that role A in the RACI.' });
     else if (accountable.length > 1) {

@@ -18,7 +18,7 @@ test('the sample loads with 0 errors and 0 warnings', () => {
 test('the sample has every element type', () => {
   assert.equal(model.model.id, 'acme-sample');
   assert.ok(model.theme);
-  for (const t of ['party', 'team', 'role', 'persona', 'workstream', 'process', 'structure']) assert.ok(model.order[t].length, t);
+  for (const t of ['party', 'team', 'role', 'committee', 'persona', 'workstream', 'process', 'structure']) assert.ok(model.order[t].length, t);
   assert.ok(allSteps.length);
   assert.equal(model.order.party.length, 2);
   assert.ok(model.order.role.length >= 6);
@@ -78,8 +78,11 @@ test('steps are resolved to owner, lane and party, and edges are precomputed (D4
   assert.deepEqual(q.steps.find((s) => s.id === 'decline').next, [], 'next: [] ends the flow');
   const e = q.edges.find((x) => x.from === 'capture-lead');
   assert.deepEqual([e.handoff, e.crossParty], [true, true]);
-  const same = q.edges.find((x) => x.from === 'go-no-go' && x.to === 'decline');
-  assert.deepEqual([same.label, same.handoff, same.crossParty], ['No go', false, false]);
+  // Out of the bid board (Acme and Globex members) into an Acme step: a cross-party handoff.
+  const out = q.edges.find((x) => x.from === 'go-no-go' && x.to === 'decline');
+  assert.deepEqual([out.label, out.handoff, out.crossParty], ['No go', true, true]);
+  const same = el['build-proposal'].edges.find((x) => x.from === 'review-proposal' && x.to === 'submit-proposal');
+  assert.deepEqual([same.label, same.handoff, same.crossParty], ['Approved', false, false]);
   assert.ok(q.body.includes('## Why this matters'), 'body kept as raw Markdown');
 });
 

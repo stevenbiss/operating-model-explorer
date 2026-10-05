@@ -63,18 +63,30 @@ export function swimlaneSvg(ctx) {
 
   // Lane headers: the full role name (wrapped, never truncated), team, and cues ("Your lane", a change badge)
   // stacked below. A lane that only takes part (RACI) stays compact while its name fits one line and it has no cues.
+  // A committee lane (design D3) lists its members under each party; a member's own lane says which committees in
+  // this process it sits on, with its letter. Both are text, so membership never relies on marks or colour.
+  const committees = f.groups.filter((g) => g.committee).flatMap((g) => g.lanes);
   const head = {};
   for (const r of f.lanes) {
     const role = el[r];
+    const isCommittee = committees.includes(r);
     const cues = [];
-    if (persona && ctx.mine(r)) cues.push(['Your lane', 'cue']);
+    if (persona && ctx.mine(r)) cues.push([isCommittee ? `Your ${ctx.L.lower('committee')}` : 'Your lane', 'cue']);
     const rb = ctx.badge(role && role.change);
     if (rb) cues.push([rb, `badge-${role.change.status}`]);
     const name = wrap(role ? role.name : r, 22, 99);
-    const compact = !f.rows[r] && !cues.length && name.length === 1;
-    const team = !compact && role && role.team && el[role.team] ? el[role.team].name : '';
-    const need = 30 + (name.length - 1) * 17 + (team ? 18 : 0) + (cues.length ? 28 : 0) + 16;
-    head[r] = { cues, name, team, h: compact ? COMPACT : Math.max(laneHeight(f.rows[r]), need) };
+    const parties = isCommittee
+      ? [...m.order.party, null]
+          .map((party) => ({ party, members: Object.keys(role.members).filter((x) => (el[x] && m.order.party.includes(el[x].party) ? el[x].party : null) === party) }))
+          .filter((g) => g.members.length)
+          .map((g) => ({ party: g.party, name: wrap(g.party ? el[g.party].name : `No ${ctx.L.lower('party')}`, 20, 99), lines: g.members.flatMap((x) => wrap(`${el[x] ? el[x].name : x} · ${role.members[x]}`, 26, 99)) }))
+      : [];
+    const member = committees.filter((c) => Object.hasOwn(el[c].members, r)).flatMap((c) => wrap(`${el[c].name} member · ${el[c].members[r]}`, 26, 99));
+    const compact = !f.rows[r] && !cues.length && name.length === 1 && !member.length;
+    const team = !compact && !isCommittee && role && role.team && el[role.team] ? el[role.team].name : '';
+    const lines = member.length + parties.reduce((n, g) => n + g.name.length + g.lines.length, 0);
+    const need = 30 + (name.length - 1) * 17 + (team ? 18 : 0) + lines * 16 + parties.length * 6 + (cues.length ? 28 : 0) + 16;
+    head[r] = { cues, name, team, member, parties, h: compact ? COMPACT : Math.max(laneHeight(f.rows[r]), need) };
   }
   const lh = (r) => head[r].h;
 
@@ -85,7 +97,7 @@ export function swimlaneSvg(ctx) {
   const laneTop = {};
   const bands = [];
   for (const g of f.groups) {
-    const name = partyLines(g.party);
+    const name = g.committee ? [ctx.L('committees')] : partyLines(g.party);
     const h = PARTY_H + (name.length - 1) * BAND_LINE;
     bands.push({ party: g.party, y, h, name });
     y += h;
@@ -175,7 +187,8 @@ export function swimlaneSvg(ctx) {
     const cls = ['node', s.id === ctx.selected && 'selected', persona && (cue ? 'mine' : 'dim'), badge && `status-${s.change.status}`].filter(Boolean).join(' ');
     const pills = [];
     let px = p.x + 14;
-    for (const [text, c] of [[badge, `badge-${badge && s.change.status}`], [cue, 'cue']]) {
+    const by = s.ownerType === 'committee' && `By ${ctx.L.lower('committee')}`;
+    for (const [text, c] of [[by, 'committee'], [badge, `badge-${badge && s.change.status}`], [cue, 'cue']]) {
       if (!text) continue;
       const pl = pill(px, p.bottom - 26, text, c);
       pills.push(pl.svg);
@@ -195,11 +208,20 @@ export function swimlaneSvg(ctx) {
   // Lane header links (layout computed above).
   let heads = '';
   for (const r of f.lanes) {
-    const { cues, name, team } = head[r];
+    const { cues, name, team, member, parties } = head[r];
     const top = laneTop[r];
-    let inner = `<text class="lane-name" x="18" y="${top + 30}">${name.map((l, i) => `<tspan x="18" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join('')}</text>`;
+    let inner = `<text class="lane-name" x="18" y="${top + 30}">${name.map((l, i) => `<tspan x="18" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join(' ')}</text>`;
     let below = top + 30 + (name.length - 1) * 17;
-    if (team) inner += `<text class="lane-team" x="18" y="${(below += 18)}">${esc(team)}</text>`;
+    if (team) inner += ` <text class="lane-team" x="18" y="${(below += 18)}">${esc(team)}</text>`;
+    // Joined with spaces, so the link's accessible name reads "Account lead · A Bid manager · I", not "· ABid".
+    const textLines = (list, cls, x = 18) => list.map((l) => ` <text class="${cls}" x="${x}" y="${(below += 16)}">${esc(l)}</text>`).join('');
+    inner += textLines(member, 'lane-team');
+    for (const g of parties) {
+      below += 6;
+      const pm = ctx.mark(g.party);
+      if (pm) marks += `<span class="band-mark member-mark" style="top:${below + 16 - 12.5}px">${pm}</span>`;
+      inner += textLines(g.name, 'lane-party', pm ? 38 : 18) + textLines(g.lines, 'lane-team');
+    }
     let px = 18;
     for (const [text, c] of cues) {
       const pl = pill(px, below + 10, text, c);

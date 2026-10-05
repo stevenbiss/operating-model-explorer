@@ -50,6 +50,18 @@ Optional columns on every table: Change (New, Changed, Removed or Unchanged), To
 | Role | Party | Team | Summary |
 |---|---|---|---|
 
+## Committees
+
+<!-- Optional. Groups of roles, usually from both parties, that decide or do a step together (e.g. a bid board).
+Name the committee as a step's Owner. It can't have the same name as a role.
+Members: role names separated by semicolons, each with ONE letter in brackets: A if they share the decision,
+C if consulted, I if informed, R if they do the work, e.g. "Account lead (A); Partner manager (A); Bid manager (I)".
+Use a committee only when two or more people really decide together. When one person decides and others are
+consulted, keep that person as the Owner and put the others in the RACI. -->
+
+| Committee | Members | Summary |
+|---|---|---|
+
 ## Workstreams
 
 <!-- Groups of processes. Parties: names separated by semicolons. Detail: Detailed or Outline. -->
@@ -63,7 +75,7 @@ Workstream: <!-- The name of its workstream -->
 Summary: <!-- Optional: one or two sentences -->
 
 <!--
-One row per step, in order. Owner is a role's name. Lists in a cell are separated by semicolons.
+One row per step, in order. Owner is a role's or a committee's name. Lists in a cell are separated by semicolons.
 Next: leave empty to go to the following row; write a # or step name; label decision branches
 ("Go: 4; No go: 5"); or write End to finish the flow at this step.
 -->
@@ -148,7 +160,7 @@ Party colours and marks come from brand packs (the Brand column in Parties), not
 <!--
 ## Notes: <name>
 
-Optional, one section per element: text for the party, team, role, workstream, process, structure or persona
+Optional, one section per element: text for the party, team, role, committee, workstream, process, structure or persona
 with that name, shown on its page.
 -->
 

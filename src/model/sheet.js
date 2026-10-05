@@ -2,7 +2,7 @@
 // export are shared. Reads the markdown-it token stream (D1). Pure: works in Node and the browser.
 // The format is described in docs/capture-sheet.md.
 import MarkdownIt from 'markdown-it';
-import { closest, COMBINED } from './validate.js';
+import { closest, COMBINED, nameKey } from './validate.js';
 import { schemas } from './schemas.js';
 import { RETIRED, retiredFix } from './theme-check.js';
 
@@ -10,10 +10,9 @@ export const FORMAT = 1; // the newest capture sheet format this engine reads (D
 
 const md = new MarkdownIt(); // html: false, GFM tables on
 
-const plain = (s) => s.normalize('NFKD').replace(/\p{M}/gu, '');
 // Names match ignoring case, spaces and punctuation (D4); ids are the name in lower case with hyphens.
-export const nameKey = (s) => plain(s).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
-export const toId = (s) => plain(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+export { nameKey };
+export const toId = (s) => s.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 // HTML comments are dropped in one pass, so the time grows with the sheet's length only. A comment runs to the next
 // "-->", or to the end of the file when it is never closed. A comment on lines of its own goes with its line breaks,
 // so a comment between table rows doesn't split the table.
@@ -53,6 +52,7 @@ const TABLES = {
   party: [['Party', 'name', 1], ['Summary', 'summary'], ['Brand', 'brand'], ...CHANGE],
   team: [['Team', 'name', 1], ['Party', 'party', 1], ['Summary', 'summary'], ...CHANGE],
   role: [['Role', 'name', 1], ['Party', 'party', 1], ['Team', 'team'], ['Summary', 'summary'], ...CHANGE],
+  committee: [['Committee', 'name', 1], ['Members', 'members', 1], ['Summary', 'summary'], ...CHANGE],
   workstream: [['Workstream', 'name', 1], ['Summary', 'summary', 1], ['Parties', 'parties'], ['Detail', 'detail', 1], ...CHANGE],
   persona: [['Persona', 'name', 1], ['Roles', 'roles', 1], ['Starts at', 'entry', 1], ['Summary', 'summary'], ...CHANGE],
   step: [['#', 'num', 1], ['Step', 'name', 1], ['Owner', 'owner', 1], ['Description', 'description'], ['Inputs', 'inputs'], ['Outputs', 'outputs'], ['Systems', 'systems'], ['KPIs', 'kpis'], ['Next', 'next'], ...CHANGE],
@@ -61,10 +61,10 @@ const TABLES = {
   box: [['Band', 'band', 1], ['Role', 'role'], ['Team', 'team'], ['Name', 'name'], ['Note', 'note'], ['Change', 'status'], ['Today', 'today']],
   line: [['From band', 'fromBand', 1], ['From party', 'fromParty', 1], ['To band', 'toBand', 1], ['To party', 'toParty', 1], ['Label', 'label']],
 };
-const SECTION = { party: 'Parties', team: 'Teams', role: 'Roles', workstream: 'Workstreams', persona: 'Personas' };
-const SECTIONS = ['Purpose', 'Key messages', 'About this model', 'Parties', 'Teams', 'Roles', 'Workstreams', 'Personas', 'Theme', 'Open questions', 'Sources'];
+const SECTION = { party: 'Parties', team: 'Teams', role: 'Roles', committee: 'Committees', workstream: 'Workstreams', persona: 'Personas' };
+const SECTIONS = ['Purpose', 'Key messages', 'About this model', 'Parties', 'Teams', 'Roles', 'Committees', 'Workstreams', 'Personas', 'Theme', 'Open questions', 'Sources'];
 const REQUIRED = ['Purpose', 'Key messages', 'Parties', 'Roles'];
-const WORD = { party: 'party', team: 'team', role: 'role', workstream: 'workstream', process: 'process', structure: 'structure', persona: 'persona' };
+const WORD = { party: 'party', team: 'team', role: 'role', committee: 'committee', workstream: 'workstream', process: 'process', structure: 'structure', persona: 'persona' };
 const HOME = { process: 'a "## Process:" section', structure: 'a "## Structure:" section' };
 const LABELS = Object.keys(schemas.theme.properties.labels.properties);
 
@@ -257,9 +257,20 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     return toId(raw);
   }
 
+  // An Owner names a role or a committee (design D7). A role and a committee with the same name are reported by validate().
+  function findOwner(raw, where) {
+    if (!raw) return undefined;
+    const hit = names.role.get(nameKey(raw)) || names.committee.get(nameKey(raw));
+    if (hit) return hit.id;
+    const all = [...names.role.values(), ...names.committee.values()];
+    const guess = closest(nameKey(raw), all.map((x) => nameKey(x.name)));
+    say('error', where, `The owner "${raw}" does not match any role or committee.`, guess ? `Did you mean ${all.find((x) => nameKey(x.name) === guess).name}?` : 'Use the name of a role from the Roles section or a committee from the Committees section, or add it there.');
+    return toId(raw);
+  }
+
   // ---------- read every table first, so names can refer forwards ----------
   const rows = {};
-  for (const type of ['party', 'team', 'role', 'workstream', 'persona']) {
+  for (const type of ['party', 'team', 'role', 'committee', 'workstream', 'persona']) {
     const s = one[SECTION[type]];
     rows[type] = (s && rowsOf(s.blocks, SECTION[type], TABLES[type], SECTION[type])) || [];
     for (const r of rows[type]) r.id = register(type, r.get('name'), r.get('id'), r.where);
@@ -313,6 +324,23 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
   for (const r of rows.role) {
     doc('role', r.where, compact({ ...base(r), party: find('party', r.get('party'), r.where, 'party'), team: find('team', r.get('team'), r.where, 'team') }));
   }
+  // Members: "Account lead (A); Partner manager (A)". A member without exactly one letter is reported here and left out.
+  for (const r of rows.committee) {
+    const members = {};
+    for (const item of list(r.get('members'))) {
+      const m = item.match(/^(.*?)\s*\(([^()]*)\)$/);
+      const who = m ? m[1] : item;
+      const id = find('role', who, r.where, 'member');
+      const v = m ? m[2].trim().toUpperCase() : '';
+      if (/^[RACI]$/.test(v)) {
+        members[id] = v;
+        continue;
+      }
+      const problem = !m ? `${who} has no RACI letter.` : COMBINED.test(v) ? `${who} has "${m[2]}". A member can have only one RACI letter.` : `${who} has "${m[2]}", which is not R, A, C or I.`;
+      say('error', r.where, problem, `Write one letter in brackets after the name: A if they share the decision, C if consulted, I if informed, R if they do the work, e.g. "${who} (A)".`);
+    }
+    doc('committee', r.where, compact({ ...base(r), members: Object.keys(members).length ? members : undefined }));
+  }
   for (const r of rows.workstream) {
     const parties = list(r.get('parties')).map((p) => find('party', p, r.where, 'party'));
     doc('workstream', r.where, compact({ ...base(r), parties, detail: r.get('detail').toLowerCase() }));
@@ -337,7 +365,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
       const out = compact({
         id: st.id,
         name: st.get('name'),
-        owner: find('role', st.get('owner'), st.where, 'owner'),
+        owner: findOwner(st.get('owner'), st.where),
         description: st.get('description'),
         inputs: list(st.get('inputs')),
         outputs: list(st.get('outputs')),
@@ -502,7 +530,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     if (!hits.length) {
       const all = Object.keys(WORD).flatMap((t) => [...names[t].values()]);
       const guess = closest(nameKey(n.target), all.map((x) => nameKey(x.name)));
-      say('error', where, `These notes are for "${n.target}", which does not match the name of anything in the sheet.`, guess ? `Did you mean ${all.find((x) => nameKey(x.name) === guess).name}?` : 'Write the exact name of a party, team, role, workstream, process, structure or persona after "Notes:".');
+      say('error', where, `These notes are for "${n.target}", which does not match the name of anything in the sheet.`, guess ? `Did you mean ${all.find((x) => nameKey(x.name) === guess).name}?` : 'Write the exact name of a party, team, role, committee, workstream, process, structure or persona after "Notes:".');
       continue;
     }
     const id = names[hits[0]].get(nameKey(n.target)).id;

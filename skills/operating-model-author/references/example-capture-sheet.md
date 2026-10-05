@@ -40,13 +40,23 @@ see how the engine works, and copy it as a starting point for your own model.
 
 | Role | Party | Team | Summary | Change | Today |
 |---|---|---|---|---|---|
-| Account lead | Acme Corp | Acme Sales | Owns the client relationship and the final go or no-go. | | |
+| Account lead | Acme Corp | Acme Sales | Owns the client relationship and shares the go or no-go. | | |
 | Bid manager | Acme Corp | Acme Sales | Runs the bid plan and keeps everyone to the deadline. | | |
 | Delivery manager | Acme Corp | Acme Delivery | Makes sure what we sell can be delivered. | | |
 | Legal counsel | Acme Corp | | Checks contract terms before anything is sent. | | |
 | Partner manager | Globex | | Looks after the Acme relationship on the Globex side. | | |
 | Pricing analyst | Globex | Globex Solutions | Builds the price and checks the margin. | New | The account lead priced each bid in a spreadsheet. |
 | Solution architect | Globex | Globex Solutions | Designs the solution and tests it against the client's needs. | | |
+
+## Committees
+
+| Committee | Members | Summary | ID |
+|---|---|---|---|
+| Acme + Globex bid board | Account lead (A); Partner manager (A); Solution architect (C); Bid manager (I) | Decides together whether to bid. | bid-board |
+
+## Notes: Acme + Globex bid board
+
+The account lead and the partner manager share the go or no-go decision. The solution architect is consulted on fit, and the bid manager is told the outcome so the bid can start.
 
 ## Workstreams
 
@@ -68,7 +78,7 @@ Summary: Decide quickly and together whether an opportunity is worth pursuing.
 |---|---|---|---|---|---|---|---|---|---|---|
 | 1 | Capture the lead | Account lead | Log the opportunity as soon as the client mentions it. | | Lead record | CRM | Leads logged within 1 day | | | |
 | 2 | Assess solution fit | Solution architect | Check whether Globex can build what the client needs. | Lead record | Fit assessment | | | | | |
-| 3 | Go or no-go | Account lead | Decide together whether to bid. | Fit assessment | | | Decision within 5 working days | Go: 5; No go: 4 | | |
+| 3 | Go or no-go | Acme + Globex bid board | Decide together whether to bid. | Fit assessment | | | Decision within 5 working days | Go: 5; No go: 4 | | |
 | 4 | Decline politely | Account lead | Tell the client why, and what would change the answer. | | | | | End | New | Opportunities without a fit were left to go cold, with no reply to the client. |
 | 5 | Kick off the bid | Bid manager | Agree the bid team, the plan and the deadline. | | Bid plan | Shared bid workspace | | | Changed | Kick-off happened by email, and Globex joined a week later. |
 
@@ -78,7 +88,7 @@ Summary: Decide quickly and together whether an opportunity is worth pursuing.
 |---|---|---|---|---|---|
 | 1 | A | | | | |
 | 2 | C | A | I | | |
-| 3 | A | | C | I | |
+| 3 | | | | | |
 | 4 | A | | | | |
 | 5 | | C | | A | I |
 

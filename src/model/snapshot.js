@@ -32,7 +32,7 @@ export function toSnapshot(model, extra = {}) {
   const partyColours = (model.partyColours || []).map(({ party, band, bandText, tint, darkBand, darkBandText, darkTint }) => ({ party, band, bandText, tint, darkBand, darkBandText, darkTint }));
   // The theme is labels only (design D7): retired keys (colours, fonts, logo, palette) are never embedded.
   const theme = model.theme ? { labels: model.theme.labels } : null;
-  return { model: model.model, theme, elements: model.elements, order: model.order, assets, partyColours, marks, brandsUsed, ...extra };
+  return { model: model.model, theme, elements: model.elements, order: model.order, committeesOf: model.committeesOf, stepsOf: model.stepsOf, assets, partyColours, marks, brandsUsed, ...extra };
 }
 
 // Safe to place inside a <script> element.

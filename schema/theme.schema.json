@@ -26,6 +26,8 @@
         "teams": { "type": "string", "description": "Default: Teams" },
         "role": { "type": "string", "description": "Default: Role" },
         "roles": { "type": "string", "description": "Default: Roles" },
+        "committee": { "type": "string", "description": "Default: Committee" },
+        "committees": { "type": "string", "description": "Default: Committees" },
         "persona": { "type": "string", "description": "Default: Persona" },
         "personas": { "type": "string", "description": "Default: Personas" },
         "workstream": { "type": "string", "description": "Default: Workstream" },

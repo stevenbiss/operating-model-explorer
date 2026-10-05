@@ -2,6 +2,8 @@
 // m is the normalised model (load.js / snapshot.js); nothing here touches the DOM.
 
 export const isRemoved = (x) => !!(x && x.change && x.change.status === 'removed');
+// A handoff is cross-party when the two ends' party sets differ (design D8). A role's step has a set of one.
+const partiesKey = (s) => String(s.parties || [s.party]);
 
 export function flow(m, processId, { showRemoved = false } = {}) {
   const all = m.elements[processId].steps;
@@ -24,7 +26,7 @@ export function flow(m, processId, { showRemoved = false } = {}) {
       for (const t of resolve(n.to, n.label, new Set())) {
         if (done.has(t.to)) continue;
         done.add(t.to);
-        edges.push({ from: s.id, to: t.to, label: t.label, crossParty: s.party !== byId[t.to].party, back: false });
+        edges.push({ from: s.id, to: t.to, label: t.label, crossParty: partiesKey(s) !== partiesKey(byId[t.to]), back: false });
       }
     }
   }
@@ -50,10 +52,14 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   const rankOf = (id) => (rank[id] ??= Math.max(0, ...into[id].map((f) => rankOf(f) + 1)));
   steps.forEach((s) => rankOf(s.id));
 
-  // Lanes: every role that owns or takes part (RACI) in a shown step, grouped by party in content order.
+  // Lanes: every role that owns or takes part (RACI, which includes committee membership) in a shown step, grouped
+  // by party in content order. Each committee that owns a shown step gets a lane too (design D3): all of them in one
+  // group directly after the first party group, in the order their first steps appear in the flow.
+  const committees = [];
   const used = new Set();
   for (const s of steps) {
-    if (typeof s.owner === 'string') used.add(s.owner);
+    if (s.ownerType === 'committee') committees.includes(s.owner) || committees.push(s.owner);
+    else if (typeof s.owner === 'string') used.add(s.owner);
     Object.keys(s.raci).forEach((r) => used.add(r));
   }
   const known = m.order.role.filter((r) => used.has(r));
@@ -62,6 +68,8 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   const groups = [...m.order.party, null]
     .map((party) => ({ party, lanes: roles.filter((r) => partyOf(r) === party) }))
     .filter((g) => g.lanes.length);
+  const first = (c) => Math.min(...steps.filter((s) => s.owner === c).map((s) => rank[s.id]));
+  if (committees.length) groups.splice(1, 0, { party: null, committee: true, lanes: committees.sort((a, b) => first(a) - first(b)) });
   const lanes = groups.flatMap((g) => g.lanes);
 
   // Two steps in the same lane and rank stack into slots.

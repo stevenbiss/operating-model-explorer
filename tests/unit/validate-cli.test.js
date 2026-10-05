@@ -28,7 +28,7 @@ test('2.46 errors fail the command: level, location, problem and "Did you mean �
   assert.equal(r.code, 1);
   assert.match(r.out, /^Errors \(1\)$/m);
   assert.match(r.out, /error · Process: Build the proposal › row 2/);
-  assert.match(r.out, /Problem: The owner "Sol architect" does not match any role\./);
+  assert.match(r.out, /Problem: The owner "Sol architect" does not match any role or committee./);
   assert.match(r.out, /Fix: Did you mean Solution architect\?/);
   assert.equal(r.last, '1 error, 0 warnings');
 });

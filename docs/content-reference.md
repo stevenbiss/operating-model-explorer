@@ -126,6 +126,39 @@ summary: Owns the client relationship.
 ---
 ```
 
+## committee
+
+A group of roles, from any parties, that owns steps together. Each member has one RACI letter, and the members marked A are jointly accountable. A committee belongs to no party.
+
+**EDGY concept:** Organisation
+
+| Field | Required | Value | Description |
+|---|---|---|---|
+| `id` | Yes | text | Unique id: lower-case letters and numbers joined by hyphens, e.g. bid-board. Used as a step's owner. |
+| `type` | Yes | one of: committee | Always committee. |
+| `name` | Yes | text | The committee's display name. It can't be the same as a role's name. |
+| `summary` | No | text | One or two sentences about what this committee decides. |
+| `members` | Yes | role id: R, A, C, I | At least one member role id, each to one letter: A (shares the decision, jointly accountable), R (does the work), C (consulted) or I (informed), e.g. partner-manager: A. |
+| `change` | No | group of fields | Optional current vs future state. |
+| `change.status` | Yes | one of: new, changed, removed, unchanged | How this element differs from today. |
+| `change.today` | No | text | How it works today, shown next to the future state. |
+
+**Example**
+
+```yaml
+---
+id: bid-board
+type: committee
+name: Acme + Globex bid board
+summary: Decides together whether to bid.
+members:
+  account-lead: A
+  partner-manager: A
+  solution-architect: C
+  bid-manager: I
+---
+```
+
 ## persona
 
 A type of viewer. A persona maps to one or more roles, whose lanes and steps are highlighted, and has an entry point where the viewer starts.
@@ -211,7 +244,7 @@ A process inside one workstream, with its steps in order. It is shown as a swiml
 | `steps` | Yes | list of groups of fields | The steps, in order. A step flows to the next one in the list unless it has next. (EDGY: Activity) |
 | `steps[].id` | Yes | text | Id, unique within this process: lower-case letters and numbers joined by hyphens, e.g. scope. |
 | `steps[].name` | Yes | text | The step's display name. |
-| `steps[].owner` | Yes | text | The id of the role that owns this step. The step sits in this role's lane. |
+| `steps[].owner` | Yes | text | The id of the role or committee that owns this step. The step sits in that role's or committee's lane. |
 | `steps[].description` | No | text | What happens in this step. Markdown is allowed. |
 | `steps[].raci` | No | role id: R, A, C, I | Role id to R (responsible), A (accountable), C (consulted) or I (informed), e.g. solution-architect: C. |
 | `steps[].inputs` | No | list of text | What this step needs. (EDGY: Object) |
@@ -360,6 +393,8 @@ Optional words used for each term, in theme.md at the top of the folder. The fra
 | `labels.teams` | No | text | Default: Teams |
 | `labels.role` | No | text | Default: Role |
 | `labels.roles` | No | text | Default: Roles |
+| `labels.committee` | No | text | Default: Committee |
+| `labels.committees` | No | text | Default: Committees |
 | `labels.persona` | No | text | Default: Persona |
 | `labels.personas` | No | text | Default: Personas |
 | `labels.workstream` | No | text | Default: Workstream |

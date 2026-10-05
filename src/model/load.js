@@ -1,13 +1,13 @@
 import { parseFile } from './parse.js';
 import { brandSchema, schemas } from './schemas.js';
 import { check } from './schema-check.js';
-import { closest, validate, wordIssue } from './validate.js';
+import { closest, effectiveRaci, validate, wordIssue } from './validate.js';
 import { checkTheme, isUrl } from './theme-check.js';
 import { imageRefs, markdownTexts } from './markdown.js';
 import { isSheet, nameKey, sheetToDocs, toId } from './sheet.js';
 import { colourMessages, resolvePartyColours } from './colour.js';
 
-const ELEMENT_TYPES = ['party', 'team', 'role', 'persona', 'workstream', 'process', 'structure'];
+const ELEMENT_TYPES = ['party', 'team', 'role', 'committee', 'persona', 'workstream', 'process', 'structure'];
 const decoder = new TextDecoder();
 const MARK_KB = 200;
 
@@ -197,7 +197,20 @@ export function buildModel(docs, assets = {}, brands = {}) {
   }
   const el = out.elements;
   for (const id of out.order.workstream) el[id].processes = out.order.process.filter((p) => el[p].workstream === id);
-  for (const id of out.order.process) resolveSteps(el[id], el);
+  // Committees (design D4, D7, D8): only well-formed member letters, then which committees each role sits on (with
+  // its letter) and which steps each committee owns, worked out once.
+  for (const id of out.order.committee) {
+    const m = el[id].members;
+    el[id].members = Object.fromEntries(Object.entries(m && typeof m === 'object' && !Array.isArray(m) ? m : {}).filter(([, v]) => /^[RACI]$/.test(v)));
+  }
+  for (const id of out.order.process) resolveSteps(el[id], el, out.order.party);
+  out.committeesOf = Object.create(null);
+  out.stepsOf = Object.create(null);
+  for (const c of out.order.committee) {
+    out.stepsOf[c] = [];
+    for (const [r, letter] of Object.entries(el[c].members)) (out.committeesOf[r] ??= []).push({ committee: c, letter });
+  }
+  for (const p of out.order.process) for (const s of el[p].steps) if (s.ownerType === 'committee') out.stepsOf[s.owner].push({ process: p, step: s.id });
   // Structures (design D8): resolved bands, boxes and columns, and the relations each view reads, worked out once.
   const st = out.order.structure;
   for (const id of st) resolveStructure(el[id], el, out.order.party);
@@ -226,15 +239,20 @@ function resolveStructure(s, el, partyOrder) {
   s.parties = partyOrder.filter((p) => used.has(p));
 }
 
-function resolveSteps(p, el) {
+// A committee-owned step (design D7, D8) has no party of its own: parties lists its members' parties, in model order,
+// and its raci is the committee's member letters plus the step's own letters for non-members (effectiveRaci).
+function resolveSteps(p, el, partyOrder) {
   const list = (Array.isArray(p.steps) ? p.steps : []).filter((s) => s && typeof s === 'object');
   const partyOf = (role) => (el[role] && el[role].type === 'role' ? el[role].party : null);
+  const committeeOf = (id) => (typeof id === 'string' && el[id] && el[id].type === 'committee' ? el[id] : null);
   p.steps = list.map((s, i) => ({
     ...s,
     process: p.id,
     lane: s.owner,
+    ownerType: committeeOf(s.owner) ? 'committee' : 'role',
     party: partyOf(s.owner),
-    raci: s.raci && typeof s.raci === 'object' ? s.raci : {},
+    ...(committeeOf(s.owner) && { parties: partyOrder.filter((x) => Object.keys(committeeOf(s.owner).members).some((r) => partyOf(r) === x)) }),
+    raci: effectiveRaci(s.raci, committeeOf(s.owner) && committeeOf(s.owner).members),
     // Without "next", a step flows to the following step in the list.
     next: Array.isArray(s.next)
       ? s.next.map((n) => (typeof n === 'string' ? { to: n } : { to: n && n.to, label: n && n.label }))
@@ -244,6 +262,6 @@ function resolveSteps(p, el) {
   p.edges = p.steps.flatMap((s) =>
     s.next
       .filter((n) => byId[n.to])
-      .map((n) => ({ from: s.id, to: n.to, label: n.label, handoff: s.owner !== byId[n.to].owner, crossParty: s.party !== byId[n.to].party })),
+      .map((n) => ({ from: s.id, to: n.to, label: n.label, handoff: s.owner !== byId[n.to].owner, crossParty: String(s.parties || [s.party]) !== String(byId[n.to].parties || [byId[n.to].party]) })),
   );
 }

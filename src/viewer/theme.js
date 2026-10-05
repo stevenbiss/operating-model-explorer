@@ -5,7 +5,7 @@ import { HEX } from '../model/colour.js';
 
 export const DEFAULT_LABELS = {
   model: 'Model', models: 'Models', party: 'Party', parties: 'Parties', team: 'Team', teams: 'Teams',
-  role: 'Role', roles: 'Roles', persona: 'Persona', personas: 'Personas', workstream: 'Workstream', workstreams: 'Workstreams',
+  role: 'Role', roles: 'Roles', committee: 'Committee', committees: 'Committees', persona: 'Persona', personas: 'Personas', workstream: 'Workstream', workstreams: 'Workstreams',
   process: 'Process', processes: 'Processes', step: 'Step', steps: 'Steps', structure: 'Structure', structures: 'Structures',
   key_message: 'Key message', key_messages: 'Key messages',
 };

@@ -577,16 +577,19 @@ function byName(m) {
       x.boxes = e.boxes.map((b) => ({ ...b, role: b.role && n(b.role), team: b.team && n(b.team), party: n(b.party) }));
       x.lines = e.lines.map((l) => ({ ...l, from: { ...l.from, party: n(l.from.party) }, to: { ...l.to, party: n(l.to.party) } }));
     }
+    if (e.type === 'committee') x.members = Object.entries(e.members).map(([r, l]) => [n(r), l]);
     if (x.entry && x.entry.id) x.entry = { ...x.entry, id: n(x.entry.id) };
     if (x.steps) {
       const names = Object.fromEntries(e.steps.map((s) => [s.id, s.name]));
       const sn = (id) => names[id] || id;
-      x.steps = e.steps.map((s) => ({ ...s, id: s.name, owner: n(s.owner), lane: n(s.lane), party: n(s.party), process: n(s.process), raci: Object.entries(s.raci).map(([r, l]) => [n(r), l]), next: s.next.map((t) => ({ ...t, to: sn(t.to) })) }));
+      x.steps = e.steps.map((s) => ({ ...s, id: s.name, owner: n(s.owner), lane: n(s.lane), party: n(s.party), ...(s.parties && { parties: s.parties.map(n) }), process: n(s.process), raci: Object.entries(s.raci).map(([r, l]) => [n(r), l]), next: s.next.map((t) => ({ ...t, to: sn(t.to) })) }));
       x.edges = e.edges.map((d) => ({ ...d, from: sn(d.from), to: sn(d.to) }));
     }
     elements[`${e.type}: ${e.name}`] = x;
   }
-  return { model: m.model, theme: m.theme, elements, order: Object.fromEntries(Object.entries(m.order).map(([t, ids]) => [t, ids.map(n)])), assets: Object.keys(m.assets) };
+  const committeesOf = Object.entries(m.committeesOf).map(([r, cs]) => [n(r), cs.map((c) => [n(c.committee), c.letter])]);
+  const stepsOf = Object.entries(m.stepsOf).map(([c, ss]) => [n(c), ss.map((x) => [n(x.process), el[x.process].steps.find((s) => s.id === x.step).name])]);
+  return { model: m.model, theme: m.theme, elements, order: Object.fromEntries(Object.entries(m.order).map(([t, ids]) => [t, ids.map(n)])), committeesOf, stepsOf, assets: Object.keys(m.assets) };
 }
 
 test('2.1 / 2.17 the Acme capture sheet loads cleanly and gives exactly the sample folder model', () => {
@@ -657,4 +660,71 @@ test('sheetToDocs gives documents in the folder reader\'s shape, each with a whe
 test('the sheet, the template and the format spec contain no real company names', () => {
   if (!PRIVATE_NAMES) return;
   for (const p of ['examples/acme-capture-sheet/capture-sheet.md', 'templates/capture-sheet.md', 'docs/capture-sheet.md']) assert.doesNotMatch(read(p), PRIVATE_NAMES, p);
+});
+
+// ---------- committees (capture-sheet spec › Committees table, design D7) ----------
+
+// The base sheet with "Design the solution" owned by a Bid board of Account lead and Solution architect.
+const committees = (table, owner = 'bid board') =>
+  with_(`## Committees\n\n${table}\n`, BASE.replace('| 2 | Design the solution | Solution architect |', `| 2 | Design the solution | ${owner} |`).replace('| 2 | | A | |', '| 2 | | | |'));
+const BOARD = '| Committee | Members | Summary |\n|---|---|---|\n| Bid board | Account lead (A); Solution architect (a) | Decides together. |';
+
+test('2.49 / 2.54 a Committees table is recognised, and a step\'s Owner can name a committee', () => {
+  const r = load(committees(BOARD));
+  assert.deepEqual(r.messages, []);
+  const c = r.model.elements['bid-board'];
+  assert.deepEqual([c.type, c.name, c.summary, c.members], ['committee', 'Bid board', 'Decides together.', { 'account-lead': 'A', 'solution-architect': 'A' }]);
+  const s = proc(r).steps[1];
+  assert.deepEqual([s.owner, s.ownerType, s.parties], ['bid-board', 'committee', ['acme-corp', 'globex']]);
+});
+
+test('Change, Today and ID columns on a committee', () => {
+  const r = load(committees('| Committee | Members | Change | Today | ID |\n|---|---|---|---|---|\n| Bid board | Account lead (A); Solution architect (A) | New | Decided by email. | board |', 'Bid board'));
+  assert.deepEqual(r.messages, []);
+  assert.deepEqual(r.model.elements.board.change, { status: 'new', today: 'Decided by email.' });
+});
+
+test('2.55 unknown member: an error naming the Committees row, with a suggestion', () => {
+  const m = only(load(committees(BOARD.replace('Solution architect (a)', 'Solution archtect (A)'))).messages.filter((x) => x.level === 'error'));
+  assert.equal(m.where, 'Committees › row 1 (Bid board)');
+  assert.equal(m.problem, 'The member "Solution archtect" does not match any role.');
+  assert.equal(m.fix, 'Did you mean Solution architect?');
+});
+
+test('2.56 a member without a letter, or with more than one: an error naming the row and the member, asking for one letter in brackets', () => {
+  for (const [cell, said] of [['Account lead; Solution architect (A)', 'Account lead has no RACI letter.'], ['Account lead (A/R); Solution architect (A)', 'Account lead has "A/R". A member can have only one RACI letter.'], ['Account lead (X); Solution architect (A)', 'Account lead has "X", which is not R, A, C or I.']]) {
+    const m = load(committees(BOARD.replace('Account lead (A); Solution architect (a)', cell))).messages.find((x) => x.level === 'error');
+    assert.equal(m.where, 'Committees › row 1 (Bid board)', cell);
+    assert.equal(m.problem, said);
+    assert.match(m.fix, /^Write one letter in brackets after the name: A if they share the decision, C if consulted, I if informed, R if they do the work/);
+  }
+});
+
+test('2.57 missing Members column: an error naming the Committees table and the column', () => {
+  const r = load(committees('| Committee | Summary |\n|---|---|\n| Bid board | Decides together. |'));
+  const m = r.messages.find((x) => x.level === 'error');
+  assert.deepEqual([m.where, m.problem], ['Committees', 'The Committees table has no "Members" column.']);
+});
+
+test('2.53 a role and a committee with the same name: an error naming the Roles and Committees rows', () => {
+  const r = load(committees(`${BOARD}\n| Legal counsel | Account lead (A); Solution architect (A) | |`));
+  const m = only(r.messages.filter((x) => x.level === 'error'));
+  assert.equal(m.where, 'Committees › row 2 (Legal counsel)');
+  assert.match(m.problem, /the role "Legal counsel" \(Roles › row 3 \(Legal counsel\)\)/);
+  // Each keeps its own id, and an Owner with that name still means the role.
+  assert.equal(r.model.elements['legal-counsel'].type, 'role');
+  assert.equal(r.model.elements['legal-counsel-committee'].type, 'committee');
+});
+
+test('an unknown Owner close to a committee name suggests the committee', () => {
+  const m = only(load(committees(BOARD, 'Bid bord')).messages.filter((x) => x.level === 'error'));
+  assert.equal(m.where, 'Process: Build the proposal › row 2 (Design the solution)');
+  assert.equal(m.problem, 'The owner "Bid bord" does not match any role or committee.');
+  assert.equal(m.fix, 'Did you mean Bid board?');
+});
+
+test('a sheet and a folder describing the same committee give the same committee', () => {
+  const sheet = load(committees(BOARD)).model.elements['bid-board'];
+  const folder = loadModel(files({ 'model.md': '---\nid: m\ntype: model\nname: M\npurpose: P\nkey_messages: [K]\n---\n', 'committees/b.md': '---\nid: bid-board\ntype: committee\nname: Bid board\nsummary: Decides together.\nmembers: { account-lead: A, solution-architect: A }\n---\n' })).model.elements['bid-board'];
+  assert.deepEqual(sheet, folder);
 });

@@ -317,6 +317,7 @@ main { padding: 36px 24px 72px; }
 .lane-heads { order: -1; position: sticky; left: 0; z-index: 1; flex: none; box-shadow: 6px 0 10px -8px var(--om-shadow); }
 .band-mark { position: absolute; left: 12px; --mk: 22px; line-height: 0; }
 .band-mark .mk-init { box-shadow: 0 0 0 1.5px var(--p-band-text); }
+.band-mark.member-mark { left: 18px; --mk: 16px; }
 
 .swimlane text { font-family: var(--om-font-body); fill: var(--om-text); }
 /* A party's row: its colour in the sticky header cell, with its mark and name; a tint and a rule in its colour across the body. */
@@ -332,6 +333,7 @@ main { padding: 36px 24px 72px; }
 .lane-line { stroke: var(--om-border); }
 .swimlane .lane-name { font-size: 13.5px; font-weight: 600; }
 .swimlane .lane-team { font-size: 12px; fill: var(--om-muted); }
+.swimlane .lane-party { font-size: 12px; font-weight: 700; }
 .lane-hit { fill: transparent; }
 .lane-link { outline: none; }
 .lane-link:hover .lane-name { text-decoration: underline; }
@@ -406,6 +408,9 @@ main { padding: 36px 24px 72px; }
 .owner .k { margin-right: 6px; }
 .field h3 { margin: 18px 0 6px; font-family: var(--om-font-body); }
 .field ul { margin: 0; padding-left: 18px; }
+/* A committee's members, one block per party with its colour and mark (committees spec). */
+.member-party { margin: 10px 0 14px; padding-left: 12px; border-left: 4px solid var(--p-band); }
+.member-party > .ptag { margin: 0; font-size: 0.925rem; font-family: var(--om-font-body); }
 .raci-table { width: 100%; border-collapse: collapse; font-size: 0.925rem; }
 .raci-table th, .raci-table td { padding: 7px 0; text-align: left; font-weight: 400; border-bottom: 1px solid var(--om-border); }
 .raci-table td { text-align: right; }

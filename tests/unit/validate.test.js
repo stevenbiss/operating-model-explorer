@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
-import { closest } from '../../src/model/validate.js';
+import { closest, effectiveRaci } from '../../src/model/validate.js';
+import { toSnapshot } from '../../src/model/snapshot.js';
 import { files, MODEL, readFolder, SAMPLE, withoutAccountable } from './helpers.js';
 
 const run = (obj) => withoutAccountable(loadModel(files({ 'model.md': MODEL, ...obj })).messages);
@@ -106,7 +107,7 @@ test('unknown next step, RACI role, party, workstream and persona role are all c
 
 test('a reference to the wrong type of element says so', () => {
   const m = only(run(processWith('  - {id: a, name: A, owner: acme}\n')));
-  assert.equal(m.problem, 'The owner "acme" is a party, not a role.');
+  assert.equal(m.problem, 'The owner "acme" is a party, not a role or committee.');
 });
 
 test('persona entry point without an id, and persona without roles', () => {
@@ -219,10 +220,16 @@ test('exactly one A: no RACI messages', () => {
   assert.deepEqual(raciRun('{account-lead: A, bid-manager: C}'), []);
 });
 
-test('2.44 the sample: every step has exactly one A, and no messages', () => {
+test('2.45 the sample: every step has exactly one accountable (a committee\'s A members jointly), and no messages', () => {
   const { model, messages } = loadModel(readFolder(SAMPLE));
   assert.deepEqual(messages, []);
-  for (const p of model.order.process) for (const s of model.elements[p].steps) assert.equal(Object.values(s.raci).filter((l) => l === 'A').length, 1, s.id);
+  for (const p of model.order.process) {
+    for (const s of model.elements[p].steps) {
+      const a = Object.keys(s.raci).filter((r) => s.raci[r] === 'A');
+      if (s.ownerType === 'committee') assert.deepEqual(a, Object.keys(model.elements[s.owner].members).filter((r) => model.elements[s.owner].members[r] === 'A'), s.id);
+      else assert.equal(a.length, 1, s.id);
+    }
+  }
 });
 
 test('validator: a model document that is not model.md counts as the model (one model document)', () => {
@@ -379,4 +386,147 @@ test('structures are normalised at load: rows with parents, boxes with parties, 
   assert.deepEqual(model.elements.presales.structures, ['partnership']);
   assert.deepEqual(model.elements['account-lead'].structures, ['harbour', 'partnership']);
   assert.deepEqual(model.elements['solution-architect'].structures, []);
+});
+
+// ---------- committees (committees and content-schema specs, design D2, D4, D7) ----------
+
+const COMMITTEE_ORG = {
+  ...NAMED,
+  'parties/globex.md': '---\nid: globex\ntype: party\nname: Globex\n---\n',
+  'roles/pm.md': '---\nid: partner-manager\ntype: role\nname: Partner manager\nparty: globex\n---\n',
+};
+const JOINT = '{account-lead: A, partner-manager: A, solution-architect: C}';
+// A bid board with the given members, owning the one step "Go or no-go" unless told otherwise.
+const boardRun = (members, { owner = 'bid-board', raci = '', extra = '', more = {} } = {}) =>
+  loadModel(
+    files({
+      'model.md': MODEL,
+      ...COMMITTEE_ORG,
+      'committees/bid-board.md': `---\nid: bid-board\ntype: committee\nname: Bid board\n${extra}members: ${members}\n---\n`,
+      'processes/p.md': `---\nid: qualify\ntype: process\nname: Q\nworkstream: presales\nsteps:\n  - {id: go, name: Go or no-go, owner: ${owner}${raci ? `, raci: ${raci}` : ''}}\n---\n`,
+      ...more,
+    }),
+  );
+
+test('2.1 / 2.12 / 2.44 a committee of an Acme and a Globex role, both A, owning a step: no messages, joint A', () => {
+  assert.deepEqual(boardRun(JOINT).messages, []);
+});
+
+test('2.2 committee with no members: an error naming the committee, asking for at least one member role', () => {
+  const m = only(boardRun('{}').messages);
+  assert.deepEqual([m.level, m.file, m.element], ['error', 'committees/bid-board.md', 'bid-board']);
+  assert.match(m.problem, /"Bid board" has no members\. It needs at least one member role/);
+});
+
+test('2.3 member without a valid letter: an error naming the committee and the member, asking for one of R, A, C or I', () => {
+  for (const [v, said] of [['"A/R"', /gives Account lead "A\/R"\. Each member has exactly one RACI letter/], ['', /gives Account lead no RACI letter/], ['X', /gives Account lead "X"/]]) {
+    const m = only(boardRun(`{account-lead: ${v}, partner-manager: A, bid-manager: A}`).messages);
+    assert.deepEqual([m.level, m.element], ['error', 'bid-board'], v);
+    assert.match(m.problem, /The committee "Bid board"/);
+    assert.match(m.problem, said);
+    assert.match(m.fix, /^Use one of R, A, C or I/);
+  }
+});
+
+test('2.4 unknown member: an error naming the committee, the id and a suggestion', () => {
+  const m = only(boardRun('{account-lead: A, partner-mgr: A}').messages);
+  assert.deepEqual([m.level, m.element], ['error', 'bid-board']);
+  assert.match(m.problem, /"partner-mgr"/);
+  assert.equal(m.fix, 'Did you mean partner-manager?');
+});
+
+test('2.5 no accountable member: a warning asking which members make the decision', () => {
+  const m = only(boardRun('{account-lead: C, partner-manager: I}').messages);
+  assert.deepEqual([m.level, m.element], ['warning', 'bid-board']);
+  assert.match(m.problem, /No member of the committee "Bid board" is marked A/);
+  assert.match(m.fix, /Which members make the decision/);
+});
+
+test('2.6 one accountable member: a warning suggesting a single owner with RACI', () => {
+  const m = only(boardRun('{account-lead: A, partner-manager: C, solution-architect: C}').messages);
+  assert.equal(m.level, 'warning');
+  assert.match(m.problem, /Only one member of the committee "Bid board" is marked A \(Account lead\)/);
+  assert.match(m.fix, /Make Account lead the owner/);
+});
+
+test('2.7 accountable members from one party: a warning suggesting a team or a single owner', () => {
+  const m = only(boardRun('{account-lead: A, bid-manager: A, partner-manager: C}').messages);
+  assert.equal(m.level, 'warning');
+  assert.match(m.problem, /marked A all belong to Acme/);
+  assert.match(m.fix, /team or a single owner/);
+});
+
+test('2.8 a committee that owns no step: a warning naming it', () => {
+  const m = only(boardRun(JOINT, { owner: 'account-lead', raci: '{account-lead: A}' }).messages);
+  assert.deepEqual([m.level, m.element], ['warning', 'bid-board']);
+  assert.match(m.problem, /"Bid board" doesn't own any step/);
+});
+
+test('2.9 a role and a committee with the same name (ignoring case and spacing): an error naming both', () => {
+  const m = only(boardRun(JOINT, { more: { 'roles/bb.md': '---\nid: bid-board-role\ntype: role\nname: bid  Board\nparty: acme\n---\n' } }).messages);
+  assert.deepEqual([m.level, m.element], ['error', 'bid-board']);
+  assert.match(m.problem, /The committee "Bid board" has the same name as the role "bid {2}Board" \(roles\/bb\.md\)/);
+});
+
+test('2.38 unknown owner close to a committee: an error naming the step, with the committee as the suggestion', () => {
+  const m = only(boardRun(JOINT, { owner: 'bid-bord' }).messages.filter((x) => x.level === 'error'));
+  assert.deepEqual([m.file, m.step], ['processes/p.md', 'go']);
+  assert.equal(m.problem, 'The owner "bid-bord" does not match any role or committee.');
+  assert.equal(m.fix, 'Did you mean bid-board?');
+});
+
+test('2.41 a live step owned by a removed committee: a warning naming the step and the committee', () => {
+  const m = only(boardRun(JOINT, { extra: 'change: {status: removed}\n' }).messages);
+  assert.deepEqual([m.level, m.step], ['warning', 'go']);
+  assert.match(m.problem, /owned by the committee "bid-board", which is marked as removed/);
+});
+
+test('2.13 a non-member informed on the step: no message, and the effective RACI lists them after the members', () => {
+  const { model, messages } = boardRun(JOINT, { raci: '{bid-manager: I}' });
+  assert.deepEqual(messages, []);
+  assert.deepEqual(model.elements.qualify.steps[0].raci, { 'account-lead': 'A', 'partner-manager': 'A', 'solution-architect': 'C', 'bid-manager': 'I' });
+});
+
+test('2.14 a non-member marked A on a committee step: a warning naming the step, the committee and the role', () => {
+  const m = only(boardRun(JOINT, { raci: '{bid-manager: A}' }).messages);
+  assert.deepEqual([m.level, m.step], ['warning', 'go']);
+  assert.match(m.problem, /Bid manager has A on the step "Go or no-go", but the committee "Bid board" owns it/);
+});
+
+test('2.15 a member given a letter on the step: a warning, and the committee\'s letter is used', () => {
+  const { model, messages } = boardRun(JOINT, { raci: '{partner-manager: C}' });
+  const m = only(messages);
+  assert.equal(m.level, 'warning');
+  assert.match(m.problem, /Partner manager is a member of the committee "Bid board".*Members' letters are set on the committee, so its letter \(A\) is used/);
+  assert.equal(model.elements.qualify.steps[0].raci['partner-manager'], 'A');
+});
+
+test('effectiveRaci: members first, then the step\'s non-member letters; a role owner keeps its own RACI', () => {
+  assert.deepEqual(effectiveRaci({ a: 'C', b: 'I' }, { a: 'A', c: 'A' }), { a: 'A', c: 'A', b: 'I' });
+  assert.deepEqual(effectiveRaci({ a: 'C' }, undefined), { a: 'C' });
+  assert.deepEqual(effectiveRaci(undefined, null), {});
+});
+
+test('2.32 a committee is found by its type, not its folder', () => {
+  const r = loadModel(files({ 'model.md': MODEL, ...COMMITTEE_ORG, 'roles/board.md': `---\nid: bid-board\ntype: committee\nname: Bid board\nmembers: ${JOINT}\n---\n`, 'processes/p.md': '---\nid: qualify\ntype: process\nname: Q\nworkstream: presales\nsteps:\n  - {id: go, name: Go, owner: bid-board}\n---\n' }));
+  assert.deepEqual(r.messages, []);
+  assert.deepEqual(r.model.order.committee, ['bid-board']);
+});
+
+test('1.4 committees are normalised at load: ownerType, parties, committeesOf with letters and stepsOf', () => {
+  const second = '---\nid: second\ntype: process\nname: S\nworkstream: presales\nsteps:\n  - {id: a, name: A, owner: account-lead, raci: {account-lead: A}}\n  - {id: b, name: B, owner: bid-board}\n---\n';
+  const { model } = boardRun(JOINT, { more: { 'processes/q.md': second } });
+  const [go] = model.elements.qualify.steps;
+  assert.deepEqual([go.ownerType, go.party, go.parties], ['committee', null, ['acme', 'globex']]);
+  const a = model.elements.second.steps[0];
+  assert.deepEqual([a.ownerType, a.party, a.parties], ['role', 'acme', undefined]);
+  assert.deepEqual(model.committeesOf['partner-manager'], [{ committee: 'bid-board', letter: 'A' }]);
+  assert.deepEqual(model.committeesOf['solution-architect'], [{ committee: 'bid-board', letter: 'C' }]);
+  assert.equal(model.committeesOf['bid-manager'], undefined);
+  assert.deepEqual(model.stepsOf['bid-board'], [{ process: 'qualify', step: 'go' }, { process: 'second', step: 'b' }]);
+  // From an Acme step into a committee with Acme and Globex members is cross-party.
+  assert.equal(model.elements.second.edges[0].crossParty, true);
+  const snap = JSON.parse(JSON.stringify(toSnapshot(model)));
+  assert.equal(snap.stepsOf['bid-board'].length, 2);
+  assert.deepEqual(snap.committeesOf['account-lead'], [{ committee: 'bid-board', letter: 'A' }]);
 });

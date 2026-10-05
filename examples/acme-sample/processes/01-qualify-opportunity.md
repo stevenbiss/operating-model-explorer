@@ -26,12 +26,8 @@ steps:
     outputs: [Fit assessment]
   - id: go-no-go
     name: Go or no-go
-    owner: account-lead
+    owner: bid-board
     description: Decide together whether to bid.
-    raci:
-      account-lead: A
-      partner-manager: C
-      bid-manager: I
     inputs: [Fit assessment]
     kpis: [Decision within 5 working days]
     next:

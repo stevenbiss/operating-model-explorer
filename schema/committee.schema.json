@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "operating-model-explorer/committee.schema.json",
+  "title": "committee",
+  "description": "A group of roles, from any parties, that owns steps together. Each member has one RACI letter, and the members marked A are jointly accountable. A committee belongs to no party.",
+  "x-edgy": "Organisation",
+  "type": "object",
+  "required": ["id", "type", "name", "members"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Unique id: lower-case letters and numbers joined by hyphens, e.g. bid-board. Used as a step's owner." },
+    "type": { "enum": ["committee"], "description": "Always committee." },
+    "name": { "type": "string", "description": "The committee's display name. It can't be the same as a role's name." },
+    "summary": { "type": "string", "description": "One or two sentences about what this committee decides." },
+    "members": { "type": "object", "additionalProperties": { "enum": ["R", "A", "C", "I"] }, "description": "At least one member role id, each to one letter: A (shares the decision, jointly accountable), R (does the work), C (consulted) or I (informed), e.g. partner-manager: A." },
+    "change": {
+      "type": "object",
+      "description": "Optional current vs future state.",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["new", "changed", "removed", "unchanged"], "description": "How this element differs from today." },
+        "today": { "type": "string", "description": "How it works today, shown next to the future state." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    { "id": "bid-board", "type": "committee", "name": "Acme + Globex bid board", "summary": "Decides together whether to bid.", "members": { "account-lead": "A", "partner-manager": "A", "solution-architect": "C", "bid-manager": "I" } }
+  ]
+}

@@ -12,6 +12,7 @@ Every company, person and figure in these packs is made up. Keep it that way: th
 | `revision/` | New material against the Acme capture sheet: a new legal review step, and a different owner for "Submit the proposal". | 2.26 |
 | `org-chart/` | Org slides described in text, for a made-up freight + analytics partnership: the whole-partnership collaboration model, the Northern routes programme and the Coastal routes programme. They hold a role missing from the contact sheet, a cropped arrow and an empty box. | 2.67, 2.68 |
 | `brand-library/` | A fictional brand library: packs for Acme (2026.2), Globex (2026.3) and Initech (2025.4, never used). Used with a copy of the Acme capture sheet. | 2.34, 2.35 |
+| `joint-decision/` | A process slide described in text, where the Acme Account lead and the Globex Partner manager decide "Go or no-go" together, the Solution architect is consulted, the Bid manager is told the outcome, and "someone from finance" also sits on the decision (no finance role exists). | add-committee-decisions 2.81, 2.82 |
 
 ## Setup (every trial)
 
@@ -127,6 +128,20 @@ Prompt: as for 2.67.
 
 - [ ] The sheet has two `## Structure:` sections, and neither is marked `Main: yes` by guesswork: `## Open questions` asks which diagram is the main one.
 - [ ] The validator's "main diagram" error is reported to the colleague as needing their decision, not silenced by picking one.
+
+### 2.81 Joint decision becomes a committee (`joint-decision`, add-committee-decisions)
+
+Prompt: "Here's our bid process slide: `<input folder>`. Can you turn it into an operating model? Save it in `<output folder>`." When the skill asks you to confirm the committee, reply "Yes, that's right." Reply to every other question about the content with "Leave it open for now, please hand it over."
+
+- [ ] The draft has a `## Committees` row whose members include Account lead and Partner manager, both marked `(A)`, and Solution architect `(C)` and Bid manager `(I)` if the skill took those letters from the slide (no other letters are chosen by the skill).
+- [ ] "Go or no-go" is owned by that committee, not by the Account lead or the Partner manager, and its RACI row gives no letters to the members.
+- [ ] The skill asks the colleague to confirm the committee's members and each member's letter, explaining that members marked A share the decision.
+- [ ] `npm run validate -- "<output folder>/capture-sheet.md"` ends with `0 errors`, and in the engine "Go or no-go" sits in the committee's lane with a "By committee" badge.
+
+### 2.82 Unplaced member (`joint-decision`, same session)
+
+- [ ] `## Open questions` has an unticked `(gap)` naming the committee and "someone from finance".
+- [ ] No finance role is added to the Roles table, and no finance member is added to the committee.
 
 ### 2.29 Refuses the public repo by default (any pack)
 

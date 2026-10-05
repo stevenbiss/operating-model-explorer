@@ -629,6 +629,11 @@ test.describe('content-schema (RACI rules, author mode)', () => {
     const c = contentOf((await exportDownload(page, info.outputPath())).html);
     const steps = c.order.process.flatMap((p) => c.elements[p].steps);
     expect(steps.length).toBe(11);
-    for (const s of steps) expect(Object.entries(s.raci).filter(([, l]) => l === 'A').map(([r]) => r), s.name).toHaveLength(1);
+    // One accountable per step: one role, or a committee's A members jointly (the bid board on "Go or no-go").
+    for (const s of steps) {
+      const a = Object.entries(s.raci).filter(([, l]) => l === 'A').map(([r]) => r);
+      if (s.ownerType === 'committee') expect(a, s.name).toEqual(['account-lead', 'partner-manager']);
+      else expect(a, s.name).toHaveLength(1);
+    }
   });
 });

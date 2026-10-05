@@ -13,7 +13,7 @@ export const RETIRED = {
 // what: e.g. 'Remove "colors" from theme.md.'
 export const retiredFix = (key, what) => `${what}${key === 'fonts' ? '' : " To show a party's colours and mark, copy its brand pack into brands/<id>/ and name it in the party (brand: <id>, or the Brand column of a capture sheet)."}`;
 
-const LABEL_PAIRS = [['model', 'models'], ['party', 'parties'], ['team', 'teams'], ['role', 'roles'], ['persona', 'personas'], ['workstream', 'workstreams'], ['process', 'processes'], ['step', 'steps'], ['structure', 'structures'], ['key_message', 'key_messages']];
+const LABEL_PAIRS = [['model', 'models'], ['party', 'parties'], ['team', 'teams'], ['role', 'roles'], ['committee', 'committees'], ['persona', 'personas'], ['workstream', 'workstreams'], ['process', 'processes'], ['step', 'steps'], ['structure', 'structures'], ['key_message', 'key_messages']];
 // Good-enough English guesses for the suggested fix.
 const pluralOf = (w) => (/[^aeiou]y$/i.test(w) ? `${w.slice(0, -1)}ies` : /(s|x|z|ch|sh)$/i.test(w) ? `${w}es` : `${w}s`);
 const singularOf = (w) => (/[^aeiou]ies$/i.test(w) ? `${w.slice(0, -3)}y` : /(s|x|z|ch|sh)es$/i.test(w) ? w.slice(0, -2) : w.replace(/s$/i, ''));
