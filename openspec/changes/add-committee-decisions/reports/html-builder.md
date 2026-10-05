@@ -55,3 +55,13 @@ The built file is `dist/operating-model-explorer.html` (380 KB, Engine 1.4.0).
 5. **Left for release (task 5.2):** the README status line, and `package-lock.json` (still at 1.2.0, unchanged in 1.3.0 too).
 
 No spec ambiguities were found.
+
+# Round 2: name-only committee lane header (user change)
+- **Swimlane:** the committee lane header shows only the committee name, linking to its page, and sizes like any other lane. The member tags on members' own lanes are unchanged.
+- **Phone list:** the committee name and "By committee" badge only.
+- **Unchanged:** the members block in the step detail and on the committee page.
+- **CSS:** two rules used only by the removed member lines are deleted.
+- **Tests updated to the new spec:**
+  - `committees.spec.js`: 2.16 (header text and link), 2.25 (the lane's accessible name), 2.26 (phone label, no member names).
+  - `explorer-views.spec.js`: 2.37 (phone label).
+- **Results:** `npm run test:unit` 244 of 244 pass; `npm test` 293 passed, 0 failed.

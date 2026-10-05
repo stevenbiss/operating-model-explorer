@@ -305,11 +305,9 @@ test.describe('committees (exported committee-basic)', () => {
     expect(bandOf(g, 'bid-board')).toBe('Committees');
     expect(bandOf(g, 'account-lead')).toBe('Alpha Ltd');
     expect(bandOf(g, 'partner-manager')).toBe('Beta Inc');
-    // Header: the committee's name, then its members by party with their letters.
-    const t = g.lane('bid-board').text;
-    const order = ['Bid board', 'Alpha Ltd', 'Account lead · A', 'Beta Inc', 'Partner manager · A', 'Solution architect · C'].map((s) => t.indexOf(s));
-    expect(order.every((i) => i >= 0), `header "${t}"`).toBe(true);
-    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    // Header: only the committee's name, linking to its page; no member list.
+    expect(g.lane('bid-board').text.trim()).toBe('Bid board');
+    await expect(page.getByTestId('lane-bid-board')).toHaveAttribute('href', /#\/e\/bid-board/);
     await expectInLane(page.locator('body'), 'go-no-go', 'bid-board');
     await expect(pillsOf(page, 'go-no-go')).toHaveText(['By committee']);
   });
@@ -446,8 +444,8 @@ test.describe('committees (exported sample)', () => {
     await expect(step).toHaveAccessibleName(/^Go or no-go\b/);
     await expect(step).toHaveAccessibleName(/by committee/);
     await expect(step).toHaveAccessibleName(/Acme \+ Globex bid board/);
-    // Lane headers expose membership and letters as text.
-    await expect(page.getByTestId('lane-bid-board')).toHaveAccessibleName(/Account lead · A/);
+    // The committee lane header is its name only; member lane headers expose membership and letters as text.
+    await expect(page.getByTestId('lane-bid-board')).toHaveAccessibleName('Acme + Globex bid board');
     await expect(page.getByTestId('lane-partner-manager')).toHaveAccessibleName(/Acme \+ Globex bid board member · A/);
   });
 
@@ -457,8 +455,9 @@ test.describe('committees (exported sample)', () => {
     const lane = page.getByTestId('swimlane');
     await expect(lane).toHaveAttribute('data-layout', 'list');
     const it = lane.getByTestId('step-go-no-go');
-    await expect(it.locator('.fi-lane')).toContainText('Acme + Globex bid board');
-    for (const m of ['Account lead (Acme Corp)', 'Bid manager (Acme Corp)', 'Partner manager (Globex)', 'Solution architect (Globex)']) await expect(it.locator('.fi-lane')).toContainText(m);
+    // The committee's name and badge only, no member list.
+    await expect(it.locator('.fi-lane')).toHaveText('Acme + Globex bid board');
+    for (const m of ['Account lead', 'Bid manager', 'Partner manager', 'Solution architect']) await expect(it).not.toContainText(m);
     await expect(it.getByTestId('by-committee')).toHaveText('By committee');
     expect(await noHorizontalScroll(page)).toBe(true);
     // Its detail shows the members split by organisation, as on wider screens.

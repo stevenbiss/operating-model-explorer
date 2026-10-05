@@ -634,7 +634,7 @@ function flowList() {
     <span class="fi-num" aria-hidden="true">${i + 1}</span>
     <span class="fi-body"><span class="fi-name">${esc(s.name)}</span>
     <span class="fi-lane">${committeeOf(s)
-      ? `${esc(committeeOf(s).name)}: ${[...M.order.party, null].flatMap((p) => Object.keys(committeeOf(s).members).filter((x) => memberParty(x) === p)).map((x) => `${esc(nameOf(x))}${memberParty(x) ? ` (${esc(E[memberParty(x)].name)})` : ''}`).join(', ')}`
+      ? esc(committeeOf(s).name)
       : `${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? ` · <span class="ptag">${mark(s.party, false)}${esc(E[s.party].name)}</span>` : ''}`}</span>
     ${byCommittee(s) || badge(s.change) || c ? `<span class="tags">${byCommittee(s)}${badge(s.change)}${c ? `<span class="cue">${c}</span>` : ''}</span>` : ''}
     <span class="fi-next">${nx.length ? `Next: ${nx.map((e) => `${esc(F.nodes[e.to].step.name)}${e.label ? ` (${esc(e.label)})` : ''}`).join(', ')}` : 'End of the flow'}</span></span>

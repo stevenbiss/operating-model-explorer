@@ -250,7 +250,7 @@ test.describe('explorer-views (exported sample)', () => {
     for (const [step, owner] of QUALIFY) {
       const it = lane.getByTestId(`step-${step}`);
       const roleName = { 'account-lead': 'Account lead', 'solution-architect': 'Solution architect', 'bid-manager': 'Bid manager' }[owner];
-      const committee = 'Acme + Globex bid board: Account lead (Acme Corp), Bid manager (Acme Corp), Partner manager (Globex), Solution architect (Globex)';
+      const committee = 'Acme + Globex bid board'; // the committee's name only, no member list
       await expect(it.locator('.fi-lane')).toHaveText(owner === 'bid-board' ? committee : `${roleName} · ${PARTY_NAME[PARTY[owner]]}`);
       await expect(it.locator('.fi-next')).toHaveText(/^(Next: .+|End of the flow)$/);
     }
