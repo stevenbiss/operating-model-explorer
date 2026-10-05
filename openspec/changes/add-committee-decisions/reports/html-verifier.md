@@ -31,3 +31,23 @@ Task 3.2 (no real names) passes and is ticked: 0 hits across tracked files, hist
 3. The removed-committee warning names the committee by id, not by name.
 4. The "What matters for me" intro says "owner or in the RACI" and leaves out committee membership.
 5. For QA: at 1280 with the detail open, "Assess solution fit" is partly hidden behind the sticky lane headers (probably existing behaviour).
+
+# Round 2: VERIFIED
+Built file 19:08 (no newer sources). The skill's bundled engine is byte-identical to `dist`. HEAD `56b41a7`.
+
+| Item | Result |
+|---|---|
+| authoring-skill: independent trial re-run (fresh agent, skill and pack only, scripted colleague); sheet checked, 0 errors | MET (evidence judged adequate) |
+| Duplicate `## Committees` docs row | FIXED (once in the docs and once in the skill reference) |
+| Committee lane header in its own "Committees" group | FIXED |
+| Removed-committee warning uses the name ("Bid board") | FIXED |
+| "What matters for me" intro mentions committees | FIXED |
+
+**Regression re-run:** all round-1 checks still hold across the fixtures, both sample forms, the swimlane, the step detail, the committee page, the role profile, search, persona, keyboard, labels, the 375 layout and the main-spec smoke. No console errors and no non-local requests. Unit tests 244 of 244 pass. The private-names guard finds 0 hits across 787 tracked files, `dist` and the history.
+
+Tasks 3.1 and 3.2 are ticked.
+
+**For html-qa:**
+- The committee lane link comes after the role lane links in the Tab order, although it sits between the parties on screen.
+- With the detail open at 1280, "Assess solution fit" is partly hidden behind the sticky lane headers.
+- Member tags can wrap so the letter sits alone on the next line.
