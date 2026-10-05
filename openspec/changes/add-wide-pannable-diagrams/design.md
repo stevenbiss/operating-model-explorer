@@ -42,8 +42,10 @@ This needs CSS, about 40 lines of pointer handling and a one-line layout fix. A 
 At 768px and wider:
 
 ```css
-.swim-scroll, .sd-scroll { max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; }
+.swim-scroll, .sd-scroll { max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior-x: contain; }
 ```
+
+Only sideways overscroll is contained. When the wheel reaches the top or bottom of the diagram, vertical scrolling passes on to the page, so a diagram that fills the window never traps the wheel (found during build).
 
 - `dvh` follows the real visible height, including browser chrome. A `100vh` fallback goes first for older engines.
 - The swimlane's step detail panel already uses `position: sticky; max-height: calc(100vh - 32px)`, so the two sit side by side at the same height.
@@ -60,7 +62,7 @@ Add a new `src/viewer/pan.js` that exports `initPan(root)`. `render()` calls it 
   - it sets `scrollLeft` and `scrollTop` to their start values minus the pointer's movement.
 - **`pointerup` / `pointercancel`.** After a drag, a capturing `click` listener runs once on the area. It stops propagation and prevents the default, so the release doesn't open a step, box or link. Then the state is cleared.
 - **`dragstart`.** Prevented inside the areas, so links and images in structure boxes don't start the browser's own drag-and-drop.
-- **Cursor.** An area gets the class `can-pan` (`cursor: grab`) only while it overflows. A `ResizeObserver` per area keeps this current after render or resize. Steps, boxes and links keep their own `pointer` cursor, so it's still clear they can be clicked.
+- **Cursor.** An area gets the class `can-pan` (`cursor: grab`) only while it overflows. The class is set on a delegated `pointerover` and on `pointerdown`, rather than with a per-area ResizeObserver: no observers have to be wired to re-rendered areas, and none are left behind. Whether a drag can start is always checked at the moment of the press. Steps, boxes and links keep their own `pointer` cursor, so it's still clear they can be clicked.
 - **5px threshold.** It's the usual value: small enough to feel immediate, and large enough that a slightly shaky click is still a click.
 - Rejected:
   - scroll-snap or a transform-based pan, because it breaks native scrollbars, scroll-padding and `scrollIntoView`;
@@ -84,7 +86,7 @@ This is a new viewer behaviour with no change to the content or capture-sheet fo
 
 - **[A drag on a step could open it by accident.]** → After a drag, the next click is suppressed, and there's an e2e test for it.
 - **[Pan conflicts with selecting text on structure boxes (names and notes).]** → A short click or a 5px-or-less wobble still behaves as a click, but box text can no longer be selected by dragging inside the diagram. The text is still in the step and box pages, in search and on the committee page. Accepted.
-- **[A height-limited area inside a scrolling page gives nested scrolling: the wheel scrolls the diagram, then the page once the diagram reaches its end.]** → `overscroll-behavior: contain` stops the page scroll chaining unexpectedly. The area is never taller than the window, so it can always be scrolled past.
+- **[A height-limited area inside a scrolling page gives nested scrolling: the wheel scrolls the diagram, then the page once the diagram reaches its end.]** → Only sideways overscroll is contained, so the wheel passes on to the page at the diagram's top or bottom. The area is never taller than the window, so it can always be scrolled past.
 - **[WCAG 2.5.7, dragging movements.]** → Dragging is never the only way: scrollbars, the wheel, the keyboard and the "More steps" cue all still work.
 - **[Very wide windows make long connectors.]** → The swimlane keeps its fixed column width. The extra width just shows more steps at once, with less scrolling.
 

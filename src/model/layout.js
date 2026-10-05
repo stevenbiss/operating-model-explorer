@@ -54,7 +54,7 @@ export function flow(m, processId, { showRemoved = false } = {}) {
 
   // Lanes: every role that owns or takes part (RACI, which includes committee membership) in a shown step, grouped
   // by party in content order. Each committee that owns a shown step gets a lane too (design D3): all of them in one
-  // group directly after the first party group, in the order their first steps appear in the flow.
+  // group in the order their first steps appear in the flow.
   const committees = [];
   const used = new Set();
   for (const s of steps) {
@@ -69,7 +69,10 @@ export function flow(m, processId, { showRemoved = false } = {}) {
     .map((party) => ({ party, lanes: roles.filter((r) => partyOf(r) === party) }))
     .filter((g) => g.lanes.length);
   const first = (c) => Math.min(...steps.filter((s) => s.owner === c).map((s) => rank[s.id]));
-  if (committees.length) groups.splice(1, 0, { party: null, committee: true, lanes: committees.sort((a, b) => first(a) - first(b)) });
+  // The committees group goes directly after the first party group with a member of any of them (design D5).
+  const memberParty = new Set(committees.flatMap((c) => Object.keys(m.elements[c].members).map(partyOf)));
+  const at = groups.findIndex((g) => memberParty.has(g.party));
+  if (committees.length) groups.splice((at < 0 ? 0 : at) + 1, 0, { party: null, committee: true, lanes: committees.sort((a, b) => first(a) - first(b)) });
   const lanes = groups.flatMap((g) => g.lanes);
 
   // Two steps in the same lane and rank stack into slots.

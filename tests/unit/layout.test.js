@@ -139,6 +139,12 @@ test('2.18 two committees: one group, in the order their first steps appear in t
   assert.equal(f.groups.filter((g) => g.committee).length, 1);
 });
 
+test('2.18 committee after the first party with members: Customer (A), Acme (B), Committees, Globex (C)', () => {
+  const f = flow(withCommittees(step('a', 'rx') + step('b', 'board') + step('c', 'rz'), { board: '{ry: A, rz: A}' }), 'p');
+  assert.deepEqual(f.groups.map((g) => (g.committee ? 'committees' : g.party)), ['pa', 'pb', 'committees', 'pc']);
+  assert.deepEqual(f.lanes, ['rx', 'ry', 'board', 'rz']);
+});
+
 test('with only one party group shown, the committees group sits after it', () => {
   const f = flow(withCommittees(step('a', 'board') + step('b', 'rx'), { board: '{rx: A}' }), 'p');
   assert.deepEqual(f.groups.map((g) => g.lanes), [['rx'], ['board']]);

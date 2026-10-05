@@ -7,6 +7,7 @@ import { labeller, partyCss } from './theme.js';
 import { swimlaneSvg } from './swimlane.js';
 import { mountLines, structureHtml } from './structure.js';
 import { esc } from './esc.js';
+import { initPan } from './pan.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 
 const list = (v) => (Array.isArray(v) ? v : []);
@@ -165,6 +166,7 @@ export function render(snapshot, target = document.getElementById('app')) {
     document.addEventListener('change', onChange);
     document.addEventListener('input', onSearch);
     document.addEventListener('submit', onSearch);
+    initPan(document);
   }
   route = null;
   onRoute();
@@ -265,14 +267,19 @@ function onRoute() {
   const sel = main.querySelector('.node[aria-current]');
   const sc = main.querySelector('.swim-scroll');
   if (sel) {
-    // Centred in the part of the box that the sticky lane-header column doesn't cover.
+    // Centred in the part of the box that the sticky lane-header column doesn't cover, and brought up into the
+    // window-high area if it sits in a lower lane.
     const box = sel.querySelector('.box').getBoundingClientRect();
+    const area = sc.getBoundingClientRect();
     const heads = main.querySelector('.lane-heads').getBoundingClientRect().width;
-    const mid = box.left + box.width / 2 - sc.getBoundingClientRect().left + sc.scrollLeft;
+    const mid = box.left + box.width / 2 - area.left + sc.scrollLeft;
     sc.scrollLeft = Math.max(0, mid - (heads + (sc.clientWidth - heads) / 2));
+    sc.scrollTop += Math.max(0, box.bottom + 16 - area.top - sc.clientTop - sc.clientHeight);
   }
   if (sc) {
     sc.addEventListener('scroll', moreCue, { passive: true });
+    // A step reached by keyboard is scrolled fully into the area, both ways, clear of the lane headers (scroll-padding).
+    sc.addEventListener('focusin', (e) => e.target.matches('.node:focus-visible') && e.target.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
     moreCue();
   }
   if (prev && prev.persona !== route.persona) {
@@ -598,7 +605,7 @@ function processView(p) {
     m: M, L, f: F, dp, mark: (p) => mark(p, false), selected: sel && sel.id, label: `${esc(p.name)}: ${L.lower('steps')} by ${L.lower('role')}`,
     mine: persona() ? mine : null, cue, badge: (c) => badgeText(c), stepLabel, roleHref: (r) => href({ view: is(r, 'committee') ? 'element' : 'role', id: r }),
   });
-  return `<div class="page page-wide">
+  return `<div class="page page-full">
 <header class="page-head"><p class="eyebrow">${L('process')}${is(p.workstream, 'workstream') ? ` · <a href="${href({ view: 'workstream', id: w.id })}">${esc(w.name)}</a>` : ''}</p>
   <h1 tabindex="-1">${esc(p.name)}</h1>${badge(p.change) ? `<div class="tags">${badge(p.change)}</div>` : ''}${p.summary ? `<p class="lead">${esc(p.summary)}</p>` : ''}${today(p)}</header>
 <div class="process-grid${sel ? ' has-detail' : ''}">
@@ -689,7 +696,7 @@ function structureView(s) {
   const mineBox = (b) => roles.has(b.role) || (!!b.team && [...roles].some((r) => is(r, 'role') && E[r].team === b.team));
   const rel = s.relatedAll.filter((id) => is(id, 'structure'));
   const ws = s.workstreams.filter((id) => is(id, 'workstream'));
-  return `<div class="page page-wide">
+  return `<div class="page page-full">
 <header class="page-head"><p class="eyebrow">${L('structure')}</p><h1 tabindex="-1">${esc(s.name)}</h1>
   ${mainTag(s) || s.kind || badge(s.change) ? `<div class="tags">${mainTag(s)}${s.kind ? `<span class="tag" data-testid="structure-kind">${esc(s.kind)}</span>` : ''}${badge(s.change)}</div>` : ''}
   ${s.summary ? `<p class="lead">${esc(s.summary)}</p>` : ''}${today(s)}</header>

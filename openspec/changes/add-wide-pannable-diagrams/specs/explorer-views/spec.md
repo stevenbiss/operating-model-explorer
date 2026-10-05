@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Wide swimlanes scroll within their own area
-A process page SHALL use the full width of the browser window, less a margin of at most 24px on each side, in both a snapshot and the author-mode preview. Its heading, summary and narrative SHALL keep their readable line length. When a swimlane is wider or taller than the space it has, it SHALL scroll inside its own area, never the page. At viewport widths of 768px and more, that area SHALL be no taller than the browser window, so both its scrollbars stay on screen. Lane headers SHALL stay visible while it scrolls. A visible "More steps" cue SHALL show while steps lie off-screen to the right. A step that receives keyboard focus, or is selected, SHALL be scrolled fully into view clear of the lane headers.
+A process page SHALL use the full width of the browser window, less a margin of at most 24px on each side, in a snapshot, and SHALL fill the width of the preview in author mode. Its heading, summary and narrative SHALL keep their readable line length. When a swimlane is wider or taller than the space it has, it SHALL scroll inside its own area, never the page. At viewport widths of 768px and more, that area SHALL be no taller than the browser window, so both its scrollbars stay on screen. Lane headers SHALL stay visible while it scrolls. A visible "More steps" cue SHALL show while steps lie off-screen to the right. A step that receives keyboard focus, or is selected, SHALL be scrolled fully into view clear of the lane headers.
 
 #### Scenario: More steps cue
 - **WHEN** a process whose swimlane is wider than a 1024px viewport is opened

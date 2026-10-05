@@ -69,6 +69,8 @@ Then ask in your own words, e.g. "Turn these workshop notes into an operating mo
 4. **Check the preview.** It shows exactly what viewers will see, including the persona prompt and every view.
 5. **Export.** Choose **Export snapshot** to download `<model-id>.html`. Send that file to your viewers. It contains only the files your model uses, not other files in the folder, your file paths or the validation report.
 
+**Moving around big diagrams.** Process swimlanes and structure diagrams use the full width of the window, in the snapshot and the preview. A diagram bigger than the window scrolls inside its own area, which is never taller than the window, so both scrollbars stay on screen. Hold the left mouse button anywhere on it and drag to move it in any direction; a click without moving still opens a step or box. The scrollbars, mouse wheel, trackpad, touch and keyboard (Tab and the arrow keys) work too. On a phone, diagrams become lists.
+
 To write a content folder instead of a capture sheet, start from a copy of `examples/acme-sample/` (a fictional model) and see:
 - `docs/authoring-guide.md`: how to write a model.
 - `docs/content-reference.md`: every field of every file type, and of brand packs. It is also available in the engine under **Content reference**.

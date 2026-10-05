@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Wide diagrams scroll within their own area
-At viewport widths of 768px and more, a diagram page SHALL use the full width of the browser window, less a margin of at most 24px on each side, in both a snapshot and the author-mode preview. Its heading, summary and narrative SHALL keep their readable line length. When a diagram is wider or taller than the space it has, it SHALL scroll inside its own area, never the page, and that area SHALL be no taller than the browser window, so both its scrollbars stay on screen. The diagram SHALL be pannable by dragging (see explorer-views › Drag to pan diagrams). A focused box SHALL be scrolled into view.
+At viewport widths of 768px and more, a diagram page SHALL use the full width of the browser window, less a margin of at most 24px on each side, in a snapshot, and SHALL fill the width of the preview in author mode. Its heading, summary and narrative SHALL keep their readable line length. When a diagram is wider or taller than the space it has, it SHALL scroll inside its own area, never the page, and that area SHALL be no taller than the browser window, so both its scrollbars stay on screen. The diagram SHALL be pannable by dragging (see explorer-views › Drag to pan diagrams). A focused box SHALL be scrolled into view.
 
 #### Scenario: Many parties
 - **WHEN** a diagram with six party columns is opened at 1024px wide

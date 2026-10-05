@@ -162,7 +162,8 @@ select, input[type="search"] {
 
 main { padding: 36px 24px 72px; }
 .page { max-width: 1120px; margin: 0 auto; }
-.page-wide { max-width: 1440px; }
+/* Process and structure pages: the diagram gets the whole window, less main's padding; text keeps its own measure. */
+.page-full { max-width: none; }
 
 .eyebrow {
   margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--om-link);
@@ -485,6 +486,14 @@ main { padding: 36px 24px 72px; }
 .sd-label-v { width: max-content; max-width: 12rem; }
 .tag-main { border-color: var(--om-link); background: var(--om-tint); }
 
+/* Diagram areas are never taller than the window, so both scrollbars stay on screen (add-wide-pannable-diagrams D3).
+   While one overflows, the mouse can drag it (D4, viewer/pan.js): an open hand, then a closed one while pressed. */
+@media (min-width: 768px) {
+  .swim-scroll, .sd-scroll { max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; }
+  .can-pan { cursor: grab; }
+  .can-pan.panning, .can-pan.panning * { cursor: grabbing; user-select: none; }
+}
+
 /* What only a screen reader needs on a wide screen: each cell's party and band, and its lines written out. */
 @media (min-width: 768px) {
   .sd-cell-h, .sd-rel { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -605,7 +614,9 @@ main { padding: 36px 24px 72px; }
 .questions-note { margin: 4px 0 0; font-size: 0.875rem; color: var(--om-muted); }
 .questions .msg .msg-level { border-color: var(--om-link); background: var(--om-tint); }
 
-.workspace { max-width: 1440px; margin: 0 auto; padding: 28px 24px 72px; }
+/* The preview is as wide as the window, so its diagrams can be too; the report and preview heading stay capped. */
+.workspace { padding: 28px 24px 72px; }
+.report, .preview-head { max-width: 1440px; margin-inline: auto; }
 .dragging .workspace { outline: 3px dashed var(--om-accent); outline-offset: -8px; border-radius: 16px; }
 .report { padding: 22px 24px; background: var(--om-surface); border: 1px solid var(--om-border); border-radius: 16px; }
 .report-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
@@ -641,7 +652,7 @@ main { padding: 36px 24px 72px; }
 .msg-fix { font-size: 0.9rem; }
 .msg-fix .k { color: var(--om-muted); }
 
-.preview-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin: 36px 0 12px; }
+.preview-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-block: 36px 12px; }
 .preview-head h2 { margin: 0; font-size: 1.35rem; }
 .preview-head p { margin: 0; color: var(--om-muted); font-size: 0.9rem; }
 #om-preview {

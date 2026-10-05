@@ -2,19 +2,19 @@
 
 ## 1. Build
 
-- [ ] 1.1 Full width (D2): a `page-full` modifier (no max-width) on the process and structure views in `src/viewer/app.js`, and in `src/styles.css` the author-mode `.workspace` uncapped, with `.report` and `.preview-head` kept at 1440px. Headings, `.lead`, `.prose` and `.about` keep their measure. Verify manually at 1920×1080 in a snapshot and in the author-mode preview, and at 1024 and 768, with no horizontal page scroll
-- [ ] 1.2 Window-height diagram areas (D3): at 768px and wider, `.swim-scroll` and `.sd-scroll` get `max-height` (`100vh` fallback, then `100dvh`, minus 32px) and `overflow: auto` with `overscroll-behavior: contain`, and step focus or selection scrolls with `block: 'nearest'` as well. Verify manually with a tall, wide fixture at 1280×800: the bottom scrollbar is on screen, lane headers stay pinned, and the "More steps" cue and the focus scroll still work
-- [ ] 1.3 Drag to pan (D4): new `src/viewer/pan.js` with `initPan(root)`, called once from `render()`:
+- [x] 1.1 Full width (D2): a `page-full` modifier (no max-width) on the process and structure views in `src/viewer/app.js`, and in `src/styles.css` the author-mode `.workspace` uncapped, with `.report` and `.preview-head` kept at 1440px. Headings, `.lead`, `.prose` and `.about` keep their measure. Verify manually at 1920×1080 in a snapshot and in the author-mode preview, and at 1024 and 768, with no horizontal page scroll
+- [ ] 1.2 Window-height diagram areas (D3): at 768px and wider, `.swim-scroll` and `.sd-scroll` get `max-height` (`100vh` fallback, then `100dvh`, minus 32px) and `overflow: auto` with `overscroll-behavior-x: contain`, and step focus or selection scrolls with `block: 'nearest'` as well. Verify manually with a tall, wide fixture at 1280×800: the bottom scrollbar is on screen, lane headers stay pinned, and the "More steps" cue and the focus scroll still work
+- [x] 1.3 Drag to pan (D4): new `src/viewer/pan.js` with `initPan(root)`, called once from `render()`:
   - delegated `pointerdown`, `pointermove`, `pointerup` and `pointercancel` handlers, for the left mouse button only, with a 5px threshold, pointer capture and the `panning` class;
   - after a drag, the next `click` is suppressed once;
   - `dragstart` is prevented inside the areas;
-  - a `ResizeObserver` toggles `can-pan`, and CSS sets `cursor: grab` and `grabbing` and turns off text selection while panning;
+  - a delegated `pointerover` (and `pointerdown`) toggles `can-pan`, and CSS sets `cursor: grab` and `grabbing` and turns off text selection while panning;
   - list or stacked layouts below 768px are not affected.
 
   Verify manually by dragging the swimlane and a wide structure diagram, and by clicking steps, boxes and links
-- [ ] 1.4 Committee placement (D5): in `src/model/layout.js`, insert the committees group after the first party group that has a member of any shown committee. Verify with a new `tests/unit/layout.test.js` case (Customer, Acme, Globex), and confirm the existing committee layout tests are unchanged
-- [ ] 1.5 Test fixtures: `wide-tall-process` (a process with about 25 steps across 12 or more lanes, fictional names) and `committee-three-parties` (Customer, Acme, Globex, with an Acme and Globex committee). Reuse `structure-wide` for wide diagrams, extending it to 8 parties if needed. Verify that each loads with 0 errors
-- [ ] 1.6 Docs: a short "Moving around big diagrams" note in the README's "Using the engine" section, and in `docs/authoring-guide.md` if it describes viewing. Version 1.5.0 in `package.json` (and `package-lock.json`), with the plugin and skill updated through the build. Verify with the version unit test and the skill-folder-current test
+- [x] 1.4 Committee placement (D5): in `src/model/layout.js`, insert the committees group after the first party group that has a member of any shown committee. Verify with a new `tests/unit/layout.test.js` case (Customer, Acme, Globex), and confirm the existing committee layout tests are unchanged
+- [x] 1.5 Test fixtures: `wide-tall-process` (a process with about 25 steps across 12 or more lanes, fictional names) and `committee-three-parties` (Customer, Acme, Globex, with an Acme and Globex committee). Reuse `structure-wide` for wide diagrams, extending it to 8 parties if needed. Verify that each loads with 0 errors
+- [x] 1.6 Docs: a short "Moving around big diagrams" note in the README's "Using the engine" section, and in `docs/authoring-guide.md` if it describes viewing. Version 1.5.0 in `package.json` (and `package-lock.json`), with the plugin and skill updated through the build. Verify with the version unit test and the skill-folder-current test
 
 ## 2. Test
 
