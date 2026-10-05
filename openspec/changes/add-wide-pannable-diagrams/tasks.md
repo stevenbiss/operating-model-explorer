@@ -21,30 +21,30 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`, at the viewport each scenario names (default 1280×800). `@mobile` scenarios also run at 375×812. Mouse dragging uses `page.mouse` (down, move in steps, up).
 
 ### explorer-views
-- [ ] 2.1 More steps cue
-- [ ] 2.2 Swimlane uses the full width (snapshot and author-mode preview, 1920×1080)
-- [ ] 2.3 Both scrollbars stay on screen
-- [ ] 2.4 Drag the swimlane
-- [ ] 2.5 Drag starting on a step
-- [ ] 2.6 Click still opens a step
-- [ ] 2.7 Hand cursor
-- [ ] 2.8 Keyboard unchanged
-- [ ] 2.9 Phones keep the list (@mobile)
+- [x] 2.1 More steps cue
+- [x] 2.2 Swimlane uses the full width (snapshot and author-mode preview, 1920×1080)
+- [x] 2.3 Both scrollbars stay on screen
+- [x] 2.4 Drag the swimlane
+- [x] 2.5 Drag starting on a step
+- [x] 2.6 Click still opens a step
+- [x] 2.7 Hand cursor
+- [x] 2.8 Keyboard unchanged
+- [x] 2.9 Phones keep the list (@mobile)
 
 ### structure-diagrams
-- [ ] 2.10 Many parties
-- [ ] 2.11 Diagram uses the full width
-- [ ] 2.12 Drag a wide diagram
-- [ ] 2.13 Click still opens a box
+- [x] 2.10 Many parties
+- [x] 2.11 Diagram uses the full width
+- [x] 2.12 Drag a wide diagram
+- [x] 2.13 Click still opens a box
 
 ### committees
-- [ ] 2.14 Committee lane and badge
-- [ ] 2.15 Membership shown in the member's own lane
-- [ ] 2.16 Two committees in one process
-- [ ] 2.17 Lane header opens the committee
-- [ ] 2.18 Committee after the first party with members
+- [x] 2.14 Committee lane and badge
+- [x] 2.15 Membership shown in the member's own lane
+- [x] 2.16 Two committees in one process
+- [x] 2.17 Lane header opens the committee
+- [x] 2.18 Committee after the first party with members
 
-- [ ] 2.19 The full existing suite (`npm run test:unit` and `npm test`) still passes, with no regressions in the swimlane, structure, committee, persona or keyboard tests
+- [x] 2.19 The full existing suite (`npm run test:unit` and `npm test`) still passes, with no regressions in the swimlane, structure, committee, persona or keyboard tests
 
 ## 3. Verify
 
