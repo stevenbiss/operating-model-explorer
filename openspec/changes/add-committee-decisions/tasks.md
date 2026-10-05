@@ -166,7 +166,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate:
+- [x] 4.1 html-qa final gate:
   - security: markup and script in committee names, summaries and member names, all shown as text;
   - accessibility: axe on a swimlane with committee lanes at 1280 and 375, focus order, the committee step's accessible name, the members block and the lane-header membership text;
   - visual polish of the committee lanes and the members block in light and dark, with long committee names, 6+ members and two committees;
