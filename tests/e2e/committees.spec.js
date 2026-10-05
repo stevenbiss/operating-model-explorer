@@ -270,7 +270,7 @@ test.describe('committees (author mode)', () => {
     const m = msg(page, 'marked as removed').filter({ hasText: 'go-no-go' });
     await expect(m).toHaveCount(1);
     await expect(m).toHaveAttribute('data-level', 'warning');
-    await expect(m).toContainText('committee "bid-board"');
+    await expect(m).toContainText('committee "Bid board"');
     await expect(page.locator('[data-testid="report-message"][data-level="error"]')).toHaveCount(0);
     await expect(page.getByTestId('export')).toBeEnabled();
   });
@@ -455,6 +455,10 @@ test.describe('committees (exported sample)', () => {
     await expect(step).toHaveAccessibleName(/Acme \+ Globex bid board/);
     // The committee lane header is its name only; member lane headers expose membership and letters as text.
     await expect(page.getByTestId('lane-bid-board')).toHaveAccessibleName('Acme + Globex bid board');
+    // The committee's header is in its own "Committees" group, not announced as one of the roles.
+    await expect(page.getByRole('group', { name: 'Committees', exact: true }).getByTestId('lane-bid-board')).toHaveCount(1);
+    await expect(page.getByRole('group', { name: 'Roles', exact: true }).getByTestId('lane-bid-board')).toHaveCount(0);
+    await expect(page.getByRole('group', { name: 'Roles', exact: true }).getByTestId('lane-partner-manager')).toHaveCount(1);
     await expect(page.getByTestId('lane-partner-manager')).toHaveAccessibleName(/Acme \+ Globex bid board member · A/);
   });
 
@@ -558,6 +562,7 @@ test.describe('committees (exported sample)', () => {
     await expect(row).toHaveCount(1);
     await expect(row.locator('abbr')).toHaveText('A');
     await expect(row.getByTestId('via-committee')).toHaveText('Acme + Globex bid board');
+    await expect(page.locator('main .lead')).toHaveText('Every step, across all processes, where Account lead is the owner, in the RACI or on the committee that owns it.');
   });
 });
 

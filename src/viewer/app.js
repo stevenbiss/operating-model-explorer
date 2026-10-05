@@ -790,7 +790,7 @@ function me() {
   const groups = stepsFor(roles, only ? (s) => s.change && STATUS[s.change.status] : visible);
   return `<div class="page">
 <header class="page-head"><p class="eyebrow">${esc(p.name)}</p><h1 tabindex="-1">What matters for me</h1>
-<p class="lead">Every ${L.lower('step')}, across all ${L.lower('processes')}, where ${roles.map((r) => esc(E[r].name)).join(' or ')} ${roles.length === 1 ? 'is' : 'are'} the owner or in the RACI.</p>
+<p class="lead">Every ${L.lower('step')}, across all ${L.lower('processes')}, where ${roles.map((r) => esc(E[r].name)).join(' or ')} ${roles.length === 1 ? 'is' : 'are'} the owner${list(M.order.committee).length ? `, in the RACI or on the ${L.lower('committee')} that owns it` : ' or in the RACI'}.</p>
 ${hasChanges() ? `<label class="toggle" data-testid="only-changes"><input type="checkbox" id="om-only"${only ? ' checked' : ''}><span>Only changes</span></label>` : ''}</header>
 ${groups.length ? groups.map((g) => `<section class="section group" data-testid="me-group-${esc(g.p.id)}"><h2><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a></h2><ul class="step-list">${g.steps.map((s) => `<li data-testid="me-step"><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${roles.filter((r) => involved(s, r)).map((r) => `${letterHtml(letterOf(s, r))}${roles.length > 1 ? `<span class="letter-role">${esc(E[r].name)}</span>` : ''}`).join('')}${via(s)}${badge(s.change, only)}</span></li>`).join('')}</ul></section>`).join('') : `<p class="note">${only ? `No changes affect you.` : `No ${L.lower('steps')} involve you yet.`}</p>`}
 </div>`;

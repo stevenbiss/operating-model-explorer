@@ -220,7 +220,7 @@ export function validate(docs) {
           ref(sat, 'owner', s.owner, 'role or committee', [...idsOf('role'), ...idsOf('committee')]);
           const owner = byId.get(s.owner);
           if (owner && ['role', 'committee'].includes(owner.type) && owner.removed && !removed(s)) {
-            add({ level: 'warning', ...sat, problem: `This step is owned by the ${owner.type} "${s.owner}", which is marked as removed.`, fix: 'Give the step an owner that stays, or mark the step as removed too (change: status: removed).' });
+            add({ level: 'warning', ...sat, problem: `This step is owned by the ${owner.type} "${owner.type === 'committee' ? nameOf(s.owner) : s.owner}", which is marked as removed.`, fix: 'Give the step an owner that stays, or mark the step as removed too (change: status: removed).' });
           }
           if (s.raci && typeof s.raci === 'object') for (const r of Object.keys(s.raci)) ref(sat, 'RACI role', r, 'role');
           for (const n of list(s.next)) ref(sat, 'next step', typeof n === 'string' ? n : n && n.to, 'step', stepIds);

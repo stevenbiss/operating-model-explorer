@@ -65,3 +65,10 @@ No spec ambiguities were found.
   - `committees.spec.js`: 2.16 (header text and link), 2.25 (the lane's accessible name), 2.26 (phone label, no member names).
   - `explorer-views.spec.js`: 2.37 (phone label).
 - **Results:** `npm run test:unit` 244 of 244 pass; `npm test` 293 passed, 0 failed.
+
+# Round 3: verifier findings
+- **Duplicate docs row:** the `## Committees` row is removed from `docs/capture-sheet.md`, and the skill reference was regenerated.
+- **Screen readers:** committee lane headers now sit in their own SVG group, labelled with the committees term, so they're no longer announced as roles. Processes without committees produce unchanged markup. Committee header links now follow the role header links in the Tab order; the orchestrator accepted this, since header links already follow the steps.
+- **Warning wording:** the removed-committee warning names the committee ("Bid board"). The removed-role warning keeps its existing id wording; the orchestrator left it, since changing it is out of scope.
+- **"What matters for me":** the intro mentions committee membership when the model has committees, using the label.
+- **Results:** `npm run test:unit` 244 of 244 pass; `npm test` 293 passed, 0 failed.

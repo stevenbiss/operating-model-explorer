@@ -129,7 +129,6 @@ Version: 1.0
 | `## Teams` | No | A table of teams inside a party. |
 | `## Roles` | Yes | A table of the roles that do the work. |
 | `## Committees` | No | A table of groups of roles, from any parties, that own steps together. |
-| `## Committees` | No | A table of groups of roles, from any parties, that own steps together. |
 | `## Workstreams` | No | A table of groups of processes. |
 | `## Process: <name>` | No | One section per process: its lines, a step table, a RACI matrix and notes. |
 | `## Structure: <name>` | No | One section per structure diagram: its lines, then Bands, Boxes and Lines tables and notes. |

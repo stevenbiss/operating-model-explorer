@@ -198,8 +198,10 @@ export function swimlaneSvg(ctx) {
       '</g>';
   });
 
-  // Lane header links (layout computed above).
+  // Lane header links (layout computed above). Committee headers form their own group, so a screen reader never
+  // announces a committee as a role.
   let heads = '';
+  let committeeHeads = '';
   for (const r of f.lanes) {
     const { cues, name, team, member } = head[r];
     const top = laneTop[r];
@@ -214,7 +216,9 @@ export function swimlaneSvg(ctx) {
       inner += pl.svg;
       px += pl.w + 6;
     }
-    heads += `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
+    const link = `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
+    if (committees.includes(r)) committeeHeads += link;
+    else heads += link;
   }
 
   // Two SVGs in a row: the steps, then the lane headers (with the party marks over them), which CSS shows first and
@@ -224,5 +228,5 @@ export function swimlaneSvg(ctx) {
     '<defs><marker id="om-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>' +
     '<marker id="om-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.8"/></marker></defs>' +
     `<g aria-hidden="true">${bg}${raci}${edges}${labels}</g>${nodes}</svg>` +
-    `<div class="lane-heads"><svg class="swimlane" width="${HEAD}" height="${height}" viewBox="0 0 ${HEAD} ${height}" role="group" aria-label="${ctx.L('roles')}"><g aria-hidden="true">${headBg}</g>${heads}</svg>${marks ? `<div class="band-marks" aria-hidden="true">${marks}</div>` : ''}</div></div>`;
+    `<div class="lane-heads"><svg class="swimlane" width="${HEAD}" height="${height}" viewBox="0 0 ${HEAD} ${height}"${committeeHeads ? ' role="none"' : ` role="group" aria-label="${ctx.L('roles')}"`}><g aria-hidden="true">${headBg}</g>${committeeHeads ? `<g role="group" aria-label="${ctx.L('roles')}">${heads}</g><g role="group" aria-label="${ctx.L('committees')}">${committeeHeads}</g>` : heads}</svg>${marks ? `<div class="band-marks" aria-hidden="true">${marks}</div>` : ''}</div></div>`;
 }

@@ -11,14 +11,14 @@ A first-class **committee** gives authors a semantic for "By committee" decision
 ## Who uses it and how it's shared
 
 - **Authors (colleagues):** define committees in the capture sheet (a `## Committees` table) or as `committee` files in a content folder, and name a committee as a step's owner. The operating-model-author skill drafts committees from material that shows joint decisions. They export as today.
-- **Viewers (colleagues and clients):** receive the exported snapshot HTML as before (email, Teams, file share). In the process view they see committee-owned steps in a committee lane whose header names the committee and its members from each party, marked "By committee". Nothing changes about how the file is opened or shared.
+- **Viewers (colleagues and clients):** receive the exported snapshot HTML as before (email, Teams, file share). In the process view they see committee-owned steps in a committee lane, marked "By committee". Clicking the step shows the committee's members, split by organisation. Nothing changes about how the file is opened or shared.
 
 ## What Changes
 
 - **A new element type, `committee`:** a name, an optional summary and its **members with their own RACI**: each member role, from any party, has one letter (R, A, C or I). Members marked A are **jointly accountable**, and there is no single overall owner, because the decision is joint. Others can be consulted or informed. A committee is not a party and has no brand.
 - **Steps can be owned by a committee.** A step's `Owner` may name a committee instead of a role. Names are resolved across roles and committees, so a role and a committee can't share a name. Any step may be committee-owned, not only decisions.
 - **Process view** (design D3, confirmed):
-  - each committee that owns a shown step gets **its own lane**, placed **in the middle, between the two parties**. A process can have several committees, and their lanes sit together in that middle block under one "Committees" heading. The lane header shows the committee's name and its members, grouped by party, with their letters;
+  - each committee that owns a shown step gets **its own lane**, placed **in the middle, between the two parties**. A process can have several committees, and their lanes sit together in that middle block under one "Committees" heading. The lane header shows only the committee's name; the members are shown when a committee step is opened;
   - a committee-owned step sits in that lane with a "By committee" badge;
   - the member roles still get their own lanes, and each member's lane header lists the committees it sits on, with its letter (e.g. "Bid board member · A");
   - **clicking a committee step opens its detail panel, which leads with all the committee's members split by organisation**, each with their letter;

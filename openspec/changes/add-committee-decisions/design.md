@@ -110,7 +110,7 @@ The engine has no decision node type. Restricting committees to "decisions" woul
 
 ## Risks / Trade-offs
 
-- [The committee lane shows the step one lane away from the members' own lanes] → The header lists the members with their parties, the persona cue marks both lanes, and the step detail repeats the members. Nothing relies on adjacency.
+- [The committee lane shows the step one lane away from the members' own lanes] → Each member's own lane carries a "<Committee> member · <letter>" tag, the persona cue marks both lanes, and opening the step lists the members by organisation. Nothing relies on adjacency.
 - [Member lanes now carry a membership line, so they aren't compact] → This is the requested behaviour, and the line only appears in processes where that committee owns a step.
 - [A v1.3 engine reports committee owners as unknown roles, which is an error] → The skill bundles its matching engine, and the release notes say that models using committees need 1.4.0.
 - [Several A members could be read as "nobody's accountable"] → "Accountable, jointly" is written out. The one-A-member warning catches committees that aren't really joint, and the authoring guide explains when to use a committee and when to use one owner.

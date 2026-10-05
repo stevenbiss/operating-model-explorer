@@ -478,7 +478,7 @@ test('2.38 unknown owner close to a committee: an error naming the step, with th
 test('2.41 a live step owned by a removed committee: a warning naming the step and the committee', () => {
   const m = only(boardRun(JOINT, { extra: 'change: {status: removed}\n' }).messages);
   assert.deepEqual([m.level, m.step], ['warning', 'go']);
-  assert.match(m.problem, /owned by the committee "bid-board", which is marked as removed/);
+  assert.match(m.problem, /owned by the committee "Bid board", which is marked as removed/);
 });
 
 test('2.13 a non-member informed on the step: no message, and the effective RACI lists them after the members', () => {

@@ -162,7 +162,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 ## 3. Verify
 
 - [ ] 3.1 html-verifier checks every requirement across the seven delta specs, plus a regression pass over the existing main specs, against the engine and an exported snapshot, with evidence. It reviews the skill-trial report and returns VERIFIED. The report is saved to `openspec/changes/add-committee-decisions/reports/html-verifier.md`
-- [ ] 3.2 Confirm there are no real names, clients or org data anywhere in the repo (private-names guard plus a repo search over `examples/`, `tests/` and `docs/`), and verify zero matches
+- [x] 3.2 Confirm there are no real names, clients or org data anywhere in the repo (private-names guard plus a repo search over `examples/`, `tests/` and `docs/`), and verify zero matches
 
 ## 4. QA
 
