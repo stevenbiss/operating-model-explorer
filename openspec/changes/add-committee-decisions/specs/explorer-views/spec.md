@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: L2 process swimlane
-A process SHALL be shown as a swimlane with one lane per role that owns or takes part in its steps, and one lane per committee that owns any of its steps (see committees › Committee lanes in the swimlane). Role lanes SHALL be grouped and labelled by party. Committee lanes SHALL be grouped above them. A role takes part in a step when it appears in the step's RACI or is a member of the committee that owns it. Steps SHALL appear in their owner's lane in flow order. Every `next` relationship SHALL be drawn as a connector. Handoffs that cross parties SHALL be visually distinct from handoffs within a party. Decision branches SHALL show their labels.
+A process SHALL be shown as a swimlane with one lane per role that owns or takes part in its steps, and one lane per committee that owns any of its steps (see committees › Committee lanes in the swimlane). Role lanes SHALL be grouped and labelled by party. Committee lanes SHALL form one group in the middle, between the first party group and the rest. A role takes part in a step when it appears in the step's RACI or is a member of the committee that owns it. Steps SHALL appear in their owner's lane in flow order. Every `next` relationship SHALL be drawn as a connector. Handoffs that cross parties SHALL be visually distinct from handoffs within a party. Decision branches SHALL show their labels.
 
 #### Scenario: Lanes and steps
 - **WHEN** the viewer opens a sample process whose steps are owned by roles from two parties

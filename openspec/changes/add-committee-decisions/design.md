@@ -41,8 +41,8 @@ Optional narrative.
 - `process.schema.json`: the step `owner` description becomes "The id of the role or committee that owns this step."
 - Ids are already unique across the model, so a committee and a role can never share an id in a folder. The name clash rule (committees spec) is a separate check on normalised names, run in validate.js for both forms.
 
-### D3. Swimlane: a dedicated committee lane, not a spanning shape *(resolves the draft's open question 1, for confirmation)*
-Each committee that owns a shown step gets its own lane. The committee lanes form one group placed **above** the party groups, headed by the committees label. The member roles also appear as ordinary lanes in their party groups, because membership counts as taking part.
+### D3. Swimlane: a dedicated committee lane, not a spanning shape *(resolves the draft's open question 1; confirmed)*
+Each committee that owns a shown step gets its own lane. A process can have several committees. All their lanes form **one group in the middle of the swimlane**, directly after the first party group shown, so the two main parties sit on either side. The group has one heading with the committees label, and its lanes are stacked in the order their first steps appear in the flow. The member roles also appear as ordinary lanes in their party groups, because membership counts as taking part.
 
 Why not a step that spans its member lanes?
 - Lanes are grouped by party. So the members of a cross-party committee, the normal case, are almost never next to each other. The spanning shape would then fall back to dotted ties most of the time, and would sit across non-member lanes in between.
@@ -50,12 +50,14 @@ Why not a step that spans its member lanes?
 
 A dedicated lane keeps all of that unchanged:
 - the committee is one more lane key;
-- `flow()` adds a group `{ committee: true, lanes: [committeeIds] }` before the party groups;
+- `flow()` adds a group `{ committee: true, lanes: [committeeIds] }` directly after the first party group;
 - every helper that today takes a role id takes a committee id as well.
 
 The lane header shows the committee's name, then its members as "Role · Party" lines with each party's mark. Like a role's lane header, the name links to the committee page.
 
-Placement above the party groups is a choice: the joint decision layer reads as sitting over each party's people, as a steering group does on an org slide. **If the user prefers the spanning shape**, the specs that change are committees › Committee lanes in the swimlane and explorer-views › L2 process swimlane, and tasks 1.4–1.5 grow by a geometry task.
+**Confirmed by the user (2026-10-05):** dedicated lanes, all together in the middle, with the two main parties on either side. A process can have two or more committees. Placing them in the middle keeps the joint decisions visually between the two sides they join, and the connectors from each side stay short. A spanning shape and a block above all the parties were both considered and set aside.
+
+All committees go in one block rather than each sitting next to its own member parties, because the user wants the committees together between the two main parties. With three or more parties, the block still sits after the first party group. That case is rare in partnership models, and every lane header names its members' parties.
 
 ### D4. RACI: the committee is the A, and members are "Member" *(resolves open question 2, for confirmation)*
 - In `raciChecks()`, a step whose owner is a committee starts with that committee as accountable. Any role with A adds to the list, so the existing more-than-one-A warning fires and names the committee and the role.
@@ -109,4 +111,4 @@ The change is additive. Existing folders and sheets load unchanged, and the capt
 
 ## Open Questions
 
-None that affect the plan. D3–D5 are recommendations awaiting the user's confirmation before apply.
+None that affect the plan. D3 is confirmed. D4 and D5 are recommendations awaiting the user's confirmation before apply.

@@ -18,7 +18,7 @@ A first-class **committee** gives authors a semantic for "By committee" decision
 - **A new element type, `committee`:** a name, an optional summary and a list of **member roles**, which may come from any parties. A committee is not a party and has no brand.
 - **Steps can be owned by a committee.** A step's `Owner` may name a committee instead of a role. Names are resolved across roles and committees, so a role and a committee can't share a name. Any step may be committee-owned, not only decisions.
 - **Process view** (design D3; the draft's open question 1, for confirmation):
-  - each committee that owns a shown step gets **its own lane**, above the party groups, under a "Committees" heading. The lane header shows the committee's name and its members, grouped by party with each party's mark;
+  - each committee that owns a shown step gets **its own lane**, placed **in the middle, between the two parties**. A process can have several committees; their lanes sit together in that middle block under one "Committees" heading. The lane header shows the committee's name and its members, grouped by party with each party's mark;
   - a committee-owned step sits in that lane with a "By committee" badge;
   - the member roles still get their own lanes, as roles that take part, so each party's people stay visible;
   - decision branches (`Next` labels) leave the committee step as from any other step. A handoff into or out of a committee step is cross-party when the committee has a member from a party other than the other step's party.
