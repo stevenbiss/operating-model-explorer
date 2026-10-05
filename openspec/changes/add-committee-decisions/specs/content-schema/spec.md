@@ -32,7 +32,7 @@ The schema SHALL define these element types, each with a required `id` (kebab-ca
 - `party`: an organisation taking part (e.g. a partner company or a client).
 - `team`: belongs to one party.
 - `role`: belongs to one party, and optionally one team.
-- `committee`: a group of member roles, from any parties, that owns steps together (see committees). It belongs to no party.
+- `committee`: a group of member roles, from any parties, each with one RACI letter (a role → R/A/C/I map), that owns steps together (see committees). It belongs to no party.
 - `persona`: a viewer type. It maps to one or more roles and has an entry point.
 - `workstream`: summary, the parties involved, and `detail: detailed | outline`.
 - `process`: belongs to one workstream, and has an ordered list of `steps`.
@@ -84,7 +84,7 @@ A step that is not removed, but whose owner is a removed role or a removed commi
 - **THEN** the validation report shows a warning naming that step and committee, and export remains enabled
 
 ### Requirement: One accountable role per step
-Every step SHALL have exactly one accountable. A step owned by a committee SHALL count the committee as its accountable (see committees › RACI for committee-owned steps). Otherwise the accountable is the one role marked A. A step with no accountable SHALL produce a warning asking who signs it off. A step with more than one accountable SHALL produce a warning naming them. Neither case SHALL block export.
+Every step SHALL have exactly one accountable. For a step owned by a committee, the accountable SHALL be the committee's members marked A, jointly, and several of them SHALL NOT count as more than one accountable (see committees › RACI for committee-owned steps). Otherwise the accountable is the one role marked A. A step with no accountable SHALL produce a warning asking who signs it off. A step with more than one accountable SHALL produce a warning naming them. Neither case SHALL block export.
 
 #### Scenario: No accountable role
 - **WHEN** a step has an owner and RACI entries, but none of them is A
@@ -95,7 +95,7 @@ Every step SHALL have exactly one accountable. A step owned by a committee SHALL
 - **THEN** the report shows a warning naming the step and both roles
 
 #### Scenario: Committee counts as accountable
-- **WHEN** a step owned by a committee has RACI entries with no A
+- **WHEN** a step owned by a committee with two members marked A has no A of its own
 - **THEN** the report shows no accountability warning for that step
 
 #### Scenario: Sample stays clean

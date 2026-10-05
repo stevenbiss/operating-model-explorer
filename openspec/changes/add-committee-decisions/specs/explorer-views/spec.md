@@ -22,7 +22,7 @@ A process SHALL be shown as a swimlane with one lane per role that owns or takes
 - **THEN** no committees group or heading is shown
 
 ### Requirement: L3 step detail
-Activating a step SHALL open its detail: name, owner, RACI, inputs, outputs, systems, KPIs and narrative, showing only fields that have content. A role owner SHALL be shown with its party. A committee owner SHALL be shown with its "By committee" badge and its members with their parties, and SHALL link to the committee page. The detail SHALL offer navigation to the previous and next steps in the flow. When a step has several next steps, each SHALL be offered by its label.
+Activating a step SHALL open its detail: name, owner, RACI, inputs, outputs, systems, KPIs and narrative, showing only fields that have content. A role owner SHALL be shown with its party. A committee owner SHALL be shown with its "By committee" badge and its members split by organisation, each with their RACI letter, and SHALL link to the committee page (see committees › Members shown when a committee step is opened). The detail SHALL offer navigation to the previous and next steps in the flow. When a step has several next steps, each SHALL be offered by its label.
 
 #### Scenario: Open and move along the flow
 - **WHEN** the viewer opens a step's detail and activates "Next"
@@ -30,10 +30,10 @@ Activating a step SHALL open its detail: name, owner, RACI, inputs, outputs, sys
 
 #### Scenario: Committee owner in the detail
 - **WHEN** the viewer opens the detail of a committee-owned step
-- **THEN** the owner shows the committee's name with a "By committee" badge and its members with their parties, and activating the committee name opens its page
+- **THEN** the owner shows the committee's name with a "By committee" badge and its members under one heading per party with their letters, and activating the committee name opens its page
 
 ### Requirement: Role profile
-Activating a role anywhere SHALL show its profile: party, team, description, every committee it is a member of, every step across all processes where it is owner, appears in RACI or is a member of the owning committee, grouped by process, and every structure diagram with a box for that role.
+Activating a role anywhere SHALL show its profile: party, team, description, every committee it is a member of (with its letter), every step across all processes where it is owner, appears in RACI or is a member of the owning committee, grouped by process, and every structure diagram with a box for that role.
 
 #### Scenario: Role across processes
 - **WHEN** the viewer opens the profile of a sample role that appears in two processes
@@ -45,7 +45,7 @@ Activating a role anywhere SHALL show its profile: party, team, description, eve
 
 #### Scenario: Role on a committee
 - **WHEN** the viewer opens the profile of Partner manager in the sample
-- **THEN** the profile links to the bid board, and lists "Go or no-go" as a step where Partner manager is a member
+- **THEN** the profile links to the bid board with the letter A, and lists "Go or no-go" with A as a step Partner manager takes part in through the committee
 
 ### Requirement: Search
 The viewer SHALL provide search across the names and descriptions of all elements (including committees) and steps, and across the name and note text of structure boxes, with results grouped by type and each result opening its element. A match in a box's name or note text SHALL be listed under its structure and SHALL open that structure's diagram.

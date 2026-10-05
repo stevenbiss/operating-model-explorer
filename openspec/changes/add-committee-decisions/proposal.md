@@ -15,35 +15,37 @@ A first-class **committee** gives authors a semantic for "By committee" decision
 
 ## What Changes
 
-- **A new element type, `committee`:** a name, an optional summary and a list of **member roles**, which may come from any parties. A committee is not a party and has no brand.
+- **A new element type, `committee`:** a name, an optional summary and its **members with their own RACI**: each member role, from any party, has one letter (R, A, C or I). Members marked A are **jointly accountable**, and there is no single overall owner, because the decision is joint. Others can be consulted or informed. A committee is not a party and has no brand.
 - **Steps can be owned by a committee.** A step's `Owner` may name a committee instead of a role. Names are resolved across roles and committees, so a role and a committee can't share a name. Any step may be committee-owned, not only decisions.
-- **Process view** (design D3; the draft's open question 1, for confirmation):
-  - each committee that owns a shown step gets **its own lane**, placed **in the middle, between the two parties**. A process can have several committees; their lanes sit together in that middle block under one "Committees" heading. The lane header shows the committee's name and its members, grouped by party with each party's mark;
+- **Process view** (design D3, confirmed):
+  - each committee that owns a shown step gets **its own lane**, placed **in the middle, between the two parties**. A process can have several committees, and their lanes sit together in that middle block under one "Committees" heading. The lane header shows the committee's name and its members, grouped by party, with their letters;
   - a committee-owned step sits in that lane with a "By committee" badge;
-  - the member roles still get their own lanes, as roles that take part, so each party's people stay visible;
+  - the member roles still get their own lanes, and each member's lane header lists the committees it sits on, with its letter (e.g. "Bid board member · A");
+  - **clicking a committee step opens its detail panel, which leads with all the committee's members split by organisation**, each with their letter;
   - decision branches (`Next` labels) leave the committee step as from any other step. A handoff into or out of a committee step is cross-party when the committee has a member from a party other than the other step's party.
-- **RACI** (design D4; open question 2, for confirmation): a committee-owned step counts the **committee as accountable (A)**, so the one-A rule is met without a role column. Members with an empty cell are shown as **"Member"**, not given a letter. Authors can still set R, C or I for a member. An A on any role is a second accountable.
-- **Viewer pages:** a committee page lists its members by party and the steps it owns. A role's profile lists the committees it sits on and their steps. The step detail shows the committee as owner with its members. Search covers committee names and summaries. Committees aren't listed on the overview (open question 3, for confirmation).
-- **Personas:** with a persona selected, a committee that includes one of the persona's roles has its lane marked "Your committee" and its steps emphasised. Those steps appear in "What matters for me" as "Member", or with the member's own letter.
+- **RACI** (design D4, confirmed): a committee-owned step takes its RACI from the committee. Its accountable is the committee's A members, jointly, so several A members don't trigger the one-A warning. The step can add roles that aren't members (e.g. someone informed). A non-member marked A on the step is a warning. A member's letter is set on the committee, not on the step.
+- **Viewer pages:** a committee page lists its members by party with their letters, and the steps it owns. A role's profile lists the committees it sits on, with its letter, and their steps. Search covers committee names and summaries. Committees aren't listed on the overview (confirmed).
+- **Personas:** with a persona selected, a committee that includes one of the persona's roles has its lane marked "Your committee" and its steps emphasised. Those steps appear in "What matters for me" with the letter the committee gives the persona's role.
 - **Validation:**
-  - a member that isn't a known role is an error, with "Did you mean";
-  - a committee with fewer than two members is a warning;
-  - a committee whose members all belong to one party is a warning (it may be meant as a team);
+  - a member that isn't a known role, or a member without exactly one letter, is an error;
+  - a committee with no member marked A is a warning (who decides?);
+  - a committee with only one member marked A is a warning, suggesting a single owner with RACI instead;
+  - a committee whose A members all belong to one party is a warning (it may be meant as a team);
   - a committee that owns no step is a warning;
   - a name shared by a role and a committee is an error;
   - a live step owned by a removed committee is a warning, as it is for removed roles.
 - **Labels:** the terms `committee`/`committees` can be renamed per model, like the other terms (for example "Steering group"). The badge text follows the label ("By steering group").
-- **Capture sheet:** a new optional `## Committees` table with `Committee`, `Members` (role names separated by semicolons) and `Summary` columns, plus the usual optional `Change`, `Today` and `ID` columns. `Owner` cells may name a committee. The format stays at 1, because the change is additive.
-- **Authoring skill:** when material shows a decision taken jointly by people on both sides (a shared decision diamond, "steering group decides", "by committee"), the skill drafts a committee and asks the author to confirm its members, instead of picking one owner. Members it can't place are open questions.
-- **Samples:** the Acme sample (folder and capture sheet, kept in parity) gains one committee, the "Acme + Globex bid board" (Account lead and Partner manager), which owns "Go or no-go" in "Qualify an opportunity". Fictional names only.
+- **Capture sheet:** a new optional `## Committees` table with `Committee`, `Members` and `Summary` columns, plus the usual optional `Change`, `Today` and `ID` columns. `Members` lists each role with its letter in brackets, e.g. `Account lead (A); Partner manager (A); Solution architect (C)`. `Owner` cells may name a committee. The format stays at 1, because the change is additive.
+- **Authoring skill:** when material shows a decision taken jointly by people on both sides (a shared decision diamond, "steering group decides", "by committee"), the skill drafts a committee and asks the author to confirm its members and each member's letter, instead of picking one owner. Members or letters it can't place are open questions.
+- **Samples:** the Acme sample (folder and capture sheet, kept in parity) gains one committee, the "Acme + Globex bid board", with Account lead (A), Partner manager (A), Solution architect (C) and Bid manager (I). It owns "Go or no-go" in "Qualify an opportunity". Fictional names only.
 
 ## Capabilities
 
 ### New Capabilities
-- `committees`: the committee element, its validation rules, the committee lane and "By committee" step in the process view, the committee page, the RACI rule for committee-owned steps, persona highlight, keyboard and screen-reader access, and the small-screen layout.
+- `committees`: the committee element and its member RACI, its validation rules, the committee lanes and "By committee" step in the process view, member lane headers, the members panel on a committee step, the committee page, the RACI rule for committee-owned steps, persona highlight, keyboard and screen-reader access, and the small-screen layout.
 
 ### Modified Capabilities
-- `content-schema`: `committee` added to the element types and folder layout; `owner` on a step may reference a committee; member references added to reference checking; the one-A rule counts the owning committee; removed committees as owners.
+- `content-schema`: `committee` added to the element types and folder layout; `owner` on a step may reference a committee; member references added to reference checking; the one-A rule treats a committee's A members as one joint accountable; removed committees as owners.
 - `capture-sheet`: the `## Committees` table added to the recognised sections; `Owner` resolution across roles and committees.
 - `explorer-views`: the swimlane's committee lanes, committee owners in step detail, committees on role profiles, committee names in search, committee pages.
 - `persona-lens`: "Your committee" highlight, and committee steps in "What matters for me".

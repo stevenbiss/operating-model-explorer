@@ -43,15 +43,19 @@ Authors SHALL refer to parties, teams, roles, committees, workstreams, processes
 ## ADDED Requirements
 
 ### Requirement: Committees table
-An optional `## Committees` section SHALL be a table with the columns `Committee` and `Members` (role names separated by semicolons), and the optional columns `Summary`, `Change`, `Today` and `ID`. A step's `Owner` cell MAY name a committee instead of a role. An unknown member SHALL be an error naming the Committees row, with a "Did you mean …?" suggestion. A sheet and a folder describing the same committees SHALL produce the same model, and the format version SHALL stay at 1.
+An optional `## Committees` section SHALL be a table with the columns `Committee` and `Members`, and the optional columns `Summary`, `Change`, `Today` and `ID`. `Members` SHALL list role names separated by semicolons, each followed by its RACI letter in brackets (e.g. `Account lead (A); Partner manager (A); Legal counsel (C)`). A member with no letter, or more than one, SHALL be an error naming the Committees row and the member. A step's `Owner` cell MAY name a committee instead of a role. An unknown member SHALL be an error naming the Committees row, with a "Did you mean …?" suggestion. A sheet and a folder describing the same committees SHALL produce the same model, and the format version SHALL stay at 1.
 
 #### Scenario: Committee owns a step in a sheet
-- **WHEN** a sheet's Committees table has "Bid board" with the members `Account lead; Partner manager`, and a step's Owner is `bid board`
+- **WHEN** a sheet's Committees table has "Bid board" with the members `Account lead (A); Partner manager (A)`, and a step's Owner is `bid board`
 - **THEN** it loads with no errors, and the preview shows that step in the Bid board lane with a "By committee" badge
 
 #### Scenario: Unknown member in a sheet
-- **WHEN** a Committees row lists the member `Partner mgr` and the role "Partner manager" exists
+- **WHEN** a Committees row lists the member `Partner mgr (A)` and the role "Partner manager" exists
 - **THEN** the report shows an error naming the Committees row and "Did you mean Partner manager?"
+
+#### Scenario: Member without a letter in a sheet
+- **WHEN** a Committees row lists `Account lead; Partner manager (A)`
+- **THEN** the report shows an error naming the Committees row and Account lead, asking for one letter in brackets: A if they share the decision, C if consulted, I if informed, R if they do the work
 
 #### Scenario: Missing Members column
 - **WHEN** a Committees table has no `Members` column

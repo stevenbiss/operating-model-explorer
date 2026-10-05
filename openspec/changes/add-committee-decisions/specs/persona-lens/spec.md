@@ -18,7 +18,7 @@ With a persona selected, the viewer SHALL emphasise the lanes of the persona's r
 - **THEN** the number of lanes, steps and connectors shown is the same in all three cases
 
 ### Requirement: What matters for me
-With a persona selected, the viewer SHALL offer a summary of every step, across all processes, where the persona's roles are owner, appear in RACI or are members of the owning committee, grouped by process and showing the persona's RACI letter, or "Member" for a committee member with no letter. When the model has change data, the summary SHALL offer to show only steps that are new, changed or removed ("What changes for me").
+With a persona selected, the viewer SHALL offer a summary of every step, across all processes, where the persona's roles are owner, appear in RACI or are members of the owning committee, grouped by process and showing the persona's RACI letter. For a committee-owned step, the letter SHALL be the one the committee gives the persona's role, and the committee's name SHALL be shown. When the model has change data, the summary SHALL offer to show only steps that are new, changed or removed ("What changes for me").
 
 #### Scenario: Summary contents
 - **WHEN** a sample persona opens "What matters for me"
@@ -26,7 +26,7 @@ With a persona selected, the viewer SHALL offer a summary of every step, across 
 
 #### Scenario: Committee step in the summary
 - **WHEN** the sample persona "Acme account lead" opens "What matters for me"
-- **THEN** "Go or no-go" is listed under "Qualify an opportunity" with "Member" and the bid board's name
+- **THEN** "Go or no-go" is listed under "Qualify an opportunity" with A and the bid board's name
 
 #### Scenario: What changes for me
 - **WHEN** the model has change data and the viewer turns on "Only changes"
