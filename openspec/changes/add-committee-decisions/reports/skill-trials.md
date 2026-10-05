@@ -93,3 +93,34 @@ Engine check: the handed-over `operating-model-explorer.html` (1.4.0) was opened
 
 - [x] `## Open questions` has an unticked `(gap)` naming the committee ("Go or no-go group") and "someone from finance".
 - [x] No finance role is in the Roles table, and the committee has no finance member.
+
+---
+
+# Independent re-run (requested by html-verifier): 2.81 and 2.82 PASS
+
+## Setup
+- **Commit:** `49386fa`. The committed `skills/operating-model-author/` was copied into an isolated scratch folder (`scratchpad/trial2/skill/`), with the pack in `trial2/input/` and an empty `trial2/output/` outside the repo.
+- **Assistant:** a fresh general-purpose agent with no prior context. It was told to read only `trial2/` (the skill, the input and the output), with nothing from the repo, the README checklist or the specs, and to follow SKILL.md.
+- **Colleague:** played by the orchestrator, who gave only the README's scripted replies. "Yes, that's right." to the committee confirmation, and "Leave it open for now, please hand it over." to everything else.
+
+## Transcript highlights
+- **Draft first:** the agent drafted before asking anything, checked that the output folder isn't in a public repo, and validated the draft (0 errors).
+- **First question to the colleague, verbatim:**
+  > "Your slide shows it as one decision taken by both companies, so I've set it up as a joint group (a "committee" in the model) that owns that step, not as one person's decision. Each member has one letter: **A** means they share the decision and sign it off together, **C** means they're consulted before it's made, and **I** means they're told the outcome. From the caption I've put: Acme Account lead: **A** · Globex Partner manager: **A** · Globex Solution architect: **C**. The Bid manager isn't in the group. They're only marked **I** (told the outcome) on that step, because of the speaker note. Are those members and letters right? The caption also says "someone from finance also sits on the decision". Which role is that, which company are they from, and … (A), (C) or (I)? Until you tell me, I've left them out."
+- **Colleague:** "Yes, that's right. Leave it open for now, please hand it over."
+- **Handover:** the agent ticked the confirmed questions, copied the engine next to the sheet, validated it (0 errors, 13 warnings: 9 open questions and 4 steps with no A), and gave load, review and export instructions.
+
+## Checklist
+**2.81 Joint decision becomes a committee**
+- [x] A `## Committees` row "Joint go or no-go": `Account lead (A); Partner manager (A); Solution architect (C)`. The Bid manager is `I` on the step as a non-member, taken from the slide's speaker note. No letters were invented.
+- [x] Step 3 "Go or no-go" is owned by `Joint go or no-go`. Its RACI row gives no letters to members (only Bid manager `I`).
+- [x] The skill asked the colleague to confirm the members and each letter, and explained that A means sharing the decision (quoted above).
+- [x] `npm run validate` gives `0 errors, 13 warnings`.
+- [x] In the handed-over engine (1.4.0), loaded with **Load capture sheet**: bands Acme Corp / Committees / Globex; "Go or no-go" in the "Joint go or no-go" lane with "By committee"; accessible name "Go or no-go, by committee: Joint go or no-go…"; no console errors. Screenshot: `scratchpad/trial2/engine-swimlane.png`.
+
+**2.82 Unplaced member**
+- [x] An unticked `(gap)` names "Committees › Joint go or no-go" and "someone from finance".
+- [x] No finance role in Roles, and no finance member in the committee.
+
+## Observation for QA (not a trial failure)
+In member lane headers, the "Joint go or no-go member · A" tag wraps so the letter sits alone on the next line.
