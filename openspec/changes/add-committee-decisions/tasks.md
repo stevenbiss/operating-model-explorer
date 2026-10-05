@@ -177,5 +177,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 `npm run build`, then publish release 1.4.0 with the three standard assets and checksums, with release notes saying that models using committees need engine 1.4.0
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 `npm run build`, then publish release 1.4.0 with the three standard assets and checksums, with release notes saying that models using committees need engine 1.4.0
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated

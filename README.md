@@ -4,7 +4,7 @@ An engine that turns an operating model, written as one capture sheet or a folde
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.3.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.3.0)). It adds structure diagrams: relationship diagrams you design yourself, showing how each party's teams and roles sit in bands and relate to each other, linked to other diagrams and workstreams. Built, tested (243 end-to-end and 212 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-structure-diagrams/reports/`.
+**Status:** v1.4.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.4.0)). It adds committee decisions: steps decided together by roles from more than one party, each member with their own RACI letter and those marked A jointly accountable. Built, tested (293 end-to-end and 245 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-committee-decisions/reports/`.
 
 
 ## For authors
@@ -26,6 +26,15 @@ From v1.3.0, a model can hold relationship diagrams that you design from scratch
 - **Diagrams link to each other** and to workstreams, in any combination, and a band can open another diagram so viewers can drill down. If a model has any diagrams, exactly one is the **main** diagram, covering the whole company or partnership.
 - In a capture sheet, write one `## Structure: <name>` section per diagram, with `Bands`, `Boxes` and `Lines` tables. In a content folder, use one `type: structure` file per diagram in `structures/`. See `docs/capture-sheet.md` (Structures) and `docs/authoring-guide.md` (Structure diagrams).
 - Viewers can open a box's role or team, search for a name on a box, and see their own roles marked "Your role". On a phone, each diagram becomes a stacked list.
+
+### Committees: decisions taken together
+
+From v1.4.0, a step can be owned by a **committee** instead of one role, for a decision or a piece of work done jointly by people from more than one party (a go/no-go, a readiness check, a steering decision).
+
+- **A committee has its own RACI.** Each member role, from any party, has one letter. Members marked **A** share the decision and are jointly accountable; there is no single owner. Others can be consulted (C), informed (I) or do the work (R).
+- In a capture sheet, add a `## Committees` table (`Committee`, `Members` such as `Account lead (A); Partner manager (A); Solution architect (C)`, `Summary`) and name the committee in a step's `Owner` cell. In a content folder, use a `type: committee` file in `committees/`. See `docs/capture-sheet.md` (Committees) and `docs/authoring-guide.md` (Committees).
+- **In the swimlane**, committees get their own lanes, together in the middle between the parties, and their steps are marked "By committee". Each member's own lane says which committee it sits on, with its letter. Opening a committee step lists all its members, split by organisation.
+- The engine warns when a committee isn't really joint: no A member, only one, or A members from only one party. Rename "committee" per model if you prefer (for example "Steering group").
 
 ### Brands: each party in its own colour and mark
 
