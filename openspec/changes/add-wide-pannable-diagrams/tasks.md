@@ -48,7 +48,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 3. Verify
 
-- [ ] 3.1 html-verifier checks every requirement in the three delta specs against the running engine and an exported snapshot at 1920×1080, 1280×800, 1024×768 and 375×812, including real mouse dragging, plus a regression pass over the main specs. It returns VERIFIED. The report is saved to `openspec/changes/add-wide-pannable-diagrams/reports/html-verifier.md`
+- [x] 3.1 html-verifier checks every requirement in the three delta specs against the running engine and an exported snapshot at 1920×1080, 1280×800, 1024×768 and 375×812, including real mouse dragging, plus a regression pass over the main specs. It returns VERIFIED. The report is saved to `openspec/changes/add-wide-pannable-diagrams/reports/html-verifier.md`
 
 ## 4. QA
 
