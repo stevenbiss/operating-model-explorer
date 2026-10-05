@@ -52,7 +52,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate:
+- [x] 4.1 html-qa final gate:
   - accessibility: axe at 1920, 1280 and 375, focus order and focus scrolling inside a height-limited area, and keyboard and scrollbar alternatives to dragging (WCAG 2.5.7);
   - the feel of panning in Chrome and Edge: no stray text selection, no accidental opening after a drag, and the right cursors;
   - nested scrolling behaviour with the wheel and trackpad;
@@ -64,5 +64,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.5.0 with the three standard assets and checksums
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.5.0 with the three standard assets and checksums
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated

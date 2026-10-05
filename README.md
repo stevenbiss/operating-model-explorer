@@ -4,7 +4,7 @@ An engine that turns an operating model, written as one capture sheet or a folde
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.4.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.4.0)). It adds committee decisions: steps decided together by roles from more than one party, each member with their own RACI letter and those marked A jointly accountable. Built, tested (293 end-to-end and 245 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-committee-decisions/reports/`.
+**Status:** v1.5.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.5.0)). Process swimlanes and structure diagrams now use the full window width, fit the window's height so both scrollbars stay on screen, and can be dragged around with the mouse. Committees also sit between their members' parties when a model has three or more parties. Built, tested (309 end-to-end and 246 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-wide-pannable-diagrams/reports/`.
 
 
 ## For authors

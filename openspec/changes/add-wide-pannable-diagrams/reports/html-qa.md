@@ -26,3 +26,23 @@
 | Performance (30 steps, 3 committees, CPU 6× slower) | 0 long tasks; frames 17ms at p50, p95 and max |
 | Health | No console errors or network requests; no eval; self-contained, 391 KB |
 | Code review and Ponytail | Lean; the B1 fix also simplifies the code; no dead code |
+
+## Round 2 verdict: SHIP
+Checked on the rebuilt engine, with fresh snapshots, in Chromium 153 and Edge 154 with real scrollbars. 0 console errors and 0 network requests.
+
+- **B1 fixed:**
+  - Clicking a step at 3 scroll positions, at each of 1280, 1024 and 1920 (9 cases, with the detail panel open and the legend wrapping): scroll is kept (500 stays 500), and the step stays fully inside the area and the window.
+  - 36 Next moves: all visible. Escape returns focus to a visible step.
+  - Deep links to s20, s12 and s25 at all three sizes: fully visible.
+  - Keyboard flow and the 375 layout are fine.
+- **M2:** an existing text selection survives a drag. **M4:** the header x position is identical on pages with and without a page scrollbar.
+- **No regressions:**
+  - More steps cue works.
+  - All the round-1 panning checks still pass.
+  - Axe: 0 violations on 16 runs (selected-step views at 1280 and 1920, light and dark).
+- **Code:** the `onRoute` change is small and correct, and simpler than before.
+- **Still open, minor:**
+  - M1 (header width): the user's decision.
+  - M3 and M5: trivial.
+
+*Saved by the orchestrator, because html-qa is read-only. 4.1 ticked on the SHIP verdict.*
