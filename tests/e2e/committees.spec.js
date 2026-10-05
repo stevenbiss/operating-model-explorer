@@ -457,8 +457,11 @@ test.describe('committees (exported sample)', () => {
     await expect(page.getByTestId('lane-bid-board')).toHaveAccessibleName('Acme + Globex bid board');
     // The committee's header is in its own "Committees" group, not announced as one of the roles.
     await expect(page.getByRole('group', { name: 'Committees', exact: true }).getByTestId('lane-bid-board')).toHaveCount(1);
-    await expect(page.getByRole('group', { name: 'Roles', exact: true }).getByTestId('lane-bid-board')).toHaveCount(0);
-    await expect(page.getByRole('group', { name: 'Roles', exact: true }).getByTestId('lane-partner-manager')).toHaveCount(1);
+    await expect(page.getByRole('group', { name: 'Globex roles', exact: true }).getByTestId('lane-bid-board')).toHaveCount(0);
+    await expect(page.getByRole('group', { name: 'Globex roles', exact: true }).getByTestId('lane-partner-manager')).toHaveCount(1);
+    await expect(page.getByRole('group', { name: 'Acme Corp roles', exact: true }).getByTestId('lane-account-lead')).toHaveCount(1);
+    // Lane headers are reached in screen order: Acme's roles, the committee, then Globex's roles.
+    expect(await page.locator('.lane-heads .lane-link').evaluateAll((as) => as.map((a) => a.dataset.testid.slice(5)))).toEqual(['account-lead', 'bid-manager', 'delivery-manager', 'bid-board', 'partner-manager', 'solution-architect']);
     await expect(page.getByTestId('lane-partner-manager')).toHaveAccessibleName(/Acme \+ Globex bid board member · A/);
   });
 
@@ -509,10 +512,11 @@ test.describe('committees (exported sample)', () => {
     await expect(coms.locator('li')).toHaveCount(1);
     await expect(coms.getByRole('link', { name: 'Acme + Globex bid board' })).toHaveAttribute('href', /#\/e\/bid-board/);
     await expect(coms.locator('li abbr')).toHaveText('A');
+    await expect(coms.locator('li .letter')).toHaveText('A Accountable, jointly'); // two members of the bid board are A
     const row = main.locator('.group', { has: page.locator('h3', { hasText: 'Qualify an opportunity' }) }).locator('li', { hasText: 'Go or no-go' });
     await expect(row).toHaveCount(1);
     await expect(row.locator('abbr')).toHaveText('A');
-    await expect(row.getByTestId('via-committee')).toHaveText('Acme + Globex bid board');
+    await expect(row.getByTestId('via-committee')).toHaveText('on Acme + Globex bid board');
     await coms.getByRole('link', { name: 'Acme + Globex bid board' }).click();
     await expect(main.locator('h1')).toHaveText('Acme + Globex bid board');
   });
@@ -561,7 +565,7 @@ test.describe('committees (exported sample)', () => {
     const row = page.getByTestId('me-group-qualify-opportunity').getByTestId('me-step').filter({ hasText: 'Go or no-go' });
     await expect(row).toHaveCount(1);
     await expect(row.locator('abbr')).toHaveText('A');
-    await expect(row.getByTestId('via-committee')).toHaveText('Acme + Globex bid board');
+    await expect(row.getByTestId('via-committee')).toHaveText('on Acme + Globex bid board');
     await expect(page.locator('main .lead')).toHaveText('Every step, across all processes, where Account lead is the owner, in the RACI or on the committee that owns it.');
   });
 });

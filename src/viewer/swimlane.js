@@ -75,7 +75,12 @@ export function swimlaneSvg(ctx) {
     const rb = ctx.badge(role && role.change);
     if (rb) cues.push([rb, `badge-${role.change.status}`]);
     const name = wrap(role ? role.name : r, 22, 99);
-    const member = committees.filter((c) => Object.hasOwn(el[c].members, r)).flatMap((c) => wrap(`${el[c].name} member · ${el[c].members[r]}`, 26, 99));
+    // "<Committee> member" wraps on its own, then " · A" joins its last line, so the letter never sits alone.
+    const member = committees.filter((c) => Object.hasOwn(el[c].members, r)).flatMap((c) => {
+      const lines = wrap(`${el[c].name} member`, 22, 99);
+      lines[lines.length - 1] += ` · ${el[c].members[r]}`;
+      return lines;
+    });
     const compact = !f.rows[r] && !cues.length && name.length === 1 && !member.length;
     const team = !compact && role && role.team && el[role.team] ? el[role.team].name : '';
     const need = 30 + (name.length - 1) * 17 + (team ? 18 : 0) + member.length * 16 + (cues.length ? 28 : 0) + 16;
@@ -198,10 +203,9 @@ export function swimlaneSvg(ctx) {
       '</g>';
   });
 
-  // Lane header links (layout computed above). Committee headers form their own group, so a screen reader never
-  // announces a committee as a role.
-  let heads = '';
-  let committeeHeads = '';
+  // Lane header links (layout computed above). With committees, each lane group (a party's roles, the committees)
+  // is its own labelled group, in screen order, so a screen reader never announces a committee as a role.
+  const links = {};
   for (const r of f.lanes) {
     const { cues, name, team, member } = head[r];
     const top = laneTop[r];
@@ -216,10 +220,13 @@ export function swimlaneSvg(ctx) {
       inner += pl.svg;
       px += pl.w + 6;
     }
-    const link = `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
-    if (committees.includes(r)) committeeHeads += link;
-    else heads += link;
+    links[r] = `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
   }
+
+  const groupLabel = (g) => (g.committee ? ctx.L('committees') : g.party && el[g.party] ? `${esc(el[g.party].name)} ${ctx.L.lower('roles')}` : ctx.L('roles'));
+  const headLinks = committees.length
+    ? f.groups.map((g) => `<g role="group" aria-label="${groupLabel(g)}">${g.lanes.map((r) => links[r]).join('')}</g>`).join('')
+    : f.lanes.map((r) => links[r]).join('');
 
   // Two SVGs in a row: the steps, then the lane headers (with the party marks over them), which CSS shows first and
   // keeps stuck to the left edge while the steps scroll. The headers come second in the DOM so Tab reaches the steps first.
@@ -228,5 +235,5 @@ export function swimlaneSvg(ctx) {
     '<defs><marker id="om-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>' +
     '<marker id="om-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.8"/></marker></defs>' +
     `<g aria-hidden="true">${bg}${raci}${edges}${labels}</g>${nodes}</svg>` +
-    `<div class="lane-heads"><svg class="swimlane" width="${HEAD}" height="${height}" viewBox="0 0 ${HEAD} ${height}"${committeeHeads ? ' role="none"' : ` role="group" aria-label="${ctx.L('roles')}"`}><g aria-hidden="true">${headBg}</g>${committeeHeads ? `<g role="group" aria-label="${ctx.L('roles')}">${heads}</g><g role="group" aria-label="${ctx.L('committees')}">${committeeHeads}</g>` : heads}</svg>${marks ? `<div class="band-marks" aria-hidden="true">${marks}</div>` : ''}</div></div>`;
+    `<div class="lane-heads"><svg class="swimlane" width="${HEAD}" height="${height}" viewBox="0 0 ${HEAD} ${height}"${committees.length ? ' role="none"' : ` role="group" aria-label="${ctx.L('roles')}"`}><g aria-hidden="true">${headBg}</g>${headLinks}</svg>${marks ? `<div class="band-marks" aria-hidden="true">${marks}</div>` : ''}</div></div>`;
 }

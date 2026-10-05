@@ -72,3 +72,11 @@ No spec ambiguities were found.
 - **Warning wording:** the removed-committee warning names the committee ("Bid board"). The removed-role warning keeps its existing id wording; the orchestrator left it, since changing it is out of scope.
 - **"What matters for me":** the intro mentions committee membership when the model has committees, using the label.
 - **Results:** `npm run test:unit` 244 of 244 pass; `npm test` 293 passed, 0 failed.
+
+# Round 4: html-qa polish (after SHIP)
+1. **Lane-header Tab order:** one labelled group per lane group, in screen order ("Acme Corp roles", "Committees", "Globex roles"). Processes without committees are unchanged.
+2. **Member tag wrap:** "<committee> member" is wrapped on its own, then " · <letter>" is added to its last line, so the letter never sits alone.
+3. **Role profile:** the Committees list shows "Accountable, jointly" when the committee has more than one A member (shared `isJoint()` helper).
+4. **Committee tag:** on the role profile and "What matters for me" it now reads "on <committee>".
+5. **Sheet:** a member listed twice in a Committees row is an error; the first letter is kept. New unit test.
+- **Results:** `npm run test:unit` 245 of 245 pass; `npm test` 293 passed, 0 failed.

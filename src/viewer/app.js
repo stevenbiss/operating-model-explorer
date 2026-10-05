@@ -114,13 +114,15 @@ const raciRow = ([role, l], joint) => `<tr${mine(role) ? ' class="mine"' : ''}><
 // Committees (committees spec, design D9).
 const committeeOf = (s) => (s.ownerType === 'committee' && is(s.owner, 'committee') ? E[s.owner] : null);
 const byCommittee = (s) => (committeeOf(s) ? `<span class="badge badge-committee" data-testid="by-committee">By ${L.lower('committee')}</span>` : '');
-// The committee's name after a step's letters, where a role takes part through it.
-const via = (s) => (committeeOf(s) ? `<span class="letter-role" data-testid="via-committee">${esc(committeeOf(s).name)}</span>` : '');
+// Several members marked A share the decision: each is "Accountable, jointly" (design D4).
+const isJoint = (c) => Object.values(c.members).filter((l) => l === 'A').length > 1;
+// "on <committee>" after a step's letters, where a role takes part through the committee that owns it.
+const via = (s) => (committeeOf(s) ? `<span class="letter-role" data-testid="via-committee">on ${esc(committeeOf(s).name)}</span>` : '');
 const memberParty = (r) => (is(r, 'role') && is(E[r].party, 'party') ? E[r].party : null);
 // A committee's members split by organisation: one heading per party (mark and name), then each member and letter.
 function membersHtml(c, h) {
   const members = Object.keys(c.members);
-  const joint = members.filter((r) => c.members[r] === 'A').length > 1;
+  const joint = isJoint(c);
   return [...M.order.party, null]
     .map((p) => {
       const rs = members.filter((r) => memberParty(r) === p);
@@ -716,7 +718,7 @@ function role(r) {
   const committees = list(M.committeesOf && M.committeesOf[r.id]).filter((c) => is(c.committee, 'committee') && visible(E[c.committee]));
   return `<div class="page">
 ${head(`${L('role')}${party ? ` · ${party}` : ''}${team}`, r, mine(r.id) ? `<span class="cue">Your ${L.lower('role')}</span>` : '')}
-${committees.length ? `<section class="section" data-testid="role-committees"><h2>${L('committees')}</h2><ul class="step-list">${committees.map((c) => `<li><a href="${href({ view: 'element', id: c.committee })}">${esc(E[c.committee].name)}</a><span class="step-tags">${letterHtml(c.letter)}${badge(E[c.committee].change)}</span></li>`).join('')}</ul></section>` : ''}
+${committees.length ? `<section class="section" data-testid="role-committees"><h2>${L('committees')}</h2><ul class="step-list">${committees.map((c) => `<li><a href="${href({ view: 'element', id: c.committee })}">${esc(E[c.committee].name)}</a><span class="step-tags">${letterHtml(c.letter, isJoint(E[c.committee]))}${badge(E[c.committee].change)}</span></li>`).join('')}</ul></section>` : ''}
 <section class="section" aria-labelledby="om-where-h"><h2 id="om-where-h">Where this ${L.lower('role')} takes part</h2>
 ${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a></h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${s.owner === r.id ? '<span class="tag">Owner</span>' : ''}${s.raci[r.id] ? letterHtml(s.raci[r.id]) : ''}${via(s)}${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">Not part of any ${L.lower('steps')} yet.</p>`}
 </section>

@@ -728,3 +728,11 @@ test('a sheet and a folder describing the same committee give the same committee
   const folder = loadModel(files({ 'model.md': '---\nid: m\ntype: model\nname: M\npurpose: P\nkey_messages: [K]\n---\n', 'committees/b.md': '---\nid: bid-board\ntype: committee\nname: Bid board\nsummary: Decides together.\nmembers: { account-lead: A, solution-architect: A }\n---\n' })).model.elements['bid-board'];
   assert.deepEqual(sheet, folder);
 });
+
+test('a member listed twice in a Committees row: an error naming the row and the member, and the first letter is kept', () => {
+  const r = load(committees(BOARD.replace('Solution architect (a)', 'Solution architect (A); account LEAD (C)')));
+  const m = only(r.messages);
+  assert.deepEqual([m.level, m.where], ['error', 'Committees › row 1 (Bid board)']);
+  assert.equal(m.problem, 'account LEAD is listed twice in Members.');
+  assert.equal(r.model.elements['bid-board'].members['account-lead'], 'A');
+});

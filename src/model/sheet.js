@@ -332,6 +332,10 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
       const who = m ? m[1] : item;
       const id = find('role', who, r.where, 'member');
       const v = m ? m[2].trim().toUpperCase() : '';
+      if (id && Object.hasOwn(members, id)) {
+        say('error', r.where, `${who} is listed twice in Members.`, `List each member once, with one letter: A if they share the decision, C if consulted, I if informed, R if they do the work.`);
+        continue;
+      }
       if (/^[RACI]$/.test(v)) {
         members[id] = v;
         continue;
