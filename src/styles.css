@@ -489,7 +489,7 @@ main { padding: 36px 24px 72px; }
 /* Diagram areas are never taller than the window, so both scrollbars stay on screen (add-wide-pannable-diagrams D3).
    While one overflows, the mouse can drag it (D4, viewer/pan.js): an open hand, then a closed one while pressed. */
 @media (min-width: 768px) {
-  .swim-scroll, .sd-scroll { max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: auto; overscroll-behavior: contain; }
+  .swim-scroll, .sd-scroll { max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow: auto; }
   .can-pan { cursor: grab; }
   .can-pan.panning, .can-pan.panning * { cursor: grabbing; user-select: none; }
 }
