@@ -42,3 +42,14 @@ None. The first run had 4 failures, all mistakes in the tester's own tests, whic
   - The "confirm with the colleague" step is weaker evidence.
   - Re-run both trials once in a fresh session.
 - **Label sweep:** `tests/e2e/labels-all.spec.js` doesn't include the committee label yet. Scenario 2.80 covers it in a narrower way.
+
+# Round 2: name-only committee lane header: PASS
+- **Builder's updated tests:** 2.16, 2.25, 2.26 and explorer-views 2.37 were checked against the new spec, and all were correct.
+- **Tightened:**
+  - 2.16: no member lines or marks in the committee lane header, and the members appear in the panel split by organisation with their letters.
+  - 2.26: no party tag or mark in the phone item.
+- **`labels-all.spec.js`:**
+  - The sweep now renames committee/committees (as "Council"/"Councils"), so it covers 11 terms, and the default-word regex includes `committees?`.
+  - New routes: the committee page, the committee step, the Partner manager profile and search.
+  - Spot checks confirm "Councils", "Your council" and "By council" appear.
+- **Results:** `npm run test:unit` 244 of 244 pass; `npm test` 293 passed, 0 failed, at commit 2382e40 plus these test edits.

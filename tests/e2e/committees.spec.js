@@ -308,8 +308,17 @@ test.describe('committees (exported committee-basic)', () => {
     // Header: only the committee's name, linking to its page; no member list.
     expect(g.lane('bid-board').text.trim()).toBe('Bid board');
     await expect(page.getByTestId('lane-bid-board')).toHaveAttribute('href', /#\/e\/bid-board/);
+    await expect(page.getByTestId('lane-bid-board').locator('.lane-party, .lane-team')).toHaveCount(0);
+    await expect(page.locator('.lane-heads .member-mark')).toHaveCount(0);
     await expectInLane(page.locator('body'), 'go-no-go', 'bid-board');
     await expect(pillsOf(page, 'go-no-go')).toHaveText(['By committee']);
+    // The members are shown when the step is opened, split by organisation.
+    await page.getByTestId('step-go-no-go').click();
+    expect(await memberRows(detail(page).getByTestId('committee-members'))).toEqual([
+      ['Alpha Ltd', 'Account lead', 'A Accountable, jointly'],
+      ['Beta Inc', 'Partner manager', 'A Accountable, jointly'],
+      ['Beta Inc', 'Solution architect', 'C Consulted'],
+    ]);
   });
 
   test('2.21 committees › Handoff into a committee', async ({ page }) => {
@@ -459,6 +468,7 @@ test.describe('committees (exported sample)', () => {
     await expect(it.locator('.fi-lane')).toHaveText('Acme + Globex bid board');
     for (const m of ['Account lead', 'Bid manager', 'Partner manager', 'Solution architect']) await expect(it).not.toContainText(m);
     await expect(it.getByTestId('by-committee')).toHaveText('By committee');
+    await expect(it.locator('.ptag, .mk')).toHaveCount(0);
     expect(await noHorizontalScroll(page)).toBe(true);
     // Its detail shows the members split by organisation, as on wider screens.
     await it.click();
