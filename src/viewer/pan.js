@@ -45,7 +45,6 @@ export function initPan(root) {
       if (Math.hypot(dx, dy) < 5) return; // still a click
       drag.moved = true;
       drag.a.setPointerCapture(e.pointerId);
-      getSelection().removeAllRanges();
     }
     drag.a.scrollLeft = drag.left - dx;
     drag.a.scrollTop = drag.top - dy;

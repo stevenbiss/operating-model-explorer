@@ -216,6 +216,57 @@ test.describe('wide diagrams (exported wide-tall-process)', () => {
     expect(m.ox).toBe('visible');
     expect(await noHorizontalScroll(page)).toBe(true);
   });
+
+  // html-qa B1: selecting a step re-renders the view; the swimlane keeps its place and the step stays fully in sight.
+  // The step's box must end inside the area's visible box (excluding its scrollbars) and inside the window.
+  const placed = (page, id) => page.evaluate((id) => {
+    const el = document.querySelector('[data-testid="swimlane"]');
+    const r = el.getBoundingClientRect();
+    const b = document.querySelector(`svg.swimlane [data-step="${id}"] .box`).getBoundingClientRect();
+    const top = r.top + el.clientTop;
+    const left = r.left + el.clientLeft;
+    return {
+      inArea: b.top >= top - 1 && b.bottom <= top + el.clientHeight + 1 && b.left >= left - 1 && b.right <= left + el.clientWidth + 1,
+      inWindow: b.top >= -1 && b.bottom <= innerHeight + 1 && b.left >= -1 && b.right <= innerWidth + 1,
+      scrollTop: el.scrollTop,
+    };
+  }, id);
+
+  test('B1 explorer-views › Clicking a step keeps the swimlane in place and the step in view', async ({ page }) => {
+    await openSnapshot(page, snap, '#/p/long-flow');
+    const a = area(page);
+    await bringIntoView(page, a);
+    await a.evaluate((el) => (el.scrollTop = 500));
+    // A step in a lower lane whose box is vertically around the middle of the window; the area is scrolled
+    // sideways so it sits in the middle horizontally too.
+    const id = await page.evaluate(() => {
+      const el = document.querySelector('[data-testid="swimlane"]');
+      const r = el.getBoundingClientRect();
+      const n = [...el.querySelectorAll('svg.swimlane .node')].find((x) => {
+        const bx = x.querySelector('.box').getBoundingClientRect();
+        return bx.top > 150 && bx.bottom < innerHeight - 150;
+      });
+      if (!n) return null;
+      el.scrollLeft += n.querySelector('.box').getBoundingClientRect().left - (r.left + el.clientWidth / 2);
+      return n.dataset.step;
+    });
+    expect(id, 'a mid-window step to click').not.toBeNull();
+    await page.locator(`svg.swimlane [data-step="${id}"] .box`).click();
+    await expect(page).toHaveURL(new RegExp(`/s/${id}$`));
+    await expect(page.locator('#om-detail-title')).toBeVisible();
+    const p = await placed(page, id);
+    expect(p.inArea, 'the step is fully inside the area').toBe(true);
+    expect(p.inWindow, 'the step is fully inside the window').toBe(true);
+    expect(p.scrollTop, 'the area did not jump back to the top').toBeGreaterThan(0);
+  });
+
+  test('B1 explorer-views › A deep link to a step in a lower lane shows it fully', async ({ page }) => {
+    await openSnapshot(page, snap, '#/p/long-flow/s/s20');
+    await expect(page.locator('#om-detail-title')).toBeVisible();
+    const p = await placed(page, 's20');
+    expect(p.inArea, 'the step is fully inside the area').toBe(true);
+    expect(p.inWindow, 'the step is fully inside the window').toBe(true);
+  });
 });
 
 test.describe('wide diagrams (author mode)', () => {

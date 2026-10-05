@@ -48,6 +48,8 @@
 }
 
 * { box-sizing: border-box; }
+/* The header doesn't shift sideways between pages with and without a page scrollbar. */
+html { scrollbar-gutter: stable; }
 [hidden] { display: none !important; }
 
 body {

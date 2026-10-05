@@ -30,3 +30,10 @@
 
 ## Round 2: wheel trap
 `overscroll-behavior` is now horizontal only (`-x: contain`), so the wheel scrolls the page after reaching the diagram's top or bottom. Checked: twenty wheel-downs reach scrollTop 776 of 776, then the page scrolls from 300 to 433; wheeling left at the left edge doesn't navigate. Unit 246 of 246; e2e 293 of 293.
+
+## Round 3: html-qa fixes
+- **B1:** when the same process re-renders, `onRoute()` saves and restores the swimlane's scroll, then calls `scrollIntoView({block:'nearest', inline:'center'})` on the selected step. This replaces the hand-written centring and is 4 lines shorter. Two new e2e tests (a click in a lower lane, and a deep link to s20) fail on the old code and pass now.
+- **M2:** `removeAllRanges()` removed from `pan.js`.
+- **M4:** `html { scrollbar-gutter: stable; }` added.
+- **M1 (header width):** not changed; that's the user's decision.
+- **Results:** unit 246 of 246; e2e 309 of 309.

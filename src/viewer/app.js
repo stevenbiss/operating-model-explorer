@@ -261,21 +261,17 @@ function onRoute() {
   }
   F = null;
   chrome();
+  // Re-rendering the same process keeps the swimlane where the viewer left it.
+  const old = prev && prev.view === 'process' && route.view === 'process' && prev.id === route.id && main.querySelector('.swim-scroll');
+  const kept = old && [old.scrollLeft, old.scrollTop];
   main.innerHTML = view();
   mountLines(main.querySelector('.sd'), route.view === 'structure' && is(route.id, 'structure') ? E[route.id].lines : []);
-  // Keep the selected step in sight when the detail panel narrows the swimlane.
-  const sel = main.querySelector('.node[aria-current]');
   const sc = main.querySelector('.swim-scroll');
-  if (sel) {
-    // Centred in the part of the box that the sticky lane-header column doesn't cover, and brought up into the
-    // window-high area if it sits in a lower lane.
-    const box = sel.querySelector('.box').getBoundingClientRect();
-    const area = sc.getBoundingClientRect();
-    const heads = main.querySelector('.lane-heads').getBoundingClientRect().width;
-    const mid = box.left + box.width / 2 - area.left + sc.scrollLeft;
-    sc.scrollLeft = Math.max(0, mid - (heads + (sc.clientWidth - heads) / 2));
-    sc.scrollTop += Math.max(0, box.bottom + 16 - area.top - sc.clientTop - sc.clientHeight);
-  }
+  if (kept && sc) [sc.scrollLeft, sc.scrollTop] = kept;
+  // Keep the selected step in sight, in the area and the window, when the detail panel narrows the swimlane.
+  // scroll-padding centres it in the part the sticky lane headers and the cue don't cover.
+  const sel = main.querySelector('.node[aria-current]');
+  if (sel) sel.scrollIntoView({ block: 'nearest', inline: 'center' });
   if (sc) {
     sc.addEventListener('scroll', moreCue, { passive: true });
     // A step reached by keyboard is scrolled fully into the area, both ways, clear of the lane headers (scroll-padding).
