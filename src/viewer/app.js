@@ -41,7 +41,6 @@ let main;
 let visited;
 let F = null; // flow of the open process, for arrow-key navigation
 let mounted = false;
-let viewOverride = null; // the home-page view author mode previews instead of the published one (design D7)
 
 // ---------- helpers ----------
 
@@ -55,7 +54,11 @@ const persona = () => (is(route.persona, 'persona') ? E[route.persona] : null);
 const personaRoles = () => new Set(persona() ? list(persona().roles) : []);
 // A committee is the persona's when one of its members is a persona role (design D9).
 const mine = (r) => personaRoles().has(r) || (is(r, 'committee') && Object.keys(E[r].members).some((x) => personaRoles().has(x)));
-const to = (r) => formatRoute({ persona: route.persona, changes: route.changes, ...r });
+// The model's own home-page view, and the one shown: the viewer's choice in the route, or the model's (design D2).
+const base = () => (M.model && M.model.view) || 'simple';
+const homeView = () => route.home || base();
+const fmt = (r) => formatRoute(r, base());
+const to = (r) => fmt({ persona: route.persona, changes: route.changes, home: route.home, ...r });
 const href = (r) => esc(to(r)); // for HTML attributes; to() for location and setAttribute
 const stepHref = (s) => href({ view: 'process', id: s.process, step: s.id });
 // Removed steps (and removed elements in search results) are shown only while change markers are on.
@@ -146,10 +149,8 @@ function membersHtml(c, h) {
 // ---------- entry ----------
 
 // target: #app in viewer mode; in author mode the preview element.
-// view: author mode's preview of the other home-page view, or null for the published one (design D7).
-export function render(snapshot, target = document.getElementById('app'), view = null) {
+export function render(snapshot, target = document.getElementById('app')) {
   M = snapshot;
-  viewOverride = view;
   E = M.elements;
   L = labeller(M.theme);
   useImages(M.assets);
@@ -264,7 +265,7 @@ function onRoute() {
   const gone = hiddenStep();
   if (gone) {
     route.step = null;
-    history.replaceState(history.state, '', formatRoute(route));
+    history.replaceState(history.state, '', fmt(route));
   }
   showNotice(gone && `${L('step')} “${esc(gone.name)}” was removed in this model. Turn on Show changes to see it.`);
   // Re-rendering replaces main's content; remember what had focus so it can be restored.
@@ -275,6 +276,8 @@ function onRoute() {
     store.set(visitedKey(), JSON.stringify([...visited]));
   }
   F = null;
+  // Process and structure pages fill the window, so the header and footer follow them (design D5).
+  document.body.classList.toggle('full', (route.view === 'process' || route.view === 'structure') && is(route.id, route.view));
   chrome();
   // Re-rendering the same process keeps the swimlane where the viewer left it.
   const old = prev && prev.view === 'process' && route.view === 'process' && prev.id === route.id && main.querySelector('.swim-scroll');
@@ -295,6 +298,8 @@ function onRoute() {
   }
   if (prev && prev.persona !== route.persona) {
     say(persona() ? `Now viewing as ${esc(persona().name)}` : `Now viewing without ${L.a('persona')}`);
+  } else if (prev && prev.view === 'overview' && route.view === 'overview' && (prev.home || base()) !== homeView()) {
+    say(homeView() === 'detailed' ? 'Detailed view' : 'Simple view');
   }
   if (prev) placeFocus(prev, keep);
 }
@@ -343,7 +348,7 @@ function dismissNotice() {
 }
 
 const go = (patch, replace) => {
-  const h = formatRoute({ ...route, ...patch });
+  const h = fmt({ ...route, ...patch });
   if (replace) location.replace(h);
   else location.hash = h;
 };
@@ -410,6 +415,11 @@ function onClick(e) {
   else if (t.closest('[data-close]')) t.closest('dialog').close();
   else if (t.closest('[data-dismiss-notice]')) dismissNotice();
   else if (t.closest('[data-persona-choice]')) choosePersona(t.closest('[data-persona-choice]').dataset.personaChoice);
+  else if (t.closest('[data-home-view]')) {
+    const b = t.closest('[data-home-view]');
+    b.focus(); // so focus comes back to it after the re-render, in browsers where a click doesn't focus a button
+    go({ home: b.dataset.homeView }, true);
+  }
   else if (t.closest('.node')) openStep(t.closest('.node').dataset.step);
   else if (t.closest('[data-more]')) {
     const sc = main.querySelector('.swim-scroll');
@@ -431,7 +441,7 @@ function choosePersona(id) {
   const entry = E[id].entry || {};
   const views = { workstream: 'workstream', process: 'process', role: 'role' };
   const ok = views[entry.view] && is(entry.id, entry.view);
-  location.hash = formatRoute({ view: ok ? views[entry.view] : 'overview', id: ok ? entry.id : undefined, persona: id, changes: route.changes });
+  location.hash = fmt({ view: ok ? views[entry.view] : 'overview', id: ok ? entry.id : undefined, persona: id, changes: route.changes, home: route.home });
 }
 
 function onChange(e) {
@@ -523,11 +533,12 @@ const notFound = () => `<div class="page"><h1 tabindex="-1">Not found</h1><p>Thi
 const head = (eyebrow, x, extra = '', party = null) =>
   `<header class="page-head${party ? ' party-head' : ''}"${party ? dp(party) : ''}><p class="eyebrow">${eyebrow}</p><h1 tabindex="-1">${party ? mark(party, false) : ''}${esc(x.name)}</h1>${badge(x.change) || extra ? `<div class="tags">${badge(x.change)}${extra}</div>` : ''}${x.summary ? `<p class="lead">${esc(x.summary)}</p>` : ''}${today(x)}${x.body ? `<div class="prose">${renderMarkdown(x.body)}</div>` : ''}</header>`;
 
-// The home page (explorer-views spec › L0 model overview, design D6): Simple (the default) or Detailed, as the author
-// chose. Only author mode's preview can show the other view; viewers can't switch.
+// The home page (explorer-views spec › L0 model overview): Simple or Detailed. It opens in the author's view, and the
+// toggle under the heading lets every viewer switch (design D3).
 function overview() {
   const m = M.model || {};
-  const detail = (viewOverride || m.view) === 'detailed';
+  const detail = homeView() === 'detailed';
+  const opt = (v, t) => `<button type="button" class="btn" data-home-view="${v}" aria-pressed="${homeView() === v}" data-testid="view-toggle-${v}">${t}</button>`;
   const ws = M.order.workstream.map((id) => E[id]);
   // Every process, in workstream order; any whose workstream is unknown come last.
   const pr = ws.flatMap((w) => w.processes).concat(M.order.process.filter((p) => !is(E[p].workstream, 'workstream')));
@@ -536,6 +547,7 @@ function overview() {
 <section class="hero">
   <p class="eyebrow">${L('model')}</p>
   <h1 tabindex="-1" data-testid="model-name">${esc(m.name)}</h1>
+  <div class="view-toggle" role="group" aria-label="Home page view" data-testid="view-toggle">${opt('simple', 'Simple')}${opt('detailed', 'Detailed')}</div>
   ${detail && m.purpose ? `<div class="lead purpose" data-testid="purpose">${renderMarkdown(String(m.purpose))}</div>` : ''}
   ${detail && m.body ? `<div class="prose">${renderMarkdown(m.body)}</div>` : ''}
 </section>

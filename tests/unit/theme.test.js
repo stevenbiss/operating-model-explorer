@@ -76,8 +76,20 @@ test('routes round-trip, including persona and change markers', () => {
   for (const h of ['#/', '#/w/presales', '#/d/harbour-account?persona=x&changes=1', '#/p/qualify-opportunity', '#/p/build-proposal/s/review-proposal?persona=acme-account-lead&changes=1', '#/r/account-lead', '#/e/acme', '#/search?q=bid', '#/me?persona=x&only=1']) {
     assert.equal(formatRoute(parseRoute(h)), h);
   }
-  assert.deepEqual(parseRoute(''), { view: 'overview', persona: null, changes: false, only: false, q: '' });
+  assert.deepEqual(parseRoute(''), { view: 'overview', persona: null, changes: false, only: false, q: '', home: null });
   assert.equal(parseRoute('#/p/x/s/y').step, 'y');
+});
+
+test('home-page view in the route: parsed, kept, and written only when it differs from the model view', () => {
+  assert.equal(parseRoute('#/?view=detailed').home, 'detailed');
+  assert.equal(parseRoute('#/?view=simple').home, 'simple');
+  assert.equal(parseRoute('#/?view=full').home, null);
+  assert.equal(parseRoute('#/?view=Detailed').home, null);
+  assert.equal(formatRoute(parseRoute('#/?view=detailed')), '#/?view=detailed');
+  assert.equal(formatRoute(parseRoute('#/p/x?persona=a&view=detailed')), '#/p/x?persona=a&view=detailed'); // kept off the home page
+  assert.equal(formatRoute({ view: 'overview', home: 'simple' }), '#/');
+  assert.equal(formatRoute({ view: 'overview', home: 'detailed' }, 'detailed'), '#/');
+  assert.equal(formatRoute({ view: 'overview', home: 'simple' }, 'detailed'), '#/?view=simple');
 });
 
 test('2.64 structure labels: default "Structure"/"Structures", renameable, and a rename in one form only warns', () => {

@@ -13,7 +13,7 @@
     "purpose": { "type": "string", "description": "Why this operating model exists. Markdown is allowed." },
     "key_messages": { "type": "array", "items": { "type": "string" }, "description": "The shared conclusions every viewer should reach, in order." },
     "version": { "type": ["string", "number"], "description": "Optional content version, shown in the snapshot footer." },
-    "view": { "enum": ["simple", "detailed"], "description": "Optional home-page view: simple (the default) shows the name, parties, workstreams, processes and structure diagrams; detailed also shows the purpose, the About this model text, the key messages and the persona doors. Viewers can't switch." },
+    "view": { "enum": ["simple", "detailed"], "description": "Optional view the home page opens in: simple (the default) shows the name, parties, workstreams, processes and structure diagrams; detailed also shows the purpose, the About this model text, the key messages and the persona doors. Viewers can switch with the toggle on the home page." },
     "change": {
       "type": "object",
       "description": "Optional current vs future state.",

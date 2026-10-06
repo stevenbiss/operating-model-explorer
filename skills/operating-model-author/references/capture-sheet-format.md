@@ -121,7 +121,7 @@ View: Detailed
 | `Format: <n>` | Yes | The capture sheet format version. This page describes format 1. Without it the sheet is read as format 1, with a warning. A sheet with a newer format than the engine reads is an error: open it with a newer engine. |
 | `ID: <id>` | No | The model's id, which is also the snapshot's file name. By default it comes from the name (`acme-globex-partnership`). |
 | `Version: <text>` | No | The content version, shown in the snapshot footer. |
-| `View: Simple` or `View: Detailed` | No | The home-page view. **Simple** (the default, when the line is left out) shows the model's name, then its parties, workstreams, processes and structure diagrams. **Detailed** also shows the purpose, the About this model text, the key messages and the persona doors. Only the home page changes: the Key messages button and every other page are the same in both. Viewers can't switch. Case doesn't matter; any other value is an error. |
+| `View: Simple` or `View: Detailed` | No | The view the home page opens in. **Simple** (the default, when the line is left out) shows the model's name, then its parties, workstreams, processes and structure diagrams. **Detailed** also shows the purpose, the About this model text, the key messages and the persona doors. Only the home page changes: the Key messages button and every other page are the same in both. Viewers can switch between the two with the toggle on the home page. Case doesn't matter; any other value is an error. |
 
 ## Sections
 

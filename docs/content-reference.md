@@ -19,7 +19,7 @@ The operating model itself: its name, purpose and the key messages everyone shou
 | `purpose` | Yes | text | Why this operating model exists. Markdown is allowed. |
 | `key_messages` | Yes | list of text | The shared conclusions every viewer should reach, in order. |
 | `version` | No | text or number | Optional content version, shown in the snapshot footer. |
-| `view` | No | one of: simple, detailed | Optional home-page view: simple (the default) shows the name, parties, workstreams, processes and structure diagrams; detailed also shows the purpose, the About this model text, the key messages and the persona doors. Viewers can't switch. |
+| `view` | No | one of: simple, detailed | Optional view the home page opens in: simple (the default) shows the name, parties, workstreams, processes and structure diagrams; detailed also shows the purpose, the About this model text, the key messages and the persona doors. Viewers can switch with the toggle on the home page. |
 | `change` | No | group of fields | Optional current vs future state. |
 | `change.status` | Yes | one of: new, changed, removed, unchanged | How this element differs from today. |
 | `change.today` | No | text | How it works today, shown next to the future state. |

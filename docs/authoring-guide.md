@@ -194,7 +194,7 @@ List only the people who hold the role in general. When one structure box is hel
 status: agreed          # under-review (the default) or agreed; in a capture sheet, "Status: Agreed"
 ```
 
-**Simple or Detailed home page.** By default the home page is **Simple**: the model's name, then its parties, workstreams, processes and structure diagrams, so reviewers get straight to the diagrams. **Detailed** also shows the purpose, the About this model text, the key messages and the persona doors: use it when the snapshot has to explain itself, for example for viewers new to the model. Only the home page changes; the Key messages button and every other page are the same. Viewers can't switch, and author mode's preview has a toggle to see the other view before you export.
+**Simple or Detailed home page.** By default the home page is **Simple**: the model's name, then its parties, workstreams, processes and structure diagrams, so reviewers get straight to the diagrams. **Detailed** also shows the purpose, the About this model text, the key messages and the persona doors: use it when the snapshot has to explain itself, for example for viewers new to the model. Only the home page changes; the Key messages button and every other page are the same. `View:` sets the view the home page opens in: viewers can switch between Simple and Detailed with the toggle under the home page heading, and the link keeps their choice. Author mode's preview says which view the snapshot opens in and has the same toggle, which never changes what you export.
 
 ```yaml
 view: detailed          # in model.md; simple (the default) or detailed; in a capture sheet, "View: Detailed"

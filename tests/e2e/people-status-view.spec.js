@@ -205,26 +205,28 @@ test.describe('people, status and view (author mode)', () => {
     await expect(m).toContainText('Detailed');
   });
 
+  // 2.38–2.40 replaced by change home-view-toggle-wide-header: the author-only "Preview … view" toggle is gone, and the
+  // preview offers the same home-page toggle viewers get.
   test('2.38 author-mode › Preview the other view', async ({ page }) => {
     await trySample(page);
     await skipPrompt(page);
     const published = page.getByTestId('published-view');
-    const toggle = page.getByTestId('preview-view-toggle');
-    await expect(published).toHaveText('Published home page: Simple view');
-    await expect(toggle).toHaveText('Preview Detailed view');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await expect(published).toHaveText('Snapshot opens in: Simple view');
+    await expect(page.getByTestId('preview-view-toggle')).toHaveCount(0); // no separate author-only toggle
+    const detailed = preview(page).getByTestId('view-toggle-detailed');
+    await expect(detailed).toHaveAttribute('aria-pressed', 'false');
     await expect(preview(page).getByTestId('key-messages-section')).toHaveCount(0);
-    await toggle.click();
+    await detailed.click();
     await expect(preview(page).getByTestId('key-messages-section')).toBeVisible();
     await expect(preview(page).getByTestId('key-messages-section').locator('li p')).toHaveText(KEY_MESSAGES);
-    await expect(published).toHaveText('Published home page: Simple view');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await expect(published).toHaveText('Snapshot opens in: Simple view');
+    await expect(preview(page).getByTestId('view-toggle-detailed')).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('2.39 author-mode › Export ignores the preview toggle', async ({ page, context }, info) => {
     await trySample(page);
     await skipPrompt(page);
-    await page.getByTestId('preview-view-toggle').click();
+    await preview(page).getByTestId('view-toggle-detailed').click();
     await expect(preview(page).getByTestId('home')).toHaveAttribute('data-view', 'detailed');
     const dl = page.waitForEvent('download');
     await page.getByTestId('export').click();
@@ -237,24 +239,25 @@ test.describe('people, status and view (author mode)', () => {
     await expect(viewer.getByTestId('home')).toHaveAttribute('data-view', 'simple');
     await expect(viewer.getByTestId('key-messages-section')).toHaveCount(0);
     await expect(viewer.getByTestId('purpose')).toHaveCount(0);
+    await expect(viewer.getByTestId('view-toggle-simple')).toHaveAttribute('aria-pressed', 'true'); // the viewer toggle is there
   });
 
   test('2.40 author-mode › Keyboard toggle', async ({ page }) => {
     await trySample(page);
     await skipPrompt(page);
-    const toggle = page.getByTestId('preview-view-toggle');
-    await page.getByTestId('report').locator('h2, h1').first().focus().catch(() => {});
-    await tabTo(page, '[data-testid="preview-view-toggle"]');
-    await expect(toggle).toHaveRole('button');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    const detailed = preview(page).getByTestId('view-toggle-detailed');
+    await tabTo(page, '#om-preview [data-testid="view-toggle-detailed"]');
+    await expect(detailed).toHaveRole('button');
+    await expect(detailed).toHaveAttribute('aria-pressed', 'false');
     await page.keyboard.press('Space');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true'); // exposed as a pressed toggle button
-    await expect(page.getByRole('button', { name: 'Preview Detailed view', pressed: true })).toBeVisible();
     await expect(preview(page).getByTestId('home')).toHaveAttribute('data-view', 'detailed');
-    await expect(toggle).toBeFocused();
+    await expect(preview(page).getByRole('button', { name: 'Detailed', pressed: true })).toBeVisible(); // exposed as pressed
+    await expect(preview(page).getByTestId('view-toggle-detailed')).toBeFocused();
+    await expect(preview(page).getByTestId('announcer')).toHaveText('Detailed view');
+    await page.keyboard.press('Shift+Tab');
     await page.keyboard.press('Space');
-    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
     await expect(preview(page).getByTestId('home')).toHaveAttribute('data-view', 'simple');
+    await expect(preview(page).getByTestId('announcer')).toHaveText('Simple view');
   });
 });
 

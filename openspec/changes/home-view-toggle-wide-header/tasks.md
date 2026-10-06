@@ -2,11 +2,11 @@
 
 ## 1. Build
 
-- [ ] 1.1 Route (D2): `view` in `parseRoute` and `formatRoute` (written only when it differs from the model's view), kept across navigation; `overview()` uses `route.view ?? M.model.view ?? 'simple'`. Verify with route unit tests
-- [ ] 1.2 Home-page toggle (D3): a two-button group with `aria-pressed`, focus kept, the change announced, and wrapping at 375. Verify manually at 1280 and 375, light and dark, with mouse and keyboard
-- [ ] 1.3 Author mode (D4): remove the author-only preview toggle and the `previewView` plumbing, keep the "Snapshot opens in: … view" line, and confirm export is unaffected by the preview's toggle. Update or replace the existing author-toggle tests (1.6.0 scenarios 2.38–2.40). Verify manually
-- [ ] 1.4 Full-width header and footer (D5): a `body.full` class on process and structure routes; header and footer `.bar-in` uncapped there; other pages and the author bar unchanged. Verify manually at 2560, 1920 and 1280 (header aligned on diagram pages, capped elsewhere) and at 375
-- [ ] 1.5 Docs and version: README and `docs/authoring-guide.md` say viewers can switch views and `View:` sets the starting view. Version 1.8.0 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version and skill-folder-current tests
+- [x] 1.1 Route (D2): `view` in `parseRoute` and `formatRoute` (written only when it differs from the model's view), kept across navigation; `overview()` uses `route.view ?? M.model.view ?? 'simple'`. Verify with route unit tests
+- [x] 1.2 Home-page toggle (D3): a two-button group with `aria-pressed`, focus kept, the change announced, and wrapping at 375. Verify manually at 1280 and 375, light and dark, with mouse and keyboard
+- [x] 1.3 Author mode (D4): remove the author-only preview toggle and the `previewView` plumbing, keep the "Snapshot opens in: … view" line, and confirm export is unaffected by the preview's toggle. Update or replace the existing author-toggle tests (1.6.0 scenarios 2.38–2.40). Verify manually
+- [x] 1.4 Full-width header and footer (D5): a `body.full` class on process and structure routes; header and footer `.bar-in` uncapped there; other pages and the author bar unchanged. Verify manually at 2560, 1920 and 1280 (header aligned on diagram pages, capped elsewhere) and at 375
+- [x] 1.5 Docs and version: README and `docs/authoring-guide.md` say viewers can switch views and `View:` sets the starting view. Version 1.8.0 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version and skill-folder-current tests
 
 ## 2. Test
 

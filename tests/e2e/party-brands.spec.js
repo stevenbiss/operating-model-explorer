@@ -713,6 +713,7 @@ test.describe('capture-sheet (brands)', () => {
     await expect(counts(page)).toHaveText('0 errors, 0 warnings');
     await expect(messages(page)).toHaveCount(0);
     await skipPrompt(page);
+    await page.mouse.move(0, 0); // off the cards, so a hover border doesn't stand in for the brand colour
     for (const [id, name, colour] of [['acme', 'Acme Corp', '#0b5cad'], ['globex', 'Globex', '#a3367a']]) {
       const card = pv(page).locator('.card-party', { has: page.locator('h3', { hasText: new RegExp(`^${name}$`) }) });
       await expect(card).toHaveCount(1);
