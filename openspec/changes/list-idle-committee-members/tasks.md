@@ -29,33 +29,33 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`, at 1280×800 unless a scenario says otherwise. Node tests cover `flow()`.
 
 ### committees
-- [ ] 2.1 Committee lane and badge
-- [ ] 2.2 Membership shown in the member's own lane
-- [ ] 2.3 Two committees in one process
-- [ ] 2.4 Lane header opens the committee
-- [ ] 2.5 Committee after the first party with members
-- [ ] 2.22 Placement when member parties have no lanes (added during build)
-- [ ] 2.6 Idle member listed in the committee lane
-- [ ] 2.7 Member with its own step keeps its lane
-- [ ] 2.8 Member with a RACI letter on another step keeps its lane
-- [ ] 2.9 People on a listed member
-- [ ] 2.10 Long member list
-- [ ] 2.11 Idle in one process, a lane in another
-- [ ] 2.12 Open the committee decision
-- [ ] 2.13 Sample committee loads
+- [x] 2.1 Committee lane and badge
+- [x] 2.2 Membership shown in the member's own lane
+- [x] 2.3 Two committees in one process
+- [x] 2.4 Lane header opens the committee
+- [x] 2.5 Committee after the first party with members
+- [x] 2.22 Placement when member parties have no lanes (added during build)
+- [x] 2.6 Idle member listed in the committee lane
+- [x] 2.7 Member with its own step keeps its lane
+- [x] 2.8 Member with a RACI letter on another step keeps its lane
+- [x] 2.9 People on a listed member
+- [x] 2.10 Long member list
+- [x] 2.11 Idle in one process, a lane in another
+- [x] 2.12 Open the committee decision
+- [x] 2.13 Sample committee loads
 
 ### explorer-views
-- [ ] 2.14 Lanes and steps
-- [ ] 2.15 Decision branches
-- [ ] 2.16 Cross-party handoff
-- [ ] 2.17 Process without committees
-- [ ] 2.18 No empty member lanes
+- [x] 2.14 Lanes and steps
+- [x] 2.15 Decision branches
+- [x] 2.16 Cross-party handoff
+- [x] 2.17 Process without committees
+- [x] 2.18 No empty member lanes
 
 ### persona-lens
-- [ ] 2.19 Persona is an idle member
-- [ ] 2.20 Hidden behind more
+- [x] 2.19 Persona is an idle member
+- [x] 2.20 Hidden behind more
 
-- [ ] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes. Lane-count assertions on the sample are updated only where this rule changes them
+- [x] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes. Lane-count assertions on the sample are updated only where this rule changes them
 
 ## 3. Verify
 
