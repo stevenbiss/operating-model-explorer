@@ -4,7 +4,7 @@
 
 ### Requirement: Connector labels fit between steps
 In the swimlane, every label on a forward connector (a decision branch) SHALL be fully readable: no part of it SHALL overlap a step box, and labels SHALL NOT overlap each other.
-- **Placement.** A label SHALL sit on the connector's last horizontal segment, the one entering its target step, just before the target.
+- **Placement.** A label SHALL sit on the connector's last horizontal segment, the one entering its target step, just before the target. When several labelled connectors enter the same step, each SHALL enter at its own point along the step's left edge, at least 16px apart, so each label sits on its own line. No label SHALL extend outside the diagram.
 - **Gap sizing.** The gap in front of each column SHALL be at least as wide as the widest label on a forward connector entering that column, plus padding on both sides, and never narrower than today's gap. Columns without such labels SHALL keep today's width.
 - **Wrapping.** A gap SHALL be at most 220px wide. A label too long for that SHALL wrap onto two or more lines, as many as it needs, still clear of the step boxes. It SHALL never be truncated.
 - **Loop-back labels.** Labels on loop-back (rework) connectors SHALL keep their current placement under the steps.
@@ -22,6 +22,10 @@ The layout SHALL be the same in author mode and in an exported snapshot.
 #### Scenario: Five-branch decision
 - **WHEN** a decision step has five labelled branches to five different steps, with labels of up to 24 characters
 - **THEN** all five labels are fully visible, none overlaps a step box, and no two labels overlap
+
+#### Scenario: Several labels into one step
+- **WHEN** four labelled connectors, with labels up to 60 characters, enter the same step in the top lane
+- **THEN** each connector enters the step at its own point, all four labels are fully visible inside the diagram, none overlaps a step box or another label, and each label sits on its own connector
 
 #### Scenario: Label past the maximum wraps
 - **WHEN** a branch label is 60 characters long

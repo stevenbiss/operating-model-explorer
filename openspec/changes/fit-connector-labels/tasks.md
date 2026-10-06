@@ -16,15 +16,16 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.1 Short label, no change
 - [x] 2.2 Long label widens its gap
 - [x] 2.3 Five-branch decision
+- [ ] 2.8 Several labels into one step (added after verification)
 - [x] 2.4 Label past the maximum wraps
 - [x] 2.5 Loop-back label unchanged
 - [x] 2.6 Same layout in the snapshot
-- [x] 2.7 The full existing suite (`npm run test:unit` and `npm test`) still passes
+- [ ] 2.7 The full existing suite (`npm run test:unit` and `npm test`) still passes
 
 ## 3. Verify
 
 - [ ] 3.1 html-verifier checks the requirement against the running engine and a snapshot at 1920 and 1280, light and dark, with the sample and the fixtures, plus a regression pass over the swimlane (drag to pan, selected step in view, keyboard, committees, idle members). It returns VERIFIED. The report is saved to `openspec/changes/fit-connector-labels/reports/html-verifier.md`
-- [ ] 3.2 Confirm there are no real names in the repo (private-names guard plus `git grep -iw` for common real company names)
+- [x] 3.2 Confirm there are no real names in the repo (private-names guard plus `git grep -iw` for common real company names)
 
 ## 4. QA
 
