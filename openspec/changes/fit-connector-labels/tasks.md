@@ -13,13 +13,13 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://` at 1280×800. Overlap checks use `getBBox()` / `getBoundingClientRect()` of the label `<text>` against every step `rect.box`.
 
 ### explorer-views
-- [ ] 2.1 Short label, no change
-- [ ] 2.2 Long label widens its gap
-- [ ] 2.3 Five-branch decision
-- [ ] 2.4 Label past the maximum wraps
-- [ ] 2.5 Loop-back label unchanged
-- [ ] 2.6 Same layout in the snapshot
-- [ ] 2.7 The full existing suite (`npm run test:unit` and `npm test`) still passes
+- [x] 2.1 Short label, no change
+- [x] 2.2 Long label widens its gap
+- [x] 2.3 Five-branch decision
+- [x] 2.4 Label past the maximum wraps
+- [x] 2.5 Loop-back label unchanged
+- [x] 2.6 Same layout in the snapshot
+- [x] 2.7 The full existing suite (`npm run test:unit` and `npm test`) still passes
 
 ## 3. Verify
 

@@ -1,0 +1,20 @@
+# html-tester report: fit-connector-labels
+
+## Overall: PASS
+Tasks 2.1–2.7 are ticked. Each scenario is tested in author mode and in a snapshot at 1280×800. No app source was changed.
+
+| Suite | Result |
+|---|---|
+| Unit | 271 of 271 pass |
+| E2E | 375 of 375 pass (363 existing + 12 new) |
+
+New tests are in `tests/e2e/connector-labels.spec.js`.
+
+- **Overlap check:** every forward label (`text-anchor="end"`, the box covering all tspans) is clear of every step box and every other label, inside the SVG, between source and target, and less than 16px before the target.
+- **2.1:** "Qualify" labels are exactly Go and No go; step x equals `236 + 244k`.
+- **2.2:** only the gap before "Submit the proposal" widens; the label is on one line.
+- **2.3:** five labels in full, no overlaps.
+- **2.4:** the gap is at most 220, the label has 2 or more tspans at different y, and its text is complete with no "…".
+- **2.5:** the loop-back label is middle-anchored, halfway between the step centres, below both boxes.
+- **2.6:** author-mode and snapshot positions are deep-equal for both sample processes.
+- **Phones:** these scenarios don't apply, because swimlanes are lists at 375px.
