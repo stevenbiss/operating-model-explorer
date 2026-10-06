@@ -47,7 +47,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate: axe on the home page in both views and on a process page at 2560, 1280 and 375, light and dark; toggle keyboard and screen-reader behaviour; header alignment and width jumps; `/code-review` and a Ponytail audit. It returns SHIP. The report is saved to `openspec/changes/home-view-toggle-wide-header/reports/html-qa.md`
+- [x] 4.1 html-qa final gate: axe on the home page in both views and on a process page at 2560, 1280 and 375, light and dark; toggle keyboard and screen-reader behaviour; header alignment and width jumps; `/code-review` and a Ponytail audit. It returns SHIP. The report is saved to `openspec/changes/home-view-toggle-wide-header/reports/html-qa.md`
 
 ## 5. Package
 
