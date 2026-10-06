@@ -74,10 +74,13 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   const groups = byParty(used).filter((g) => g.lanes.length);
   const idle = Object.fromEntries(committees.map((c) => [c, byParty(new Set(Object.keys(m.elements[c].members).filter((r) => !used.has(r)))).flatMap((g) => g.lanes)]));
   const first = (c) => Math.min(...steps.filter((s) => s.owner === c).map((s) => rank[s.id]));
-  // The committees group goes directly after the first party group with a member of any of them (design D5).
+  // The committees group goes where the first party (in party order) with a member of any of them sits (design D5):
+  // after its group, or, when all its members here are idle and it has none, where its group would be. With only one
+  // party group shown (or no member's party known), after the first group.
   const memberParty = new Set(committees.flatMap((c) => Object.keys(m.elements[c].members).map(partyOf)));
-  const at = groups.findIndex((g) => memberParty.has(g.party));
-  if (committees.length) groups.splice((at < 0 ? 0 : at) + 1, 0, { party: null, committee: true, lanes: committees.sort((a, b) => first(a) - first(b)) });
+  const fp = m.order.party.findIndex((p) => memberParty.has(p));
+  const at = fp < 0 || groups.length < 2 ? 1 : groups.filter((g) => g.party !== null && m.order.party.indexOf(g.party) <= fp).length;
+  if (committees.length) groups.splice(at, 0, { party: null, committee: true, lanes: committees.sort((a, b) => first(a) - first(b)) });
   const lanes = groups.flatMap((g) => g.lanes);
 
   // Two steps in the same lane and rank stack into slots.

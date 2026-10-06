@@ -148,6 +148,12 @@ test('2.18 committee after the first party with members: Customer (A), Acme (B),
   assert.deepEqual(f.lanes, ['rx', 'ry', 'board', 'rz']);
 });
 
+test('committees sit where the first member party would be when all its members are idle: Customer, Committees, Globex', () => {
+  const f = flow(withCommittees(step('a', 'rx') + step('b', 'board') + step('c', 'rz'), { board: '{ry: A}' }), 'p');
+  assert.deepEqual(f.groups.map((g) => (g.committee ? 'committees' : g.party)), ['pa', 'committees', 'pc']);
+  assert.deepEqual(f.idle, { board: ['ry'] });
+});
+
 test('with only one party group shown, the committees group sits after it', () => {
   const f = flow(withCommittees(step('a', 'board') + step('b', 'rx'), { board: '{rx: A}' }), 'p');
   assert.deepEqual(f.groups.map((g) => g.lanes), [['rx'], ['board']]);
