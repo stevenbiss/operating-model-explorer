@@ -20,11 +20,11 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.9 Branch that skips a column (added after QA)
 - [x] 2.10 One very long word (added after QA)
 - [x] 2.11 Many connectors into one step (added during build)
-- [ ] 2.12 Skip branch past a step in its own lane (added after testing)
+- [x] 2.12 Skip branch past a step in its own lane (added after testing)
 - [x] 2.4 Label past the maximum wraps
 - [x] 2.5 Loop-back label unchanged
 - [x] 2.6 Same layout in the snapshot
-- [ ] 2.7 The full existing suite (`npm run test:unit` and `npm test`) still passes
+- [x] 2.7 The full existing suite (`npm run test:unit` and `npm test`) still passes
 
 ## 3. Verify
 

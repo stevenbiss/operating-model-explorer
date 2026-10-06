@@ -23,3 +23,7 @@ New tests are in `tests/e2e/connector-labels.spec.js`.
 - New tests 2.8–2.11 cover: four labels into a top-lane step; a skip branch past a step in the target's lane (path sampled every 2px); a 47-character hyphenated word; six connectors into one step. Each runs in author mode and in a snapshot.
 - **Results:** unit 276 of 276; e2e 383 of 383.
 - **Found outside the scenarios:** a skip branch runs through a step in the *source's* lane in the skipped column (1.7.0 had the same). The spec's Routing rule already forbids it. Added as scenario 2.12, and sent to html-builder.
+
+# Round 3: PASS (2.12 and 2.7)
+- **2.12:** source in the top lane and in the bottom lane. The skip branch's path, sampled every 2px, enters no step box and stays inside the viewBox; labels are clear. Tested in author mode and in a snapshot.
+- **Results:** unit 277 of 277; e2e 387 of 387 (24 in `connector-labels.spec.js`). All of 2.1–2.12 are ticked.

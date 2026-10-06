@@ -46,7 +46,7 @@ async function measure(page) {
       for (let i = 0; i + 1 < n.length; i += 2) pts.push([n[i], n[i + 1]]);
       return { from: p.dataset.from, to: p.dataset.to, back: p.classList.contains('back'), pts };
     });
-    return { steps, labels, paths, svg: r(s) };
+    return { steps, labels, paths, svg: r(s), viewBox: s.getAttribute('viewBox').split(/[\s,]+/).map(Number) };
   });
 }
 
@@ -154,6 +154,20 @@ const sixInto = fromFive('labels-six-into-one', 'six-into-one', [
   ...Object.entries(SIX).map(([id, label]) => step(id, SIX_OWNER[id], [{ to: 'merge-step', label }])),
   step('merge-step', 'reviewer', []),
 ]);
+
+// 2.12: a labelled branch skips a column where the source's own lane has a step in that column.
+// Top-lane source (account-lead) and bottom-lane source (solution-architect).
+const ownLane = (name, src, other, target) =>
+  fromFive(name, name, [
+    step('decide-skip', src, [{ to: 'next-step', label: 'Needs a review' }, { to: 'far-target', label: 'Skip straight to delivery' }, { to: 'same-lane-step' }]),
+    step('next-step', other, [{ to: 'far-target' }]),
+    step('same-lane-step', src, [{ to: 'far-target' }]),
+    step('far-target', target, []),
+  ]);
+const OWN_LANE = {
+  top: ownLane('skip-own-lane-top', 'account-lead', 'reviewer', 'solution-architect'),
+  bottom: ownLane('skip-own-lane-bottom', 'solution-architect', 'reviewer', 'account-lead'),
+};
 
 // Each forward connector into `to`: its source and the y where it enters (its last point), top to bottom.
 const entries = (m, to) =>
@@ -324,6 +338,37 @@ for (const mode of ['snapshot', 'author']) {
       expect(forward(m).map((l) => l.text).sort()).toEqual(Object.values(SIX).sort());
       expectClear(m);
     });
+  });
+
+  test.describe(`connector labels, skip past own lane (${mode})`, () => {
+    for (const [where, src] of Object.entries(OWN_LANE)) {
+      const snap = mode === 'snapshot' ? useSnapshot(src) : null;
+      test(`2.12 ${REQ} › Skip branch past a step in its own lane [${where} lane, ${mode}]`, async ({ page }) => {
+        const m = await fixtureProcess(mode, page, snap, src, src.name);
+        const s = byId(m);
+        // Set-up: two columns on, with a step in the source's own lane in the skipped column; source in the top/bottom lane.
+        const xs = ranks(m);
+        expect(xs.indexOf(s['far-target'].x) - xs.indexOf(s['decide-skip'].x)).toBe(2);
+        expect(xs.indexOf(s['same-lane-step'].x)).toBe(xs.indexOf(s['decide-skip'].x) + 1);
+        expect(s['same-lane-step'].y).toBe(s['decide-skip'].y);
+        const ys = m.steps.map((x) => x.y);
+        expect(s['decide-skip'].y).toBe(where === 'top' ? Math.min(...ys) : Math.max(...ys));
+        // The branch passes no step box and stays inside the diagram.
+        const p = m.paths.find((x) => x.from === 'decide-skip' && x.to === 'far-target');
+        expect(p, 'decide-skip → far-target connector').toBeTruthy();
+        const [vx, vy, vw, vh] = m.viewBox;
+        for (const [x, y] of samples(p.pts)) {
+          expect(x >= vx && x <= vx + vw && y >= vy && y <= vy + vh, `path point (${x.toFixed(1)}, ${y.toFixed(1)}) inside the SVG ${m.viewBox}`).toBe(true);
+          for (const st of m.steps) {
+            const inside = x > st.x + 0.5 && x < st.x + NW - 0.5 && y > st.y + 0.5 && y < st.y + 70 - 0.5;
+            expect(inside, `branch passes through ${st.id} at (${x.toFixed(1)}, ${y.toFixed(1)}); d points ${JSON.stringify(p.pts)}`).toBe(false);
+          }
+        }
+        // Labels clear of every step box and of each other.
+        expect(forward(m).map((l) => l.text).sort()).toEqual(['Needs a review', 'Skip straight to delivery']);
+        expectClear(m);
+      });
+    }
   });
 }
 
