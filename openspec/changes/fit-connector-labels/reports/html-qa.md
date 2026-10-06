@@ -38,3 +38,17 @@
 - **Passed:** axe 0 violations in 24 runs; console and network clean; security (escaped tspans); visual; performance (30 steps, longest task 82ms); code lean.
 
 *Saved by the orchestrator. 4.1 ticked on SHIP. M1 and m1–m3 folded in before packaging.*
+
+## Round 3 verdict: SHIP (no blockers, no majors)
+- **Former M1 fixed:** in `mix`, each connector has its own entry and no connector crosses a label. Same in `own`, `caps`, the sample and both fixtures; in `perf30`, only rework-loop labels are crossed (out of scope).
+- **Former m1 fixed:** the bottom-lane detour sits at 6px inset and reads as a connector. With a bottom-lane rework loop added, they run 6px apart briefly and cross once, with labels clear.
+- **Former m2 fixed:** "WHO MANAGES MOMENTUM WORKFLOW" wraps, clear of the steps.
+- **Former m3 done:** the worked example checks out.
+- **No connector behind a step box** in any fixture.
+- **Passed:** axe 0 violations in 36 runs; security; performance (open about 166ms, longest task about 90ms); diff small and correct.
+
+**Known limits (accepted by the orchestrator, possible follow-up):**
+- When several 3–4-line labels and plain connectors enter one step and the entries fall back to 16px, a connector can run through a label stack (`stress`, `many`). Possible fix: grow the target step or wrap tighter.
+- In the bottom lane, the detour can run 6px beside a rework loop; a 10px inset would separate them more.
+
+*Saved by the orchestrator, because html-qa is read-only. 4.1 already ticked (round 2 SHIP).*

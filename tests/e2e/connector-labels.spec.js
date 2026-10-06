@@ -35,6 +35,7 @@ async function measure(page) {
         y: +t.getAttribute('y'),
         tspans: t.querySelectorAll('tspan').length,
         tspanPos: [...t.querySelectorAll('tspan')].map((ts) => [+ts.getAttribute('x'), +ts.getAttribute('y')]),
+        bbox: (({ x, y, width, height }) => ({ x, y, width, height }))(t.getBBox()), // user units, like the paths
         visible: cs.visibility !== 'hidden' && cs.display !== 'none' && +cs.opacity > 0,
         rect: r(t),
       };
@@ -168,6 +169,15 @@ const OWN_LANE = {
   top: ownLane('skip-own-lane-top', 'account-lead', 'reviewer', 'solution-architect'),
   bottom: ownLane('skip-own-lane-bottom', 'solution-architect', 'reviewer', 'account-lead'),
 };
+
+// 2.13: two labelled connectors and one unlabelled connector, from three different steps, into one step.
+const mixed = fromFive('labels-mixed-into-one', 'mixed-into-one', [
+  step('split-work', 'account-lead', [{ to: 'clear-check' }, { to: 'approve-check' }, { to: 'plain-step' }]),
+  step('clear-check', 'account-lead', [{ to: 'join-step', label: 'Cleared' }]),
+  step('approve-check', 'reviewer', [{ to: 'join-step', label: 'Approved' }]),
+  step('plain-step', 'solution-architect', [{ to: 'join-step' }]),
+  step('join-step', 'reviewer', []),
+]);
 
 // Each forward connector into `to`: its source and the y where it enters (its last point), top to bottom.
 const entries = (m, to) =>
@@ -337,6 +347,35 @@ for (const mode of ['snapshot', 'author']) {
       expect(new Set(ins.map((e) => e.y)).size, 'six distinct entry points').toBe(6);
       expect(forward(m).map((l) => l.text).sort()).toEqual(Object.values(SIX).sort());
       expectClear(m);
+    });
+  });
+
+  test.describe(`connector labels, mixed entries (${mode})`, () => {
+    const snap = mode === 'snapshot' ? useSnapshot(mixed) : null;
+    test(`2.13 ${REQ} › Labelled and unlabelled connectors into one step [${mode}]`, async ({ page }) => {
+      const m = await fixtureProcess(mode, page, snap, mixed, 'mixed-into-one');
+      const t = byId(m)['join-step'];
+      // All three enter at their own points on the target's left edge.
+      const ins = entries(m, 'join-step');
+      expect(ins.map((e) => e.from).sort()).toEqual(['approve-check', 'clear-check', 'plain-step']);
+      for (const e of ins) {
+        expect(e.x, `${e.from} enters at the left edge`).toBe(t.x - 3);
+        expect(e.y, `${e.from} enters within the step`).toBeGreaterThanOrEqual(t.y);
+        expect(e.y, `${e.from} enters within the step`).toBeLessThanOrEqual(t.y + 70);
+      }
+      expect(new Set(ins.map((e) => e.y)).size, `three distinct entry points: ${JSON.stringify(ins)}`).toBe(3);
+      // Both labels fully visible, clear of steps and each other.
+      expect(forward(m).map((l) => l.text).sort()).toEqual(['Approved', 'Cleared']);
+      expectClear(m);
+      // No connector line crosses either label's box (user units, 0.5px tolerance).
+      for (const l of forward(m)) {
+        const b = l.bbox;
+        for (const p of m.paths)
+          for (const [x, y] of samples(p.pts)) {
+            const inside = x > b.x + 0.5 && x < b.x + b.width - 0.5 && y > b.y + 0.5 && y < b.y + b.height - 0.5;
+            expect(inside, `${p.from} → ${p.to} crosses "${l.text}" ${JSON.stringify(b)} at (${x.toFixed(1)}, ${y.toFixed(1)})`).toBe(false);
+          }
+      }
     });
   });
 
