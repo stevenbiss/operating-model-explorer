@@ -34,3 +34,10 @@
 - **Label order:** already held in every case; a new unit test covers several label sets at top, middle and cramped heights.
 - **Guard:** entries that can't keep 16px within the step edge now spread evenly along it. 6 entries span 62–112 at 10px spacing, with no overlapping labels, all inside the diagram. 4 entries keep 16px.
 - **Results:** unit 276 of 276; e2e 375 of 375.
+
+## Round 5: skip branches past a step in their own lane
+- **When it detours:** a forward edge detours if a source-lane step in a skipped column spans the source's centre height.
+- **The route:** bend just past the source → along the source lane's boundary on the target's side (top if the target is higher, otherwise bottom) → drop just before the target's column. Otherwise the route is unchanged.
+- **Edge case:** in the bottom lane, the boundary is the diagram's bottom edge.
+- **Unit test:** a rendered `s → mid → far` plus a labelled `s → far`. The skip branch crosses no box and runs along the lane line; the adjacent edge doesn't detour.
+- **Results:** unit 277 of 277; e2e 383 of 383.

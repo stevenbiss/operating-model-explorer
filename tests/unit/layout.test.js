@@ -306,6 +306,25 @@ test('1.1 a branch that skips a column bends just past the column before its tar
   assert.ok(edge('a', 'b').includes(`Q${a.x + 164 + 12} ${a.cy}`), 'adjacent columns bend just past the source');
 });
 
+test('1.1 a skip branch past a step in its own lane runs along the lane boundary, through no step box', () => {
+  // s -> mid -> far, all in rx's lane, and s -> far (labelled): mid sits in the skipped column at s's height.
+  const m = mini(step('s', 'rx', branches(['mid', 'Next'], ['far', 'Skip ahead'])) + step('mid', 'rx', '    next: [far]\n') + step('far', 'rx') + step('y1', 'ry'));
+  const { edge, box, html } = svgOf(m, 'p');
+  const pts = (d) => [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((p) => [+p[1], +p[2]]);
+  const crosses = (d, b) => pts(d).some(([x0, y0], i, all) => {
+    if (!i) return false;
+    const [x1, y1] = all[i - 1];
+    return Math.max(x0, x1) > b.x && Math.min(x0, x1) < b.x + 164 && Math.max(y0, y1) > b.y && Math.min(y0, y1) < b.y + 70;
+  });
+  const d = edge('s', 'far');
+  assert.ok(!crosses(d, box('mid')), d);
+  // It runs along rx's lane bottom: the lane line's y.
+  const laneLine = +html.match(/<line class="lane-line" x1="0" x2="\d+" y1="([\d.]+)"/)[1];
+  assert.ok(pts(d).some(([, y]) => y === laneLine), `${d} along y=${laneLine}`);
+  // Without a step in the way, the route is unchanged (the earlier skip test), and adjacent edges never detour.
+  assert.ok(!pts(edge('s', 'mid')).some(([, y]) => y === laneLine));
+});
+
 test('1.1 entry points: one label sits 6px above the centre line; several get their own lines, 16px or more apart', () => {
   assert.deepEqual(entryPoints([1], 100, 75, 125, 400), [{ y: 100, baseline: 94 }]);
   const box = (pt, n) => [pt.baseline - 12, pt.baseline + (n - 1) * 14 + 3];

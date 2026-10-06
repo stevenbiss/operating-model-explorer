@@ -210,7 +210,18 @@ export function swimlaneSvg(ctx) {
       const mx = cols[f.nodes[e.to].rank - 1] + NW + 12;
       const at = entry.get(e);
       const y = at ? at.y : b.cy;
-      d = path([[a.x + NW, a.cy], [mx, a.cy], [mx, y], [b.x - 3, y]]);
+      // A branch that skips columns with a step of its source's lane in the way at its height runs along the lane
+      // boundary on the target's side instead (lane boundaries never hold steps), then drops before the target (D4).
+      const { rank: from, step: src } = f.nodes[e.from];
+      const blocked = f.order.some((id) => {
+        const n = f.nodes[id];
+        const p = pos(id);
+        return n.step.owner === src.owner && n.rank > from && n.rank < f.nodes[e.to].rank && a.cy > p.y && a.cy < p.bottom;
+      });
+      const yb = b.cy < a.cy ? laneTop[src.owner] : a.laneBottom;
+      d = path(blocked
+        ? [[a.x + NW, a.cy], [a.x + NW + 12, a.cy], [a.x + NW + 12, yb], [mx, yb], [mx, y], [b.x - 3, y]]
+        : [[a.x + NW, a.cy], [mx, a.cy], [mx, y], [b.x - 3, y]]);
       if (at) {
         // Wrapped lines run downwards from the first baseline; a line that starts a new word gets a leading space,
         // so the text reads back as the whole label.
