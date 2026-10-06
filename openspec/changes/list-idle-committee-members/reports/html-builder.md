@@ -39,3 +39,10 @@ The committees group goes where the first member party sits in the party order: 
 - **Ordering:** unchanged. Accountable-first is waiting for the user's decision.
 - **Tests:** `idle-members.spec.js` 2.9 updated; 2.10 gains a legend check; 2.20 gains a tooltip "You" check.
 - **Results:** unit 265 of 265; e2e 361 of 361.
+
+## Round 4: accountable members first (user decision after QA)
+- **1.7:** `flow()` orders idle members by letter (A, R, C, I), then party, then role. Entries, the tooltip and the aria-label all follow it.
+- **Unit test:** an A member from the last party is listed first.
+- **Long fixture:** Partner director (A) is now shown above "+ 7 more"; the persona's Quality lead is still hidden behind it.
+- **Tests updated:** the order in `idle-members.spec.js` 2.10. The authoring guide is updated.
+- **Results:** unit 266 of 266; e2e 361 of 361.

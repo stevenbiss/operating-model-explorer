@@ -24,7 +24,7 @@
 - [x] 1.5 Acme sample (D6), both forms, in parity: add Legal counsel (C) to the bid board. Verify that both load with 0 errors and 0 warnings, that the parity test passes, and that Legal counsel is idle in "Qualify an opportunity" and has a lane in "Build the proposal"
 - [x] 1.6 Docs: the authoring guide's committee section explains idle members and how they're shown. Version 1.7.0 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version and skill-folder-current unit tests
 
-- [ ] 1.7 Accountable members first (user decision after QA): order `f.idle` by letter (A, R, C, I), then party order, then role order. Verify with a unit test in `tests/unit/layout.test.js`
+- [x] 1.7 Accountable members first (user decision after QA): order `f.idle` by letter (A, R, C, I), then party order, then role order. Verify with a unit test in `tests/unit/layout.test.js`
 
 ## 2. Test
 

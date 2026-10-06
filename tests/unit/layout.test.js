@@ -206,6 +206,14 @@ test('1.1 a role idle in two committees is listed in both', () => {
   assert.deepEqual(f.idle, { board: ['ry'], panel: ['ry'] });
 });
 
+test('1.7 idle members are ordered by their letter (A, R, C, I) first, then party order', () => {
+  // Party order is rx (A), ry (B), rz (C); letters put the last party's A member first.
+  const f = flow(withCommittees(step('a', 'board'), { board: '{rx: C, ry: I, rz: A}' }), 'p');
+  assert.deepEqual(f.idle, { board: ['rz', 'rx', 'ry'] });
+  const g = flow(withCommittees(step('a', 'board'), { board: '{rx: I, ry: R, rz: C}' }), 'p');
+  assert.deepEqual(g.idle, { board: ['ry', 'rz', 'rx'] });
+});
+
 test('1.1 idle members are in party order, then role order, not member order', () => {
   const f = flow(withCommittees(step('a', 'board'), { board: '{rz: C, ry: A, rx: A}' }), 'p');
   assert.deepEqual(f.idle, { board: ['rx', 'ry', 'rz'] });

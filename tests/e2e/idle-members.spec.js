@@ -51,7 +51,8 @@ async function entryParty(page, entry) {
 const idleLines = (page, c) => page.locator(`.lane-heads [data-testid^="idle-${c}-"] text`).evaluateAll((ts) => new Set(ts.map((t) => t.getAttribute('y'))).size);
 const tip = (page) => page.getByTestId('people-tip');
 
-const NINE = ['Finance director', 'Legal counsel', 'HR partner', 'Risk officer', 'Comms lead', 'Partner director', 'Delivery director', 'Security officer', 'Quality lead'];
+// In list order: by letter (A, C, I), then party, then role order (task 1.7).
+const NINE = ['Partner director', 'Finance director', 'Legal counsel', 'Risk officer', 'Delivery director', 'HR partner', 'Comms lead', 'Security officer', 'Quality lead'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // 2.1: committee-basic, varied so that both accountable members also take part in other steps.
@@ -197,7 +198,7 @@ test.describe('idle members (exported committee-idle-long)', () => {
     expect(shown.length).toBeGreaterThan(0);
     expect(shown.length).toBeLessThan(9);
     // The first entries, in party then role order.
-    expect(shown).toEqual(['finance-director', 'legal-counsel', 'hr-partner', 'risk-officer', 'comms-lead', 'partner-director', 'delivery-director', 'security-officer', 'quality-lead'].slice(0, shown.length));
+    expect(shown).toEqual(['partner-director', 'finance-director', 'legal-counsel', 'risk-officer', 'delivery-director', 'hr-partner', 'comms-lead', 'security-officer', 'quality-lead'].slice(0, shown.length));
     // Beta Inc has no lanes (all its members are idle), but its members are listed, so the legend has its key.
     await expect(page.getByTestId('legend-party')).toHaveText([/Alpha Ltd$/, /Beta Inc$/]); // after the mark (initials for Beta)
     const more = page.getByTestId('idle-more-steering-group');
