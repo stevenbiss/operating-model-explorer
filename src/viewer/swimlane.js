@@ -2,7 +2,7 @@
 // Steps are <g role="button"> in flow order so Tab follows the flow; lane-header role links come last.
 import { esc } from './esc.js';
 import { peopleAttrs, peopleLine } from './people.js';
-import { columns, GAP_MAX, GAP_MIN, HEAD, LABEL_PAD, labelWidth, NW } from '../model/layout.js';
+import { columns, GAP_MIN, HEAD, labelLines, NW } from '../model/layout.js';
 
 const NH = 70; // node height
 const PARTY_H = 34; // a party row; a two-line party name adds BAND_LINE
@@ -201,18 +201,12 @@ export function swimlaneSvg(ctx) {
       const mx = a.x + NW + 12;
       d = path([[a.x + NW, a.cy], [mx, a.cy], [mx, b.cy], [b.x - 3, b.cy]]);
       if (e.label) {
-        // Too wide for the largest gap: two lines, split at the space nearest the middle, stacking upwards.
-        const t = String(e.label);
-        let lines = [t];
-        if (labelWidth(t) + LABEL_PAD > GAP_MAX) {
-          const mid = t.length / 2;
-          const at = [...t.matchAll(/ /g)].map((s) => s.index).sort((p, q) => Math.abs(p - mid) - Math.abs(q - mid))[0];
-          if (at !== undefined) lines = [t.slice(0, at), t.slice(at + 1)];
-        }
+        // Too wide for the largest gap: wrapped, the lines stacking upwards from the entry line.
+        const lines = labelLines(e.label);
         // Labelled edges into the same step stack above one another.
         const y0 = b.cy - 6 - (stack[e.to] ?? 0) * 14;
         stack[e.to] = (stack[e.to] ?? 0) + lines.length;
-        const text = lines.length > 1 ? lines.map((l, i) => `<tspan x="${b.x - 8}" y="${y0 - (lines.length - 1 - i) * 14}">${i ? ' ' : ''}${esc(l)}</tspan>`).join('') : esc(t);
+        const text = lines.length > 1 ? lines.map((l, i) => `<tspan x="${b.x - 8}" y="${y0 - (lines.length - 1 - i) * 14}">${i ? ' ' : ''}${esc(l)}</tspan>`).join('') : esc(lines[0]);
         labels += `<text class="edge-label${emph}" x="${b.x - 8}" y="${y0}" text-anchor="end">${text}</text>`;
       }
     }

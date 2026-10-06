@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
-import { columns, flow, labelWidth } from '../../src/model/layout.js';
+import { columns, flow, labelLines, labelWidth } from '../../src/model/layout.js';
 import { files, MODEL, readFolder, SAMPLE, withoutAccountable } from './helpers.js';
 
 const sample = loadModel(readFolder(SAMPLE)).model;
@@ -232,21 +232,35 @@ const chain = (label) => mini(step('a', 'rx') + step('b', 'ry', label ? `    nex
 
 test('1.1 with no labels every step keeps its 1.7.0 position', () => {
   assert.deepEqual(columns(flow(chain(), 'p')).x, [0, 1, 2, 3].map((k) => 196 + k * 244 + 40));
+  // Short labels keep 1.7.0's 80px gaps: "No go" (44) + 24 is under the minimum.
+  assert.deepEqual(gaps(flow(chain('No go'), 'p')), [80, 80, 80]);
+  assert.deepEqual(gaps(flow(sample, 'qualify-opportunity')), [80, 80, 80]);
 });
 
 test('1.1 a long label widens only the gap in front of its target', () => {
   const label = 'Needs a second look'; // 19 characters
   assert.equal(labelWidth(label), Math.ceil(19 * 7.2) + 8);
-  assert.deepEqual(gaps(flow(chain(label), 'p')), [80, labelWidth(label) + 48, 80]);
+  assert.deepEqual(gaps(flow(chain(label), 'p')), [80, labelWidth(label) + 24, 80]);
   // The sample: the gap before "Submit the proposal" is wider than 1.7.0's 80px.
   const f = flow(sample, 'build-proposal');
-  assert.ok(gaps(f)[f.nodes['submit-proposal'].rank - 1] > 80);
+  assert.equal(gaps(f)[f.nodes['submit-proposal'].rank - 1], labelWidth('Approved, ready to submit') + 24);
+  assert.equal(labelWidth('Approved, ready to submit') + 24, 212);
+  assert.deepEqual(labelLines('Approved, ready to submit'), ['Approved, ready to submit'], 'fits on one line');
 });
 
 test('1.1 a 60-character label caps its gap at 220px', () => {
   const label = 'Approved by both parties and ready to send to the client now';
   assert.equal(label.length, 60);
   assert.deepEqual(gaps(flow(chain(label), 'p')), [80, 220, 80]);
+  const lines = labelLines(label);
+  assert.ok(lines.length >= 2);
+  assert.equal(lines.join(' '), label, 'wrapped at spaces, nothing cut');
+  for (const l of lines) assert.ok(labelWidth(l) <= 196, `${l}: ${labelWidth(l)}`);
+});
+
+test('1.1 a word longer than a line stays whole', () => {
+  const word = 'x'.repeat(40);
+  assert.deepEqual(labelLines(`Go ${word} now`), ['Go', word, 'now']);
 });
 
 test('1.1 the width estimate is at least the width from a bold sans-serif character table, for the sample and fixture labels', () => {
