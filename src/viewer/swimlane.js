@@ -1,6 +1,7 @@
 // L2 swimlane as SVG (design D6), from the pure layout in model/layout.js.
 // Steps are <g role="button"> in flow order so Tab follows the flow; lane-header role links come last.
 import { esc } from './esc.js';
+import { peopleAttrs, peopleLine } from './people.js';
 
 const HEAD = 196; // lane header width
 const COL = 244; // column width (one per rank)
@@ -61,7 +62,7 @@ export function swimlaneSvg(ctx) {
   const width = HEAD + f.ranks * COL + 8;
   const FULL = width + 4000; // backgrounds run on when the SVG is stretched to fill a wide container
 
-  // Lane headers: the full role name (wrapped, never truncated), team, and cues ("Your lane", a change badge)
+  // Lane headers: the full role name (wrapped, never truncated), its people line (role-people spec), team, and cues ("Your lane", a change badge)
   // stacked below. A lane that only takes part (RACI) stays compact while its name fits one line and it has no cues.
   // A committee lane (design D3) shows only its name; a member's own lane says, as text, which committees in
   // this process it sits on, with its letter, so membership never relies on marks or colour.
@@ -81,10 +82,11 @@ export function swimlaneSvg(ctx) {
       lines[lines.length - 1] += ` · ${el[c].members[r]}`;
       return lines;
     });
-    const compact = !f.rows[r] && !cues.length && name.length === 1 && !member.length;
+    const people = role && role.type === 'role' && peopleLine(role) ? wrap(peopleLine(role), 24, 2) : [];
+    const compact = !f.rows[r] && !cues.length && name.length === 1 && !member.length && !people.length;
     const team = !compact && role && role.team && el[role.team] ? el[role.team].name : '';
-    const need = 30 + (name.length - 1) * 17 + (team ? 18 : 0) + member.length * 16 + (cues.length ? 28 : 0) + 16;
-    head[r] = { cues, name, team, member, h: compact ? COMPACT : Math.max(laneHeight(f.rows[r]), need) };
+    const need = 30 + (name.length - 1) * 17 + people.length * 16 + (team ? 18 : 0) + member.length * 16 + (cues.length ? 28 : 0) + 16;
+    head[r] = { cues, name, people, team, member, h: compact ? COMPACT : Math.max(laneHeight(f.rows[r]), need) };
   }
   const lh = (r) => head[r].h;
 
@@ -207,10 +209,11 @@ export function swimlaneSvg(ctx) {
   // is its own labelled group, in screen order, so a screen reader never announces a committee as a role.
   const links = {};
   for (const r of f.lanes) {
-    const { cues, name, team, member } = head[r];
+    const { cues, name, people, team, member } = head[r];
     const top = laneTop[r];
     let inner = `<text class="lane-name" x="18" y="${top + 30}">${name.map((l, i) => `<tspan x="18" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join(' ')}</text>`;
     let below = top + 30 + (name.length - 1) * 17;
+    inner += people.map((l) => ` <text class="lane-people" x="18" y="${(below += 16)}">${esc(l)}</text>`).join('');
     if (team) inner += ` <text class="lane-team" x="18" y="${(below += 18)}">${esc(team)}</text>`;
     // Each line starts with a space, so the link's accessible name reads "Partner manager Bid board member · A".
     inner += member.map((l) => ` <text class="lane-team" x="18" y="${(below += 16)}">${esc(l)}</text>`).join('');
@@ -220,7 +223,7 @@ export function swimlaneSvg(ctx) {
       inner += pl.svg;
       px += pl.w + 6;
     }
-    links[r] = `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
+    links[r] = `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"${el[r] && el[r].type === 'role' ? peopleAttrs(r, el[r]) : ''}><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
   }
 
   const groupLabel = (g) => (g.committee ? ctx.L('committees') : g.party && el[g.party] ? `${esc(el[g.party].name)} ${ctx.L.lower('roles')}` : ctx.L('roles'));

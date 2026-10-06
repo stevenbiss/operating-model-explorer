@@ -688,7 +688,7 @@ test.describe('structure-diagrams (exported fixture)', () => {
   test('2.60 explorer-views › Role in diagrams', async ({ page }) => {
     await openSnapshot(page, snap, '#/r/account-lead');
     const links = page.getByTestId('role-structures').getByRole('link');
-    await expect(links).toHaveText(['Coastal programme', 'Harbourside partnership']);
+    await expect(links).toHaveText(['Coastal programme Under review', 'Harbourside partnership Under review']);
     await links.first().click();
     await expect(page.locator('main h1')).toHaveText('Coastal programme');
     await page.goBack();
@@ -774,14 +774,14 @@ test.describe('structure-diagrams (exported sample)', () => {
     await skipPrompt(page);
     const main = page.locator('main');
     await expect(main.getByTestId('model-name')).toHaveText('Acme + Globex partnership');
-    await expect(main.getByTestId('purpose')).toContainText('How Acme and Globex find, win and deliver joint work');
+    await expect(main.getByTestId('purpose')).toHaveCount(0); // the Simple home page (the sample sets no view)
     await expect(main.getByTestId('party-card-acme')).toBeVisible();
     await expect(main.getByTestId('party-card-globex')).toBeVisible();
     await expect(main.getByTestId('workstream-card-presales')).toBeVisible();
     await expect(main.getByTestId('workstream-card-delivery')).toBeVisible();
     await expect(main.getByTestId('structure-card-partnership-structure')).toContainText('Partnership structure');
     await expect(main.getByTestId('structure-card-harbour-account')).toContainText('Harbour account');
-    await expect(main.getByTestId('key-messages').locator('li p')).toHaveCount(3);
+    await expect(main.getByTestId('key-messages')).toHaveCount(0);
   });
 
   test('html-qa S2 a line to a parent band is described in every sub-band cell of that column', { tag: '@mobile' }, async ({ page }) => {

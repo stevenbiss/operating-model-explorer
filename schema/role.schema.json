@@ -13,6 +13,7 @@
     "party": { "type": "string", "description": "The id of the party this role belongs to." },
     "team": { "type": "string", "description": "Optional id of the team this role belongs to." },
     "summary": { "type": "string", "description": "One or two sentences about what this role does." },
+    "people": { "type": "array", "items": { "type": "string" }, "description": "Optional names of the people who hold this role, in order. One name is shown under the role name wherever the role appears; two or more show as Multiple people." },
     "change": {
       "type": "object",
       "description": "Optional current vs future state.",
@@ -26,6 +27,6 @@
   },
   "additionalProperties": false,
   "examples": [
-    { "id": "account-lead", "type": "role", "name": "Account lead", "party": "acme", "team": "acme-sales", "summary": "Owns the client relationship." }
+    { "id": "account-lead", "type": "role", "name": "Account lead", "party": "acme", "team": "acme-sales", "summary": "Owns the client relationship.", "people": ["Sam Example"] }
   ]
 }

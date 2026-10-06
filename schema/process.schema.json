@@ -12,6 +12,7 @@
     "name": { "type": "string", "description": "The process's display name." },
     "workstream": { "type": "string", "description": "The id of the workstream this process belongs to." },
     "summary": { "type": "string", "description": "One or two sentences about this process." },
+    "status": { "enum": ["under-review", "agreed"], "description": "Optional review status: under-review (the default) while it may still change, or agreed once it is settled. Shown as a badge wherever the process appears." },
     "steps": {
       "type": "array",
       "description": "The steps, in order. A step flows to the next one in the list unless it has next.",

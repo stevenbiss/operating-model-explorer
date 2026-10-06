@@ -51,7 +51,7 @@ const CHANGE = [['Change', 'status'], ['Today', 'today'], ['ID', 'id']];
 const TABLES = {
   party: [['Party', 'name', 1], ['Summary', 'summary'], ['Brand', 'brand'], ...CHANGE],
   team: [['Team', 'name', 1], ['Party', 'party', 1], ['Summary', 'summary'], ...CHANGE],
-  role: [['Role', 'name', 1], ['Party', 'party', 1], ['Team', 'team'], ['Summary', 'summary'], ...CHANGE],
+  role: [['Role', 'name', 1], ['Party', 'party', 1], ['Team', 'team'], ['Summary', 'summary'], ['People', 'people'], ...CHANGE],
   committee: [['Committee', 'name', 1], ['Members', 'members', 1], ['Summary', 'summary'], ...CHANGE],
   workstream: [['Workstream', 'name', 1], ['Summary', 'summary', 1], ['Parties', 'parties'], ['Detail', 'detail', 1], ...CHANGE],
   persona: [['Persona', 'name', 1], ['Roles', 'roles', 1], ['Starts at', 'entry', 1], ['Summary', 'summary'], ...CHANGE],
@@ -226,10 +226,20 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     return compact({ status: status.toLowerCase(), today });
   }
 
+  // A "Status:" or "View:" line's value, matched ignoring case and spacing (design D2). Empty means the default.
+  function choice(raw, values, where, key, fix) {
+    if (!raw) return undefined;
+    const hit = values.find((v) => nameKey(v) === nameKey(raw));
+    if (hit) return toId(hit);
+    say('error', where, `"${key}: ${raw}" is not ${values.slice(0, -1).join(', ')} or ${values.at(-1)}.`, fix);
+    return undefined;
+  }
+  const statusOf = (kv, where) => choice(kv.status, ['Under review', 'Agreed'], where, 'Status', 'Write "Status: Under review" or "Status: Agreed", or leave the line out while it is under review.');
+
   // ---------- names ----------
   const names = Object.fromEntries(Object.keys(WORD).map((t) => [t, new Map()]));
   // The model's id is taken first, so a structure named like the model (often the main diagram) gets an id of its own.
-  const head = keyLines(top, 'Top of the sheet', (k) => ['format', 'id', 'version'].includes(k), 'Under the title, only "Format:", "ID:" and "Version:" lines are read. Put the purpose under "## Purpose".');
+  const head = keyLines(top, 'Top of the sheet', (k) => ['format', 'id', 'version', 'view'].includes(k), 'Under the title, only "Format:", "ID:", "Version:" and "View:" lines are read. Put the purpose under "## Purpose".');
   const tm = title !== undefined && title.match(/^Operating model\s*:\s*(.*)$/i);
   const name = tm ? tm[1].trim() : '';
   const taken = new Set([head.id || toId(name)]);
@@ -281,7 +291,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     const where = s.target ? `Process: ${s.target}` : 'Process (no name)';
     const parts = partsOf(s, where, 'process', ['RACI', 'Notes'], 'Use "### RACI" for the RACI matrix and "### Notes" for the narrative.');
     const main = parts.main;
-    const kv = keyLines(main, where, (k) => ['workstream', 'summary', 'id', 'change', 'today'].includes(k), 'A process section has "Workstream:", "Summary:", "Change:" and "Today:" lines, then the step table. Put narrative under "### Notes".');
+    const kv = keyLines(main, where, (k) => ['workstream', 'summary', 'id', 'status', 'change', 'today'].includes(k), 'A process section has "Workstream:", "Summary:", "Status:", "Change:" and "Today:" lines, then the step table. Put narrative under "### Notes".');
     if (!s.target) say('error', where, 'This process heading has no name.', 'Write the name after "Process:", e.g. "## Process: Qualify an opportunity".');
     const id = s.target ? register('process', s.target, kv.id, where) : undefined;
     const steps = rowsOf(main, where, TABLES.step, 'step');
@@ -295,7 +305,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
   const structs = named.structure.map((s) => {
     const where = s.target ? `Structure: ${s.target}` : 'Structure (no name)';
     const parts = partsOf(s, where, 'structure', ['Bands', 'Boxes', 'Lines', 'Notes'], 'Use "### Bands", "### Boxes" and "### Lines" for the tables and "### Notes" for the narrative.');
-    const kv = keyLines(parts.main, where, (k) => ['kind', 'summary', 'main', 'related', 'workstreams', 'change', 'today', 'id'].includes(k), 'A structure section has "Kind:", "Summary:", "Main:", "Related:", "Workstreams:", "Change:" and "Today:" lines, then the ### Bands, ### Boxes and ### Lines tables. Put narrative under "### Notes".');
+    const kv = keyLines(parts.main, where, (k) => ['kind', 'summary', 'main', 'related', 'workstreams', 'status', 'change', 'today', 'id'].includes(k), 'A structure section has "Kind:", "Summary:", "Main:", "Related:", "Workstreams:", "Status:", "Change:" and "Today:" lines, then the ### Bands, ### Boxes and ### Lines tables. Put narrative under "### Notes".');
     if (!s.target) say('error', where, 'This structure heading has no name.', 'Write the name after "Structure:", e.g. "## Structure: Partnership".');
     const id = s.target ? register('structure', s.target, kv.id, where) : undefined;
     return { s, where, parts, kv, id };
@@ -315,14 +325,15 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
   if (one.Purpose && !purpose) say('error', 'Purpose', 'The Purpose section is empty.', 'Write a sentence or two on why this operating model exists.');
   const keys = one['Key messages'] ? items(one['Key messages'].blocks) : [];
   if (one['Key messages'] && !keys.length) say('error', 'Key messages', 'The Key messages section has no messages.', 'Add each key message as a list item starting with "- ".');
-  doc('model', 'Top of the sheet', { ...compact({ id: head.id || toId(name), name, version: head.version }), purpose, key_messages: keys }, one['About this model'] ? textOf(one['About this model'].blocks, 1) : '');
+  const view = choice(head.view, ['Simple', 'Detailed'], 'Top of the sheet', 'View', 'Write "View: Simple" or "View: Detailed" under the title, or leave the line out for the Simple home page.');
+  doc('model', 'Top of the sheet', { ...compact({ id: head.id || toId(name), name, version: head.version, view }), purpose, key_messages: keys }, one['About this model'] ? textOf(one['About this model'].blocks, 1) : '');
 
   const base = (r) => compact({ id: r.id, name: r.get('name'), summary: r.get('summary'), change: changeOf(r.get('status'), r.get('today'), r.where) });
   // Brand: a pack id, matched to brands/ by loadModel, which can see the packs.
   for (const r of rows.party) doc('party', r.where, compact({ ...base(r), brand: r.get('brand') }));
   for (const r of rows.team) doc('team', r.where, compact({ ...base(r), party: find('party', r.get('party'), r.where, 'party') }));
   for (const r of rows.role) {
-    doc('role', r.where, compact({ ...base(r), party: find('party', r.get('party'), r.where, 'party'), team: find('team', r.get('team'), r.where, 'team') }));
+    doc('role', r.where, compact({ ...base(r), party: find('party', r.get('party'), r.where, 'party'), team: find('team', r.get('team'), r.where, 'team'), people: list(r.get('people')) }));
   }
   // Members: "Account lead (A); Partner manager (A)". A member without exactly one letter is reported here and left out.
   for (const r of rows.committee) {
@@ -415,7 +426,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     doc(
       'process',
       where,
-      { ...compact({ id, name: s.target, workstream: find('workstream', kv.workstream, where, 'workstream'), summary: kv.summary, change: changeOf(kv.change, kv.today, where) }), steps: header },
+      { ...compact({ id, name: s.target, workstream: find('workstream', kv.workstream, where, 'workstream'), summary: kv.summary, status: statusOf(kv, where), change: changeOf(kv.change, kv.today, where) }), steps: header },
       parts.Notes ? textOf(parts.Notes, 2) : '',
       { stepWhere: steps.map((st) => st.where), raciWhere },
     );
@@ -489,6 +500,7 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
       main,
       related: list(kv.related || '').map((x) => find('structure', x, where, 'related structure')),
       workstreams: list(kv.workstreams || '').map((x) => find('workstream', x, where, 'workstream')),
+      status: statusOf(kv, where),
       change: changeOf(kv.change, kv.today, where),
     });
     doc('structure', where, { ...header, bands, boxes, ...(lines.length && { lines }) }, parts.Notes ? textOf(parts.Notes, 2) : '', { bandWhere, boxWhere: (boxRows || []).map((r) => r.where), lineWhere: lineRows.map((r) => r.where) });

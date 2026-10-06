@@ -7,7 +7,7 @@ import { embedJson, toSnapshot } from '../model/snapshot.js';
 import { contentReference } from '../model/reference.js';
 import { schemas } from '../model/schemas.js';
 import { renderMarkdown } from '../model/markdown.js';
-import { render } from '../viewer/app.js';
+import { previewView, render } from '../viewer/app.js';
 import { esc } from '../viewer/esc.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -15,6 +15,7 @@ const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 let app;
 const $ = (sel) => app.querySelector(sel);
 let current = null; // { result: loadModel(), source, handle, files }
+let otherView = false; // previewing the home-page view that won't be published (design D7); never exported
 
 export function startAuthor(el) {
   app = el;
@@ -73,7 +74,8 @@ function shell() {
 
 <div class="workspace" data-testid="workspace" hidden>
   <section class="report" aria-labelledby="om-report-title" data-testid="report"></section>
-  <div class="preview-head" role="region" aria-labelledby="om-preview-h"><h2 id="om-preview-h">Preview</h2><p>Exactly what viewers will see. Every view and link works here, including the persona prompt.</p></div>
+  <div class="preview-head" role="region" aria-labelledby="om-preview-h"><h2 id="om-preview-h">Preview</h2><p>Exactly what viewers will see. Every view and link works here, including the persona prompt.</p>
+    <p class="view-line" data-testid="published-view"></p><button type="button" class="btn" data-act="preview-view" aria-pressed="false" data-testid="preview-view-toggle"></button></div>
   <div id="om-preview" class="preview" data-testid="preview"></div>
 </div>
 
@@ -114,7 +116,10 @@ async function load(read, source, handle = null, reload = false) {
     return notice(`${source || 'That content'} could not be read. If it is a .zip, check that it opens on your computer, then try again.`);
   }
   current = { result: loadModel(files), source, handle, files: files.length };
-  if (!reload) history.replaceState(null, '', '#/'); // new content opens at its overview
+  if (!reload) {
+    history.replaceState(null, '', '#/'); // new content opens at its overview
+    otherView = false;
+  }
   show(reload);
 }
 
@@ -203,9 +208,15 @@ function show(reload) {
   $('.start').hidden = true;
   $('.workspace').hidden = false;
 
+  // The home-page view the content sets is the one exported; the toggle previews the other (author-mode spec).
+  const views = viewsOf(result.model);
+  $('[data-testid="published-view"]').innerHTML = `Published home page: <strong>${views.published}</strong> view`;
+  const toggle = $('[data-act="preview-view"]');
+  toggle.textContent = `Preview ${views.other} view`;
+  toggle.setAttribute('aria-pressed', String(otherView));
   const preview = $('#om-preview');
   try {
-    render(toSnapshot(result.model), preview);
+    render(toSnapshot(result.model), preview, otherView ? views.other.toLowerCase() : null);
   } catch {
     preview.innerHTML = '<p class="note preview-note">The preview cannot be shown until the errors above are fixed.</p>';
   }
@@ -213,6 +224,11 @@ function show(reload) {
   say(`${reload ? 'Reloaded' : 'Loaded'} ${source}: ${counts}.${errors.length ? '' : ' Ready to export.'}`);
   if (!reload && !document.querySelector('dialog:modal')) $('#om-report-title').focus();
 }
+
+const viewsOf = (model) => {
+  const detailed = !!model.model && model.model.view === 'detailed';
+  return { published: detailed ? 'Detailed' : 'Simple', other: detailed ? 'Simple' : 'Detailed' };
+};
 
 function reportHtml(errors, warnings, counts, files, source) {
   const ready = !errors.length;
@@ -298,6 +314,11 @@ function onClick(e) {
   }
   else if (a === 'sample') load(async () => sampleFiles(), 'the sample (Acme + Globex)');
   else if (a === 'reload') reload();
+  else if (a === 'preview-view') {
+    otherView = !otherView;
+    act.setAttribute('aria-pressed', String(otherView));
+    previewView(otherView ? viewsOf(current.result.model).other.toLowerCase() : null);
+  }
   else if (a === 'export') exportSnapshot();
   else if (a === 'close') act.closest('dialog').close();
   else if (a === 'reference') {

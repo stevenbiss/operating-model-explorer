@@ -25,12 +25,17 @@ test.describe('explorer-views (exported sample)', () => {
     await skipPrompt(page);
     const main = page.locator('main');
     await expect(main.getByTestId('model-name')).toHaveText('Acme + Globex partnership');
-    await expect(main.getByTestId('purpose')).toContainText('How Acme and Globex find, win and deliver joint work');
     await expect(main.getByTestId('party-card-acme')).toContainText('Acme Corp');
     await expect(main.getByTestId('party-card-globex')).toContainText('Globex');
     await expect(main.getByTestId('workstream-card-presales')).toContainText('Presales');
     await expect(main.getByTestId('workstream-card-delivery')).toContainText('Delivery');
-    await expect(main.getByTestId('key-messages').locator('li p')).toHaveText(KEY_MESSAGES);
+    await expect(main.getByTestId('process-card-qualify-opportunity')).toContainText('Qualify an opportunity');
+    await expect(main.getByTestId('process-card-build-proposal')).toContainText('Build the proposal');
+    // The sample sets no view: the Simple home page has no purpose, key messages section or persona doors.
+    await expect(main.getByTestId('purpose')).toHaveCount(0);
+    await expect(main.getByTestId('key-messages')).toHaveCount(0);
+    await expect(main.locator('[data-testid^="persona-door-"]')).toHaveCount(0);
+    await expect(page.getByTestId('key-messages-dialog').locator('li p')).toHaveText(KEY_MESSAGES); // still in the Key messages dialog
   });
 
   test('2.24 explorer-views › Key messages from a step detail', { tag: '@mobile' }, async ({ page }) => {
@@ -152,7 +157,7 @@ test.describe('explorer-views (exported sample)', () => {
     const main = page.locator('main');
     await expect(main.locator('h1')).toHaveText('Account lead');
     const groups = main.locator('.group');
-    await expect(groups.locator('h3')).toHaveText(['Qualify an opportunity', 'Build the proposal']);
+    await expect(groups.locator('h3 > a')).toHaveText(['Qualify an opportunity', 'Build the proposal']);
     await expect(groups.nth(0).locator('.step-list a')).toHaveText(['Capture the lead', 'Assess solution fit', 'Go or no-go', 'Decline politely']);
     await expect(groups.nth(1).locator('.step-list a')).toHaveText(['Review the proposal', 'Submit the proposal']);
     await groups.nth(1).getByRole('link', { name: 'Submit the proposal' }).click();
@@ -249,7 +254,7 @@ test.describe('explorer-views (exported sample)', () => {
     expect(ids[0]).toBe('capture-lead');
     for (const [step, owner] of QUALIFY) {
       const it = lane.getByTestId(`step-${step}`);
-      const roleName = { 'account-lead': 'Account lead', 'solution-architect': 'Solution architect', 'bid-manager': 'Bid manager' }[owner];
+      const roleName = { 'account-lead': 'Account lead (Sam Example)', 'solution-architect': 'Solution architect (Multiple people)', 'bid-manager': 'Bid manager' }[owner];
       const committee = 'Acme + Globex bid board'; // the committee's name only, no member list
       await expect(it.locator('.fi-lane')).toHaveText(owner === 'bid-board' ? committee : `${roleName} · ${PARTY_NAME[PARTY[owner]]}`);
       await expect(it.locator('.fi-next')).toHaveText(/^(Next: .+|End of the flow)$/);

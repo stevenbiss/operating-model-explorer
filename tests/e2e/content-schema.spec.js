@@ -12,6 +12,7 @@ test.describe('content-schema (author mode)', () => {
     await expect(page.locator('[data-testid="report-message"][data-level="error"]')).toHaveCount(0);
     await expect(page.getByTestId('ready')).toContainText('Ready to export');
     await expect(preview(page).getByTestId('model-name')).toHaveText('Minimal model');
+    await page.getByTestId('preview-view-toggle').click(); // the purpose is on the Detailed home page
     await expect(preview(page).getByTestId('purpose')).toContainText('Only a model file.');
   });
 

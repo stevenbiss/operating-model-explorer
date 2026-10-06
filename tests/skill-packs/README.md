@@ -115,7 +115,7 @@ Prompt: "Here are our org slides and contact sheet: `<input folder>`. Can you tu
 - [ ] The draft comes before any question, and has two `## Structure:` sections: one for the partnership and one for Northern routes.
 - [ ] Exactly one is marked `Main: yes`: the partnership one (its slide says it covers the whole partnership).
 - [ ] The two are linked: `Related:` names the other one, or the partnership's Northern routes band `Opens` it.
-- [ ] Bands use the slides' own words (Steering, Programmes with the sub-bands Northern routes and Coastal routes, Commercial; Programme leads, Delivery), and people's names are in the `Name` column, with "Marlow title: Partner sponsor" and "Grade: Principal" in `Note`.
+- [ ] Bands use the slides' own words (Steering, Programmes with the sub-bands Northern routes and Coastal routes, Commercial; Programme leads, Delivery), and "Marlow title: Partner sponsor" and "Grade: Principal" are in `Note`. People's names are in the Roles table's `People` column; a box's `Name` is used only where that box's holder differs from the role's people (for example TBA on one box).
 - [ ] Lines have no direction (the double-headed arrow and "Signs off plans" become plain lines, labels kept).
 - [ ] `## Open questions` covers what can't be placed: the Depot supervisor (missing from the contact sheet, tagged `(gap)` or added as an `(assumption)`), the cropped arrow, and the empty Marlow commercial box. None of them is guessed into the diagram.
 - [ ] `npm run validate -- "<output folder>/capture-sheet.md"` ends with `0 errors`, and the sheet loads in the engine with both diagrams.
@@ -142,6 +142,24 @@ Prompt: "Here's our bid process slide: `<input folder>`. Can you turn it into an
 
 - [ ] `## Open questions` has an unticked `(gap)` naming the committee and "someone from finance".
 - [ ] No finance role is added to the Roles table, and no finance member is added to the committee.
+
+### 2.41 People drafted, status left as review (`org-chart` and `rich`, add-people-status-simple-view)
+
+Copy `org-chart/partnership-slide.md`, `org-chart/northern-routes-slide.md` and all three `rich/` files into the input folder, so the material names role holders and has a process ("Win the work").
+
+Prompt: "Here are our org slides and contact sheet: `<input folder>`. Can you turn them into an operating model? Save it in `<output folder>`." Reply to every question about the content with "Leave it open for now, please hand it over."
+
+- [ ] The Roles table has a `People` column listing the names the slides give for a role's holder (for example Pat Example for the Client manager and Chris Sample for the Partnership lead), and no name that isn't in the material.
+- [ ] Roles whose holder isn't named have an empty `People` cell; the empty Marlow commercial box is a `(gap)`, not a name.
+- [ ] The sheet has no `Status:` lines (no process or diagram is marked agreed) and no `View:` line.
+- [ ] `npm run validate -- "<output folder>/capture-sheet.md"` ends with `0 errors`.
+
+### 2.42 Agreed when told (same session as 2.41)
+
+Before the handover, tell the skill: "The Win the work process is agreed."
+
+- [ ] The "Win the work" `## Process:` section has `Status: Agreed`, and no other section (process or structure) has a `Status:` line.
+- [ ] The sheet still validates with `0 errors`, and in the engine that process shows the "Agreed" badge while the diagrams show "Under review".
 
 ### 2.29 Refuses the public repo by default (any pack)
 

@@ -196,6 +196,9 @@ export function buildModel(docs, assets = {}, brands = {}) {
     }
   }
   const el = out.elements;
+  // Defaults (add-people-status-simple-view D2), so the viewer never sees a missing value.
+  if (out.model) out.model.view ??= 'simple';
+  for (const id of [...out.order.process, ...out.order.structure]) el[id].status ??= 'under-review';
   for (const id of out.order.workstream) el[id].processes = out.order.process.filter((p) => el[p].workstream === id);
   // Committees (design D4, D7, D8): only well-formed member letters, then which committees each role sits on (with
   // its letter) and which steps each committee owns, worked out once.

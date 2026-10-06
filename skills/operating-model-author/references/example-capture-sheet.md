@@ -38,15 +38,15 @@ see how the engine works, and copy it as a starting point for your own model.
 
 ## Roles
 
-| Role | Party | Team | Summary | Change | Today |
-|---|---|---|---|---|---|
-| Account lead | Acme Corp | Acme Sales | Owns the client relationship and shares the go or no-go. | | |
-| Bid manager | Acme Corp | Acme Sales | Runs the bid plan and keeps everyone to the deadline. | | |
-| Delivery manager | Acme Corp | Acme Delivery | Makes sure what we sell can be delivered. | | |
-| Legal counsel | Acme Corp | | Checks contract terms before anything is sent. | | |
-| Partner manager | Globex | | Looks after the Acme relationship on the Globex side. | | |
-| Pricing analyst | Globex | Globex Solutions | Builds the price and checks the margin. | New | The account lead priced each bid in a spreadsheet. |
-| Solution architect | Globex | Globex Solutions | Designs the solution and tests it against the client's needs. | | |
+| Role | Party | Team | Summary | People | Change | Today |
+|---|---|---|---|---|---|---|
+| Account lead | Acme Corp | Acme Sales | Owns the client relationship and shares the go or no-go. | Sam Example | | |
+| Bid manager | Acme Corp | Acme Sales | Runs the bid plan and keeps everyone to the deadline. | | | |
+| Delivery manager | Acme Corp | Acme Delivery | Makes sure what we sell can be delivered. | | | |
+| Legal counsel | Acme Corp | | Checks contract terms before anything is sent. | | | |
+| Partner manager | Globex | | Looks after the Acme relationship on the Globex side. | Jo Placeholder | | |
+| Pricing analyst | Globex | Globex Solutions | Builds the price and checks the margin. | | New | The account lead priced each bid in a spreadsheet. |
+| Solution architect | Globex | Globex Solutions | Designs the solution and tests it against the client's needs. | Morgan Test; Riley Demo | | |
 
 ## Committees
 
@@ -73,6 +73,7 @@ Presales is where the partnership is **won or lost**. Both parties work from one
 
 Workstream: Presales
 Summary: Decide quickly and together whether an opportunity is worth pursuing.
+Status: Agreed
 
 | # | Step | Owner | Description | Inputs | Outputs | Systems | KPIs | Next | Change | Today |
 |---|---|---|---|---|---|---|---|---|---|---|

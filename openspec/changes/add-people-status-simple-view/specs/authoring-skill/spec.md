@@ -10,5 +10,5 @@ When the material names the people who hold a role (for example "Account lead: S
 - **THEN** the draft sheet lists those names in the People column, has no `Status: Agreed` lines and no `View:` line, and validates with 0 errors
 
 #### Scenario: Agreed when told
-- **WHEN** the colleague says "the qualification process is agreed" during the trial
+- **WHEN** the skill is given the fictional "rich" pack and the colleague says "The Win the work process is agreed" during the trial
 - **THEN** that process section gets `Status: Agreed` and no other section does

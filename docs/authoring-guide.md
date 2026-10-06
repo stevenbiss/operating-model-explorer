@@ -177,6 +177,28 @@ entry:
 
 Nothing is ever hidden from a persona. The persona only changes where they start and what is highlighted.
 
+## People, review status and the home page (optional)
+
+**People on roles.** A role can list the people who hold it. Wherever the role is shown by name (swimlane lanes, structure boxes, role chips, a step's owner, RACI rows and committee members), one person's name appears under it, or "Multiple people" for two or more. Hovering over the role, or focusing it with the keyboard, lists them all, and the role's page lists them under "People".
+
+```yaml
+people: [Sam Example, Alex Sample]   # in a role file; in a capture sheet, the Roles table's People column
+```
+
+List only the people who hold the role in general. When one structure box is held by someone else (for example a different person per account), write that name in the box's `name` instead: the box's own name wins on that box. People's names go into the shared snapshot, so add only names everyone receiving it may see.
+
+**Review status.** Every process and structure diagram is **Under review** until you say otherwise. It shows a badge everywhere it appears, and its page says it may still change, so drafts aren't read as decisions. Mark one as agreed once the people who own it have signed it off:
+
+```yaml
+status: agreed          # under-review (the default) or agreed; in a capture sheet, "Status: Agreed"
+```
+
+**Simple or Detailed home page.** By default the home page is **Simple**: the model's name, then its parties, workstreams, processes and structure diagrams, so reviewers get straight to the diagrams. **Detailed** also shows the purpose, the About this model text, the key messages and the persona doors: use it when the snapshot has to explain itself, for example for viewers new to the model. Only the home page changes; the Key messages button and every other page are the same. Viewers can't switch, and author mode's preview has a toggle to see the other view before you export.
+
+```yaml
+view: detailed          # in model.md; simple (the default) or detailed; in a capture sheet, "View: Detailed"
+```
+
 ## Current vs future state (optional)
 
 Any element or step can say how it differs from today:

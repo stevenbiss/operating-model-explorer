@@ -54,11 +54,11 @@ A short example of the capture sheet format.
 
 ## Roles
 
-| Role | Party | Team | Summary |
-|---|---|---|---|
-| Account lead | Acme Corp | Acme Sales | Owns the client relationship. |
-| Bid manager | Acme Corp | Acme Sales | Runs the bid plan. |
-| Solution architect | Globex | | Designs the solution. |
+| Role | Party | Team | Summary | People |
+|---|---|---|---|---|
+| Account lead | Acme Corp | Acme Sales | Owns the client relationship. | Sam Example |
+| Bid manager | Acme Corp | Acme Sales | Runs the bid plan. | |
+| Solution architect | Globex | | Designs the solution. | Alex Sample; Jo Placeholder |
 
 ## Workstreams
 
@@ -71,6 +71,7 @@ A short example of the capture sheet format.
 
 Workstream: Presales
 Summary: Decide quickly and together whether an opportunity is worth pursuing.
+Status: Agreed
 
 | # | Step | Owner | Description | Outputs | Next |
 |---|---|---|---|---|---|
@@ -111,6 +112,7 @@ Summary: Decide quickly and together whether an opportunity is worth pursuing.
 Format: 1
 ID: acme-sample
 Version: 1.0
+View: Detailed
 ```
 
 | Line | Required | What it does |
@@ -119,6 +121,7 @@ Version: 1.0
 | `Format: <n>` | Yes | The capture sheet format version. This page describes format 1. Without it the sheet is read as format 1, with a warning. A sheet with a newer format than the engine reads is an error: open it with a newer engine. |
 | `ID: <id>` | No | The model's id, which is also the snapshot's file name. By default it comes from the name (`acme-globex-partnership`). |
 | `Version: <text>` | No | The content version, shown in the snapshot footer. |
+| `View: Simple` or `View: Detailed` | No | The home-page view. **Simple** (the default, when the line is left out) shows the model's name, then its parties, workstreams, processes and structure diagrams. **Detailed** also shows the purpose, the About this model text, the key messages and the persona doors. Only the home page changes: the Key messages button and every other page are the same in both. Viewers can't switch. Case doesn't matter; any other value is an error. |
 
 ## Sections
 
@@ -201,6 +204,7 @@ Every table except a structure's Bands and Lines can also have these optional co
 | `Party` | Yes | The name of the party it belongs to. |
 | `Team` | No | The name of its team. |
 | `Summary` | No | What this role does. |
+| `People` | No | The people who hold the role, separated by semicolons: `Sam Example; Alex Sample`. Wherever the role is shown by name, one person's name appears under it, or "Multiple people" for two or more; hovering over the role or focusing it lists them all, and the role's page lists them under People. Leave it empty when nobody is named. A structure box's `Name` still wins on that box. |
 
 ### Committees
 
@@ -298,6 +302,7 @@ Most lost bids were lost **before they started**.
 |---|---|---|
 | `Workstream: <name>` | Yes | The workstream this process belongs to. |
 | `Summary: <text>` | No | One or two sentences about the process. |
+| `Status: Under review` or `Status: Agreed` | No | The review status, shown as a badge wherever the process appears. Without the line it is **Under review**, and its page says it may still change. Write `Status: Agreed` once it is settled. Case and spacing don't matter; any other value is an error. |
 | `Change:` and `Today:` | No | Current vs future state of the whole process, as in the table columns. |
 | `ID: <id>` | No | An explicit id for the process. |
 
@@ -408,6 +413,7 @@ Each account has a named lead on both sides.
 | `Main: yes` | One structure | Marks the main diagram: the one that covers the whole company or partnership. When a sheet has any structures, exactly one of them has this line. |
 | `Related: <names>` | No | Related structures, separated by semicolons. A relation shows on both diagrams, so write it once. |
 | `Workstreams: <names>` | No | Related workstreams, separated by semicolons. |
+| `Status: Under review` or `Status: Agreed` | No | The review status, as for a process: Under review without the line. |
 | `Change:` and `Today:` | No | Current vs future state of the whole diagram. |
 | `ID: <id>` | No | An explicit id for the structure. |
 
@@ -425,7 +431,7 @@ Each account has a named lead on both sides.
 |---|---|---|
 | `Band` | Yes | The name of the band (or sub-band) the box sits in. |
 | `Role` or `Team` | One of them | The role or team in the box. Fill in exactly one. A team box also lists the team's roles. The same role can have boxes in several bands. |
-| `Name` | No | Who holds it, or TBA. Names are text, not elements, and search finds them. |
+| `Name` | No | Who holds it, or TBA. Names are text, not elements, and search finds them. It wins over the role's `People` on this box; use it when the box's holder differs from the role's people in general (e.g. a different person per account). |
 | `Note` | No | Extra text, such as a grade or another title. |
 | `Change` and `Today` | No | Current vs future state of the box. |
 

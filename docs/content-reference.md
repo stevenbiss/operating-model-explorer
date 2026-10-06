@@ -19,6 +19,7 @@ The operating model itself: its name, purpose and the key messages everyone shou
 | `purpose` | Yes | text | Why this operating model exists. Markdown is allowed. |
 | `key_messages` | Yes | list of text | The shared conclusions every viewer should reach, in order. |
 | `version` | No | text or number | Optional content version, shown in the snapshot footer. |
+| `view` | No | one of: simple, detailed | Optional home-page view: simple (the default) shows the name, parties, workstreams, processes and structure diagrams; detailed also shows the purpose, the About this model text, the key messages and the persona doors. Viewers can't switch. |
 | `change` | No | group of fields | Optional current vs future state. |
 | `change.status` | Yes | one of: new, changed, removed, unchanged | How this element differs from today. |
 | `change.today` | No | text | How it works today, shown next to the future state. |
@@ -109,6 +110,7 @@ A role that owns or takes part in process steps. Each role that appears in a pro
 | `party` | Yes | text | The id of the party this role belongs to. |
 | `team` | No | text | Optional id of the team this role belongs to. |
 | `summary` | No | text | One or two sentences about what this role does. |
+| `people` | No | list of text | Optional names of the people who hold this role, in order. One name is shown under the role name wherever the role appears; two or more show as Multiple people. |
 | `change` | No | group of fields | Optional current vs future state. |
 | `change.status` | Yes | one of: new, changed, removed, unchanged | How this element differs from today. |
 | `change.today` | No | text | How it works today, shown next to the future state. |
@@ -123,6 +125,8 @@ name: Account lead
 party: acme
 team: acme-sales
 summary: Owns the client relationship.
+people:
+  - Sam Example
 ---
 ```
 
@@ -241,6 +245,7 @@ A process inside one workstream, with its steps in order. It is shown as a swiml
 | `name` | Yes | text | The process's display name. |
 | `workstream` | Yes | text | The id of the workstream this process belongs to. |
 | `summary` | No | text | One or two sentences about this process. |
+| `status` | No | one of: under-review, agreed | Optional review status: under-review (the default) while it may still change, or agreed once it is settled. Shown as a badge wherever the process appears. |
 | `steps` | Yes | list of groups of fields | The steps, in order. A step flows to the next one in the list unless it has next. (EDGY: Activity) |
 | `steps[].id` | Yes | text | Id, unique within this process: lower-case letters and numbers joined by hyphens, e.g. scope. |
 | `steps[].name` | Yes | text | The step's display name. |
@@ -303,6 +308,7 @@ A relationship diagram you design: one column per party, rows (bands) you name y
 | `name` | Yes | text | The diagram's display name. |
 | `kind` | No | text | Optional label in your own words, e.g. Partnership, Market or Sub-programme. It has no built-in meaning. |
 | `summary` | No | text | One or two sentences about this diagram. |
+| `status` | No | one of: under-review, agreed | Optional review status: under-review (the default) while it may still change, or agreed once it is settled. Shown as a badge wherever the diagram appears. |
 | `main` | No | true or false | true for the one diagram that covers the whole company or partnership. A model with diagrams has exactly one. |
 | `related` | No | list of text | The ids of related structures. Each relation is shown from both sides. |
 | `workstreams` | No | list of text | The ids of related workstreams. |

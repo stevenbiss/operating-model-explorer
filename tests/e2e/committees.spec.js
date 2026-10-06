@@ -56,7 +56,7 @@ const pillsOf = (scope, step) => scope.locator(`svg.swimlane [data-testid="step-
 // Member rows of a committee members block: [[party, role, letter word], ...].
 const memberRows = (block) =>
   block.locator('[data-testid="member-party"]').evaluateAll((ps) =>
-    ps.flatMap((p) => [...p.querySelectorAll('tr')].map((tr) => [[...p.querySelector('.ptag').childNodes].filter((n) => !(n.classList && n.classList.contains('mk'))).map((n) => n.textContent).join('').trim(), tr.querySelector('th a, th').textContent.trim(), tr.querySelector('td').textContent.replace(/\s+/g, ' ').trim()])),
+    ps.flatMap((p) => [...p.querySelectorAll('tr')].map((tr) => [[...p.querySelector('.ptag').childNodes].filter((n) => !(n.classList && n.classList.contains('mk'))).map((n) => n.textContent).join('').trim(), (tr.querySelector('th a') || tr.querySelector('th')).textContent.trim(), tr.querySelector('td').textContent.replace(/\s+/g, ' ').trim()])),
   );
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -403,7 +403,7 @@ test.describe('committees (exported sample)', () => {
     ]);
     for (const a of await members.locator('th a').all()) await expect(a).toHaveAttribute('href', /^#\/r\/[a-z-]+/);
     const steps = main.getByTestId('committee-steps');
-    await expect(steps.locator('.group h3')).toHaveText(['Qualify an opportunity']);
+    await expect(steps.locator('.group h3 > a')).toHaveText(['Qualify an opportunity']);
     await expect(steps.locator('.step-list a')).toHaveText(['Go or no-go']);
     // Working links.
     await members.getByRole('link', { name: 'Partner manager' }).click();

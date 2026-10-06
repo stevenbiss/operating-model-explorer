@@ -4,6 +4,7 @@ type: process
 name: Qualify an opportunity
 workstream: presales
 summary: Decide quickly and together whether an opportunity is worth pursuing.
+status: agreed
 steps:
   - id: capture-lead
     name: Capture the lead

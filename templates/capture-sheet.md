@@ -8,7 +8,8 @@ in the engine to check it. Comments like this one are ignored: delete them when 
 The full format is in docs/capture-sheet.md, and examples/acme-capture-sheet/capture-sheet.md is a complete example.
 
 Refer to things by name, exactly as they are written in their own table (case and spacing don't matter).
-Optional lines under the title: "ID: my-model" (the snapshot's file name) and "Version: 1.0".
+Optional lines under the title: "ID: my-model" (the snapshot's file name), "Version: 1.0" and
+"View: Detailed" (the home page also shows the purpose, key messages and persona doors; without it, Simple).
 -->
 
 ## Purpose
@@ -43,10 +44,11 @@ not the sheet on its own. Leave Brand empty for a party with no pack: it gets a 
 ## Roles
 
 <!-- Required. The roles that do the work. Party and Team are names from the tables above; Team is optional.
+People (optional): the people who hold the role, separated by semicolons, e.g. "Sam Example; Alex Sample".
 Optional columns on every table: Change (New, Changed, Removed or Unchanged), Today (how it works today) and ID. -->
 
-| Role | Party | Team | Summary |
-|---|---|---|---|
+| Role | Party | Team | Summary | People |
+|---|---|---|---|---|
 
 ## Committees
 
@@ -71,6 +73,7 @@ consulted, keep that person as the Owner and put the others in the RACI. -->
 
 Workstream: <!-- The name of its workstream -->
 Summary: <!-- Optional: one or two sentences -->
+Status: <!-- Optional: Agreed once the process is settled. Without it, the process is shown as Under review. -->
 
 <!--
 One row per step, in order. Owner is a role's or a committee's name. Lists in a cell are separated by semicolons.
@@ -108,6 +111,7 @@ Summary: (optional, one or two sentences)
 Main: yes
 Related: (optional, other structures' names, separated by semicolons)
 Workstreams: (optional, workstream names, separated by semicolons)
+Status: (optional, Agreed once the diagram is settled; without it, Under review)
 
 ### Bands
 

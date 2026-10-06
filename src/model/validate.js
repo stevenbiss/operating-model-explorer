@@ -88,7 +88,7 @@ export function wordIssue(issue, doc) {
       return { level: 'error', ...at, problem: `The required field "${field}" is missing.`, fix: `Add a "${field}:" line ${where}.` };
     }
     case 'type': {
-      const expected = issue.expected.map((t) => WORDS[t]).join(' or ');
+      const expected = header.type === 'role' && path.join('.') === 'people' ? 'a list of names' : issue.expected.map((t) => WORDS[t]).join(' or ');
       const fix = issue.actual === 'null' ? 'Fill it in, or remove the line.' : FIXES[issue.expected[0]];
       return { level: 'error', ...at, problem: `${subject} should be ${expected}, but it is ${WORDS[issue.actual]}.`, fix };
     }

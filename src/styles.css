@@ -202,6 +202,35 @@ main { padding: 36px 24px 72px; }
 .badge-removed { border-color: var(--om-removed); background: color-mix(in srgb, var(--om-removed) 12%, var(--om-surface)); }
 .cue { border-color: var(--om-accent); background: color-mix(in srgb, var(--om-accent) 16%, var(--om-surface)); }
 
+/* Review status (review-status spec, D5): text pills that look unlike the change badges. Under review: a dashed amber
+   outline with a part-drawn ring (a clock face); Agreed: filled green with a tick, the same in both themes. */
+.rev {
+  display: inline-flex; align-items: center; gap: 6px; padding: 1px 10px 1px 8px; border-radius: 999px; vertical-align: middle;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1.5; white-space: nowrap; font-family: var(--om-font-body);
+}
+.rev-review { color: var(--om-text); background: var(--om-surface); border: 1.5px dashed var(--om-changed); }
+.rev-review::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; border: 2px solid var(--om-changed); border-right-color: transparent; }
+.rev-agreed { color: #ffffff; background: #1a7f4b; border: 1.5px solid #1a7f4b; }
+.rev-agreed::before { content: "✓" / ""; font-weight: 800; }
+.review-note {
+  margin: 0 0 12px; padding: 8px 14px; font-size: 0.925rem; border-left: 4px solid var(--om-changed); border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, var(--om-changed) 9%, var(--om-surface));
+}
+
+/* People on roles (role-people spec, D3, D4): a muted line under the role's name, and the pop-up listing them all. */
+.people { font-size: 0.85em; font-weight: 500; color: var(--om-muted); overflow-wrap: anywhere; }
+.chip-text { display: inline-flex; flex-direction: column; line-height: 1.25; }
+.owner .people, .raci-table th .people, .sd-roles .people { display: block; }
+.fi-lane .people { font: inherit; color: inherit; }
+.people-list { margin: 0; padding-left: 1.2em; }
+.people-tip {
+  position: fixed; z-index: 30; max-width: min(320px, calc(100vw - 8px)); padding: 10px 14px; font-size: 0.875rem; line-height: 1.45;
+  color: var(--om-text); background: var(--om-surface); border: 1px solid var(--om-border); border-radius: 10px;
+  box-shadow: 0 12px 30px -12px var(--om-shadow); overflow-wrap: anywhere;
+}
+.people-tip-h { margin: 0 0 4px; font-weight: 700; }
+.people-tip ul { margin: 0; padding-left: 1.1em; }
+
 .note {
   padding: 16px 20px; border-radius: 12px; border: 1px dashed var(--om-border);
   background: color-mix(in srgb, var(--om-text) 3%, var(--om-surface)); color: var(--om-muted);
@@ -234,6 +263,7 @@ main { padding: 36px 24px 72px; }
 .card:hover { border-color: var(--om-link); transform: translateY(-2px); box-shadow: 0 10px 28px -14px var(--om-shadow); }
 .card h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 6px; font-size: 1.15rem; color: var(--om-link); }
 .card p { margin: 0 0 14px; color: var(--om-muted); }
+.card .card-eyebrow { margin: 0 0 6px; color: var(--om-link); }
 .card .card-meta { margin: auto 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.85rem; }
 .card-party { border-left: 4px solid var(--p-band); }
 .card-party h3 { --mk: 32px; gap: 12px; }
@@ -334,7 +364,7 @@ main { padding: 36px 24px 72px; }
 .lane.mine .lane-head { fill: color-mix(in srgb, var(--om-accent) 15%, var(--om-surface)); }
 .lane-line { stroke: var(--om-border); }
 .swimlane .lane-name { font-size: 13.5px; font-weight: 600; }
-.swimlane .lane-team { font-size: 12px; fill: var(--om-muted); }
+.swimlane .lane-team, .swimlane .lane-people { font-size: 12px; fill: var(--om-muted); }
 .lane-hit { fill: transparent; }
 .lane-link { outline: none; }
 .lane-link:hover .lane-name { text-decoration: underline; }

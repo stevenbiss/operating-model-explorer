@@ -736,3 +736,67 @@ test('a member listed twice in a Committees row: an error naming the row and the
   assert.equal(m.problem, 'account LEAD is listed twice in Members.');
   assert.equal(r.model.elements['bid-board'].members['account-lead'], 'A');
 });
+
+// ---------- people, status and view (add-people-status-simple-view 1.2) ----------
+
+test('1.2 a People column on Roles: names split by semicolons, in order; an empty cell lists no people', () => {
+  const r = load(BASE.replace('| Role | Party | Summary |\n|---|---|---|', '| Role | Party | Summary | People |\n|---|---|---|---|').replace('| Owns the client. |', '| Owns the client. | Sam Example; Alex Sample |'));
+  assert.deepEqual(r.messages, []);
+  assert.deepEqual(r.model.elements['account-lead'].people, ['Sam Example', 'Alex Sample']);
+  assert.equal(r.model.elements['solution-architect'].people, undefined);
+});
+
+test('1.2 Status lines in Process and Structure sections: matched ignoring case and spacing; missing means under review', () => {
+  for (const v of ['Agreed', 'agreed', 'AGREED']) assert.equal(proc(load(BASE.replace('Workstream: Presales\n', `Workstream: Presales\nStatus: ${v}\n`))).status, 'agreed', v);
+  for (const v of ['Under review', 'under-review', 'UNDER  REVIEW', 'underreview']) assert.equal(proc(load(BASE.replace('Workstream: Presales\n', `Workstream: Presales\nStatus: ${v}\n`))).status, 'under-review', v);
+  const r = load(BASE);
+  assert.deepEqual(r.messages, []);
+  assert.equal(proc(r).status, 'under-review');
+  const s = load(with_('## Structure: Org\n\nMain: yes\nStatus: agreed\n\n### Bands\n\n| Band |\n|---|\n| Top |\n\n### Boxes\n\n| Band | Role |\n|---|---|\n| Top | Account lead |'));
+  assert.deepEqual(s.messages, []);
+  assert.equal(s.model.elements.org.status, 'agreed');
+});
+
+test('1.2 an unknown Status value: an error naming the section and listing Under review and Agreed', () => {
+  const m = only(load(BASE.replace('Workstream: Presales\n', 'Workstream: Presales\nStatus: Done\n')).messages);
+  assert.deepEqual([m.level, m.where], ['error', 'Process: Build the proposal']);
+  assert.equal(m.problem, '"Status: Done" is not Under review or Agreed.');
+  assert.match(m.fix, /"Status: Under review" or "Status: Agreed"/);
+  const s = only(load(with_('## Structure: Org\n\nMain: yes\nStatus: Approved\n\n### Bands\n\n| Band |\n|---|\n| Top |\n\n### Boxes\n\n| Band | Role |\n|---|---|\n| Top | Account lead |')).messages);
+  assert.deepEqual([s.level, s.where], ['error', 'Structure: Org']);
+});
+
+test('1.2 a View line under the title: Simple or Detailed, ignoring case; missing means Simple; others are an error', () => {
+  assert.equal(load(BASE.replace('Format: 1', 'Format: 1\nView: detailed')).model.model.view, 'detailed');
+  assert.equal(load(BASE.replace('Format: 1', 'Format: 1\nView: SIMPLE')).model.model.view, 'simple');
+  assert.equal(load(BASE).model.model.view, 'simple');
+  const r = load(BASE.replace('Format: 1', 'Format: 1\nView: Full'));
+  const m = only(r.messages);
+  assert.deepEqual([m.level, m.where], ['error', 'Top of the sheet']);
+  assert.equal(m.problem, '"View: Full" is not Simple or Detailed.');
+  assert.match(m.fix, /"View: Simple" or "View: Detailed"/);
+});
+
+test('1.2 a sheet and a folder describing the same people, status and view give the same model', () => {
+  const sheet = load(BASE.replace('Format: 1', 'Format: 1\nView: Detailed').replace('Workstream: Presales\n', 'Workstream: Presales\nStatus: Agreed\n').replace('| Role | Party | Summary |\n|---|---|---|', '| Role | Party | Summary | People |\n|---|---|---|---|').replace('| Designs it. |', '| Designs it. | Alex Sample; Jo Placeholder |')).model;
+  const folder = loadModel(files({
+    'model.md': '---\nid: tiny-partnership\ntype: model\nname: Tiny partnership\nview: detailed\npurpose: Why **it** exists.\nkey_messages: [One team., One plan.]\n---\n',
+    'roles/sa.md': '---\nid: solution-architect\ntype: role\nname: Solution architect\nparty: globex\nsummary: Designs it.\npeople: [Alex Sample, Jo Placeholder]\n---\n',
+    'processes/p.md': '---\nid: build-the-proposal\ntype: process\nname: Build the proposal\nworkstream: presales\nstatus: agreed\nsteps: []\n---\n',
+  })).model;
+  assert.equal(sheet.model.view, folder.model.view);
+  assert.deepEqual(sheet.elements['solution-architect'].people, folder.elements['solution-architect'].people);
+  assert.equal(proc({ model: sheet }).status, folder.elements['build-the-proposal'].status);
+});
+
+test('1.9 the Acme sample, both forms: the same people and statuses, one agreed process, one under review, structures under review', () => {
+  for (const m of [loadModel(readSampleSheet()).model, loadModel(readFolder(SAMPLE)).model]) {
+    const byName = Object.fromEntries(Object.values(m.elements).map((x) => [x.name, x]));
+    assert.deepEqual(byName['Account lead'].people, ['Sam Example']);
+    assert.deepEqual(byName['Partner manager'].people, ['Jo Placeholder']);
+    assert.equal(byName['Solution architect'].people.length, 2);
+    assert.deepEqual([byName['Qualify an opportunity'].status, byName['Build the proposal'].status], ['agreed', 'under-review']);
+    assert.ok(m.order.structure.every((id) => m.elements[id].status === 'under-review'));
+    assert.equal(m.model.view, 'simple', 'no View line: the Simple default');
+  }
+});

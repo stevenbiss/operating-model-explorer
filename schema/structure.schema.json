@@ -12,6 +12,7 @@
     "name": { "type": "string", "description": "The diagram's display name." },
     "kind": { "type": "string", "description": "Optional label in your own words, e.g. Partnership, Market or Sub-programme. It has no built-in meaning." },
     "summary": { "type": "string", "description": "One or two sentences about this diagram." },
+    "status": { "enum": ["under-review", "agreed"], "description": "Optional review status: under-review (the default) while it may still change, or agreed once it is settled. Shown as a badge wherever the diagram appears." },
     "main": { "type": "boolean", "description": "true for the one diagram that covers the whole company or partnership. A model with diagrams has exactly one." },
     "related": { "type": "array", "items": { "type": "string" }, "description": "The ids of related structures. Each relation is shown from both sides." },
     "workstreams": { "type": "array", "items": { "type": "string" }, "description": "The ids of related workstreams." },

@@ -105,7 +105,7 @@ test.describe('persona-lens (exported sample)', () => {
     await page.getByTestId('me-link').click();
     await expect(page.locator('main h1')).toHaveText('What matters for me');
     const groups = page.locator('[data-testid^="me-group-"]');
-    await expect(groups.locator('h2')).toHaveText(['Qualify an opportunity', 'Build the proposal']);
+    await expect(groups.locator('h2 > a')).toHaveText(['Qualify an opportunity', 'Build the proposal']);
     const rows = await page.getByTestId('me-step').evaluateAll((lis) => lis.map((li) => ({ name: li.querySelector('a').textContent, href: li.querySelector('a').getAttribute('href'), letter: li.querySelector('abbr') && li.querySelector('abbr').textContent })));
     expect(rows).toEqual([
       { name: 'Capture the lead', href: '#/p/qualify-opportunity/s/capture-lead?persona=acme-account-lead', letter: 'A' },

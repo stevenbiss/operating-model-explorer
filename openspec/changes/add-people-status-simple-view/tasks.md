@@ -2,21 +2,21 @@
 
 ## 1. Build
 
-- [ ] 1.1 Schemas (D2): `people` (array of strings) on `role.schema.json`, `status` (`under-review` | `agreed`) on `process.schema.json` and `structure.schema.json`, and `view` (`simple` | `detailed`) on `model.schema.json`. Apply the defaults at load in `load.js` and carry the fields through `snapshot.js`. Verify that the content reference gains the fields after `npm run build`, and that the schema and validate unit tests cover each invalid value
-- [ ] 1.2 Capture sheet (D2) in `src/model/sheet.js`:
+- [x] 1.1 Schemas (D2): `people` (array of strings) on `role.schema.json`, `status` (`under-review` | `agreed`) on `process.schema.json` and `structure.schema.json`, and `view` (`simple` | `detailed`) on `model.schema.json`. Apply the defaults at load in `load.js` and carry the fields through `snapshot.js`. Verify that the content reference gains the fields after `npm run build`, and that the schema and validate unit tests cover each invalid value
+- [x] 1.2 Capture sheet (D2) in `src/model/sheet.js`:
   - a `People` column on Roles, split by `;`;
   - a `Status:` line in Process and Structure sections, with normalised values and an error for others;
   - a `View:` line in the title block, with an error for others.
 
   Verify with unit tests in `tests/unit/sheet.test.js`, including folder/sheet parity
-- [ ] 1.3 People line (D3): a `peopleLine(role)` helper, used in:
+- [x] 1.3 People line (D3): a `peopleLine(role)` helper, used in:
   - swimlane lane headers (`swimlane.js`, using the existing wrap and height logic);
   - `roleChip`, the step-detail owner, RACI rows and committee member lists;
   - structure role boxes and team-box role lists (box `name` wins);
   - the phone `flowList()`.
 
   Verify manually at 1280 and 375 in light and dark with a fixture that has roles with 0, 1 and 2 people
-- [ ] 1.4 People pop-up (D4): one delegated `#om-people-tip` tooltip.
+- [x] 1.4 People pop-up (D4): one delegated `#om-people-tip` tooltip.
   - Triggers: hover with a 150ms delay, and keyboard focus with no delay.
   - Closes on pointer-out, focus-out, Escape, scroll and `pointerdown`.
   - Positioned next to the element and kept inside the window.
@@ -24,15 +24,15 @@
   - The role page gets a "People" section.
 
   Verify manually by hovering and tabbing in the swimlane, chips and structure boxes, near window edges, and with a screen reader name check in Playwright
-- [ ] 1.5 Status (D5): a `statusBadge()` helper used on:
+- [x] 1.5 Status (D5): a `statusBadge()` helper used on:
   - the process and structure page headers;
   - process and structure cards, related-diagram entries, role, committee and "What matters for me" process groupings;
   - search results.
 
   Add the under-review notice above the swimlane and the diagram, and the styles (AA in both themes, distinct from change badges). Verify manually and with an axe contrast check
-- [ ] 1.6 Home page (D6): `overview()` with the new section order, a new processes section (workstream order, workstream eyebrow, status), and the Simple and Detailed views from `M.model.view` or the author preview override. Verify manually with the sample (Simple) and a Detailed variant at 1280 and 375
-- [ ] 1.7 Author-mode toggle (D7): the "Published home page: … view" line and a "Preview … view" toggle (`aria-pressed`) in the preview head. It re-renders the preview only, and export is unaffected. Verify manually: toggle, then export, then open the snapshot and see Simple
-- [ ] 1.8 Fixtures, fictional names only:
+- [x] 1.6 Home page (D6): `overview()` with the new section order, a new processes section (workstream order, workstream eyebrow, status), and the Simple and Detailed views from `M.model.view` or the author preview override. Verify manually with the sample (Simple) and a Detailed variant at 1280 and 375
+- [x] 1.7 Author-mode toggle (D7): the "Published home page: … view" line and a "Preview … view" toggle (`aria-pressed`) in the preview head. It re-renders the preview only, and export is unaffected. Verify manually: toggle, then export, then open the snapshot and see Simple
+- [x] 1.8 Fixtures, fictional names only:
   - `people-mix`: roles with 0, 1 and 2 people, a structure box with its own name, and one role near the right edge of a wide swimlane;
   - `status-mix`: one agreed and one under-review process, and agreed and under-review structures;
   - `status-invalid`;
@@ -42,8 +42,8 @@
   - `sheet-people-status-view`.
 
   Verify that each gives exactly its intended messages with `npm run validate`
-- [ ] 1.9 Acme sample (D8), in both forms and in parity: people on Account lead (1), Partner manager (1) and Solution architect (2), "Qualify an opportunity" marked `Status: Agreed`, and no `View:` line. Verify that both load with 0 errors and 0 warnings, and that the parity test and the private-names guard pass
-- [ ] 1.10 Docs and skill (D8):
+- [x] 1.9 Acme sample (D8), in both forms and in parity: people on Account lead (1), Partner manager (1) and Solution architect (2), "Qualify an opportunity" marked `Status: Agreed`, and no `View:` line. Verify that both load with 0 errors and 0 warnings, and that the parity test and the private-names guard pass
+- [x] 1.10 Docs and skill (D8):
   - `docs/capture-sheet.md`: People, Status and View;
   - `docs/authoring-guide.md`: people, when to mark agreed, Simple vs Detailed;
   - `templates/capture-sheet.md`: commented People column, Status and View lines;
@@ -51,7 +51,7 @@
   - a trial checklist entry in `tests/skill-packs/README.md`, then rebuild the skill folder.
 
   Verify that the doc examples parse with `npm run validate`, and that the skill-folder-current test passes
-- [ ] 1.11 Version 1.6.0 in `package.json` and `package-lock.json`, with the plugin and skill updated through the build. Verify with the version unit test
+- [x] 1.11 Version 1.6.0 in `package.json` and `package-lock.json`, with the plugin and skill updated through the build. Verify with the version unit test
 
 ## 2. Test
 

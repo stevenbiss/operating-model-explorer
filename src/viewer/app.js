@@ -8,6 +8,7 @@ import { swimlaneSvg } from './swimlane.js';
 import { mountLines, structureHtml } from './structure.js';
 import { esc } from './esc.js';
 import { initPan } from './pan.js';
+import { initPeopleTip, peopleAttrs, peopleHtml, peopleLine } from './people.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 
 const list = (v) => (Array.isArray(v) ? v : []);
@@ -40,6 +41,7 @@ let main;
 let visited;
 let F = null; // flow of the open process, for arrow-key navigation
 let mounted = false;
+let viewOverride = null; // the home-page view author mode previews instead of the published one (design D7)
 
 // ---------- helpers ----------
 
@@ -93,7 +95,13 @@ const badge = (change, force) => {
 };
 const today = (x) => (route.changes && x.change && x.change.today ? `<div class="today" data-testid="today"><h3>Today</h3><p>${esc(x.change.today)}</p></div>` : '');
 const partyChip = (p) => (is(p, 'party') ? `<a class="chip"${dp(p)} href="${href({ view: 'element', id: p })}">${mark(p, false)}${esc(E[p].name)}</a>` : '');
-const roleChip = (r) => `<a class="chip${mine(r) ? ' mine' : ''}"${dp(E[r] && E[r].party)} href="${href({ view: 'role', id: r })}">${mark(E[r] && E[r].party)}${esc(nameOf(r))}${mine(r) ? ` <span class="cue">Your ${L.lower('role')}</span>` : ''}</a>`;
+// People on a role (role-people spec): the line under its name, and the attributes for the pop-up and description.
+const ppl = (r) => (is(r, 'role') && peopleLine(E[r]) ? `<span class="people" data-testid="people-line">${esc(peopleLine(E[r]))}</span>` : '');
+const pplAttrs = (r) => (is(r, 'role') ? peopleAttrs(r, E[r]) : '');
+const roleChip = (r) => `<a class="chip${mine(r) ? ' mine' : ''}"${dp(E[r] && E[r].party)}${pplAttrs(r)} href="${href({ view: 'role', id: r })}">${mark(E[r] && E[r].party)}${ppl(r) ? `<span class="chip-text">${esc(nameOf(r))}${ppl(r)}</span>` : esc(nameOf(r))}${mine(r) ? ` <span class="cue">Your ${L.lower('role')}</span>` : ''}</a>`;
+// Review status on processes and structures (review-status spec, design D5): always text, never colour alone.
+const statusBadge = (x) => (x.status === 'agreed' ? '<span class="rev rev-agreed" data-testid="status-badge">Agreed</span>' : '<span class="rev rev-review" data-testid="status-badge">Under review</span>');
+const reviewNote = (x, term) => (x.status === 'agreed' ? '' : `<p class="review-note" data-testid="review-note">This ${L.lower(term)} is under review and may still change.</p>`);
 
 // How the persona's roles take part in a step, as HTML-safe text: "Your step", "You: C" or null.
 function cue(s) {
@@ -110,7 +118,7 @@ const letterHtml = (l, joint) => {
   const word = Object.hasOwn(RACI, l) ? `${RACI[l]}${joint && l === 'A' ? ', jointly' : ''}` : '';
   return `<span class="letter"><abbr title="${word || esc(l)}">${esc(l)}</abbr> ${word}</span>`;
 };
-const raciRow = ([role, l], joint) => `<tr${mine(role) ? ' class="mine"' : ''}><th scope="row">${is(role, 'role') ? `<a href="${href({ view: 'role', id: role })}">${esc(E[role].name)}</a>` : esc(role)}${mine(role) ? ' <span class="cue">You</span>' : ''}</th><td>${letterHtml(l, joint)}</td></tr>`;
+const raciRow = ([role, l], joint) => `<tr${mine(role) ? ' class="mine"' : ''}><th scope="row">${is(role, 'role') ? `<a href="${href({ view: 'role', id: role })}"${pplAttrs(role)}>${esc(E[role].name)}</a>${ppl(role)}` : esc(role)}${mine(role) ? ' <span class="cue">You</span>' : ''}</th><td>${letterHtml(l, joint)}</td></tr>`;
 
 // Committees (committees spec, design D9).
 const committeeOf = (s) => (s.ownerType === 'committee' && is(s.owner, 'committee') ? E[s.owner] : null);
@@ -135,8 +143,10 @@ function membersHtml(c, h) {
 // ---------- entry ----------
 
 // target: #app in viewer mode; in author mode the preview element.
-export function render(snapshot, target = document.getElementById('app')) {
+// view: author mode's preview of the other home-page view, or null for the published one (design D7).
+export function render(snapshot, target = document.getElementById('app'), view = null) {
   M = snapshot;
+  viewOverride = view;
   E = M.elements;
   L = labeller(M.theme);
   useImages(M.assets);
@@ -167,6 +177,7 @@ export function render(snapshot, target = document.getElementById('app')) {
     document.addEventListener('input', onSearch);
     document.addEventListener('submit', onSearch);
     initPan(document);
+    initPeopleTip(document, (id) => (is(id, 'role') ? E[id] : null));
   }
   route = null;
   onRoute();
@@ -223,7 +234,14 @@ function shell() {
   <ul class="doors">${personaButtons('persona-option')}</ul>
   <button type="button" class="btn btn-quiet" data-close data-testid="persona-skip">Explore without ${L.a('persona')}</button>
 </dialog>
-<div class="vh" aria-live="polite" data-testid="announcer" id="om-live"></div>`;
+<div class="vh" aria-live="polite" data-testid="announcer" id="om-live"></div>
+${peopleHtml(E, M.order.role)}`;
+}
+
+// Author mode: preview the other home-page view (or null for the published one), without touching the content.
+export function previewView(view) {
+  viewOverride = view;
+  if (route) onRoute();
 }
 
 // The header lockup (design D6): every party's mark at the same height, in party order, when at least one party has a brand.
@@ -508,22 +526,28 @@ const notFound = () => `<div class="page"><h1 tabindex="-1">Not found</h1><p>Thi
 const head = (eyebrow, x, extra = '', party = null) =>
   `<header class="page-head${party ? ' party-head' : ''}"${party ? dp(party) : ''}><p class="eyebrow">${eyebrow}</p><h1 tabindex="-1">${party ? mark(party, false) : ''}${esc(x.name)}</h1>${badge(x.change) || extra ? `<div class="tags">${badge(x.change)}${extra}</div>` : ''}${x.summary ? `<p class="lead">${esc(x.summary)}</p>` : ''}${today(x)}${x.body ? `<div class="prose">${renderMarkdown(x.body)}</div>` : ''}</header>`;
 
+// The home page (explorer-views spec › L0 model overview, design D6): Simple (the default) or Detailed, as the author
+// chose. Only author mode's preview can show the other view; viewers can't switch.
 function overview() {
   const m = M.model || {};
+  const detail = (viewOverride || m.view) === 'detailed';
   const ws = M.order.workstream.map((id) => E[id]);
+  // Every process, in workstream order; any whose workstream is unknown come last.
+  const pr = ws.flatMap((w) => w.processes).concat(M.order.process.filter((p) => !is(E[p].workstream, 'workstream')));
   const st = M.order.structure.filter((id) => E[id].main === true).concat(M.order.structure.filter((id) => E[id].main !== true)); // the main one first
-  return `<div class="page">
+  return `<div class="page" data-testid="home" data-view="${detail ? 'detailed' : 'simple'}">
 <section class="hero">
   <p class="eyebrow">${L('model')}</p>
   <h1 tabindex="-1" data-testid="model-name">${esc(m.name)}</h1>
-  ${m.purpose ? `<div class="lead purpose" data-testid="purpose">${renderMarkdown(String(m.purpose))}</div>` : ''}
-  ${m.body ? `<div class="prose">${renderMarkdown(m.body)}</div>` : ''}
+  ${detail && m.purpose ? `<div class="lead purpose" data-testid="purpose">${renderMarkdown(String(m.purpose))}</div>` : ''}
+  ${detail && m.body ? `<div class="prose">${renderMarkdown(m.body)}</div>` : ''}
 </section>
-${list(m.key_messages).length ? `<section class="section" aria-labelledby="om-km-h"><h2 id="om-km-h">${L('key_messages')}</h2>${messagesHtml()}</section>` : ''}
-${ws.length ? `<section class="section" aria-labelledby="om-ws-h"><h2 id="om-ws-h">${L('workstreams')}</h2><ul class="cards">${ws.map(wsCard).join('')}</ul></section>` : ''}
+${detail && list(m.key_messages).length ? `<section class="section" aria-labelledby="om-km-h" data-testid="key-messages-section"><h2 id="om-km-h">${L('key_messages')}</h2>${messagesHtml()}</section>` : ''}
+${M.order.party.length ? `<section class="section" aria-labelledby="om-pa-h" data-testid="party-list"><h2 id="om-pa-h">${L('parties')}</h2><ul class="cards cards-sm">${M.order.party.map(partyCard).join('')}</ul></section>` : ''}
+${ws.length ? `<section class="section" aria-labelledby="om-ws-h" data-testid="workstream-list"><h2 id="om-ws-h">${L('workstreams')}</h2><ul class="cards">${ws.map(wsCard).join('')}</ul></section>` : ''}
+${pr.length ? `<section class="section" aria-labelledby="om-pr-h" data-testid="process-list"><h2 id="om-pr-h">${L('processes')}</h2><ul class="cards">${pr.map((p) => processCard(E[p], true)).join('')}</ul></section>` : ''}
 ${st.length ? `<section class="section" aria-labelledby="om-st-h" data-testid="structure-list"><h2 id="om-st-h">${L('structures')}</h2><ul class="cards">${st.map(structureCard).join('')}</ul></section>` : ''}
-${M.order.party.length ? `<section class="section" aria-labelledby="om-pa-h"><h2 id="om-pa-h">${L('parties')}</h2><ul class="cards cards-sm">${M.order.party.map(partyCard).join('')}</ul></section>` : ''}
-${M.order.persona.length ? `<section class="section" aria-labelledby="om-pe-h"><h2 id="om-pe-h">Start from your perspective</h2><p class="section-lead">Each ${L.lower('persona')} opens where it matters most to them. Nothing is hidden from anyone.</p><ul class="doors doors-grid">${personaButtons()}</ul></section>` : ''}
+${detail && M.order.persona.length ? `<section class="section" aria-labelledby="om-pe-h"><h2 id="om-pe-h">Start from your perspective</h2><p class="section-lead">Each ${L.lower('persona')} opens where it matters most to them. Nothing is hidden from anyone.</p><ul class="doors doors-grid">${personaButtons()}</ul></section>` : ''}
 </div>`;
 }
 
@@ -544,9 +568,9 @@ function structureCard(id) {
   const s = E[id];
   return `<li><a class="card" href="${href({ view: 'structure', id })}" data-testid="structure-card-${esc(id)}">
     <h3>${esc(s.name)}</h3>${s.summary ? `<p>${esc(s.summary)}</p>` : ''}
-    <p class="card-meta">${mainTag(s)}${s.kind ? `<span class="tag">${esc(s.kind)}</span>` : ''}${badge(s.change)}</p></a></li>`;
+    <p class="card-meta">${statusBadge(s)}${mainTag(s)}${s.kind ? `<span class="tag">${esc(s.kind)}</span>` : ''}${badge(s.change)}</p></a></li>`;
 }
-const structureChip = (id) => `<a class="chip" href="${href({ view: 'structure', id })}">${esc(E[id].name)}</a>`;
+const structureChip = (id) => `<a class="chip" href="${href({ view: 'structure', id })}">${esc(E[id].name)} ${statusBadge(E[id])}</a>`;
 
 function partyCard(id) {
   const p = E[id];
@@ -576,12 +600,13 @@ ${list(w.structures).length ? `<section class="section" data-testid="workstream-
 </div>`;
 }
 
-function processCard(p) {
+// withWs: on the home page, the process's workstream as the card's eyebrow.
+function processCard(p, withWs) {
   const steps = p.steps.filter(visible);
   const yours = persona() && steps.filter((s) => cue(s)).length;
   return `<li><a class="card" href="${href({ view: 'process', id: p.id })}" data-testid="process-card-${esc(p.id)}">
-    <h3>${esc(p.name)}</h3><p>${esc(p.summary)}</p>
-    <p class="card-meta"><span>${plural(steps.length, 'step', 'steps')}</span>${yours ? `<span class="cue">${yours} for you</span>` : ''}${visited.has(p.id) ? '<span class="tag tag-done">Explored</span>' : ''}${badge(p.change)}</p></a></li>`;
+    ${withWs && is(p.workstream, 'workstream') ? `<p class="eyebrow card-eyebrow" data-testid="process-workstream">${esc(E[p.workstream].name)}</p>` : ''}<h3>${esc(p.name)}</h3><p>${esc(p.summary)}</p>
+    <p class="card-meta">${statusBadge(p)}<span>${plural(steps.length, 'step', 'steps')}</span>${yours ? `<span class="cue">${yours} for you</span>` : ''}${visited.has(p.id) ? '<span class="tag tag-done">Explored</span>' : ''}${badge(p.change)}</p></a></li>`;
 }
 
 function stepLabel(s) {
@@ -603,10 +628,11 @@ function processView(p) {
   });
   return `<div class="page page-full">
 <header class="page-head"><p class="eyebrow">${L('process')}${is(p.workstream, 'workstream') ? ` · <a href="${href({ view: 'workstream', id: w.id })}">${esc(w.name)}</a>` : ''}</p>
-  <h1 tabindex="-1">${esc(p.name)}</h1>${badge(p.change) ? `<div class="tags">${badge(p.change)}</div>` : ''}${p.summary ? `<p class="lead">${esc(p.summary)}</p>` : ''}${today(p)}</header>
+  <h1 tabindex="-1">${esc(p.name)}</h1><div class="tags">${statusBadge(p)}${badge(p.change)}</div>${p.summary ? `<p class="lead">${esc(p.summary)}</p>` : ''}${today(p)}</header>
 <div class="process-grid${sel ? ' has-detail' : ''}">
   <section class="lane-panel" aria-labelledby="om-lane-h">
     <div class="lane-bar"><h2 id="om-lane-h">${L('steps')} and handoffs</h2>${legend()}</div>
+    ${reviewNote(p, 'process')}
     <div class="swim-wrap"><div class="swim-scroll" data-testid="swimlane" data-layout="${narrow.matches ? 'list' : 'svg'}">${lane}</div>${narrow.matches ? '' : `<button type="button" class="more-cue" data-more tabindex="-1" aria-hidden="true" data-testid="swimlane-more">More ${L.lower('steps')} <span>→</span></button>`}</div>
     ${narrow.matches ? '' : `<p class="hint">Tab moves through the ${L.lower('steps')} in flow order. Arrow keys follow the connectors, Enter opens ${L.a('step')} and Escape closes it.</p>`}
   </section>
@@ -640,7 +666,7 @@ function flowList() {
     <span class="fi-body"><span class="fi-name">${esc(s.name)}</span>
     <span class="fi-lane">${committeeOf(s)
       ? esc(committeeOf(s).name)
-      : `${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? ` · <span class="ptag">${mark(s.party, false)}${esc(E[s.party].name)}</span>` : ''}`}</span>
+      : `${esc(r ? r.name : s.owner)}${ppl(s.owner) ? ` (${ppl(s.owner)})` : ''}${is(s.party, 'party') ? ` · <span class="ptag">${mark(s.party, false)}${esc(E[s.party].name)}</span>` : ''}`}</span>
     ${byCommittee(s) || badge(s.change) || c ? `<span class="tags">${byCommittee(s)}${badge(s.change)}${c ? `<span class="cue">${c}</span>` : ''}</span>` : ''}
     <span class="fi-next">${nx.length ? `Next: ${nx.map((e) => `${esc(F.nodes[e.to].step.name)}${e.label ? ` (${esc(e.label)})` : ''}`).join(', ')}` : 'End of the flow'}</span></span>
   </a></li>`;
@@ -660,7 +686,7 @@ function stepDetail(s) {
   const raci = Object.entries(s.raci).filter(([role]) => !com || !Object.hasOwn(com.members, role));
   const owner = com
     ? `<a href="${href({ view: 'element', id: s.owner })}">${esc(com.name)}</a> ${byCommittee(s)}`
-    : `${r ? `<a href="${href({ view: 'role', id: s.owner })}">${esc(r.name)}</a>` : esc(s.owner)}${partyTag(s.party)}`;
+    : `${r ? `<a href="${href({ view: 'role', id: s.owner })}"${pplAttrs(s.owner)}>${esc(r.name)}</a>` : esc(s.owner)}${partyTag(s.party)}${ppl(s.owner)}`;
   const link = (id, dir, label) => {
     const t = F.nodes[id].step;
     return `<a class="flow-btn ${dir}" href="${stepHref(t)}" data-testid="step-${dir}" data-to="${esc(id)}"><span class="fb-k">${dir === 'next' ? 'Next' : 'Previous'}${label ? ` · ${esc(label)}` : ''}</span><span class="fb-name">${esc(t.name)}</span></a>`;
@@ -694,9 +720,10 @@ function structureView(s) {
   const ws = s.workstreams.filter((id) => is(id, 'workstream'));
   return `<div class="page page-full">
 <header class="page-head"><p class="eyebrow">${L('structure')}</p><h1 tabindex="-1">${esc(s.name)}</h1>
-  ${mainTag(s) || s.kind || badge(s.change) ? `<div class="tags">${mainTag(s)}${s.kind ? `<span class="tag" data-testid="structure-kind">${esc(s.kind)}</span>` : ''}${badge(s.change)}</div>` : ''}
+  <div class="tags">${statusBadge(s)}${mainTag(s)}${s.kind ? `<span class="tag" data-testid="structure-kind">${esc(s.kind)}</span>` : ''}${badge(s.change)}</div>
   ${s.summary ? `<p class="lead">${esc(s.summary)}</p>` : ''}${today(s)}</header>
 <section class="section" aria-labelledby="om-sd-h"><h2 id="om-sd-h">${L('roles')} and ${L.lower('teams')} by ${L.lower('party')}</h2>
+  ${reviewNote(s, 'structure')}
   <div class="sd-scroll" data-testid="structure-diagram">${structureHtml({ m: M, L, s, parties, dp, mark: (p) => mark(p, false), visible, mine: mineBox, badge: (c) => badge(c), href })}</div>
 </section>
 ${rel.length || ws.length ? `<section class="section" aria-labelledby="om-rel-h" data-testid="structure-related"><h2 id="om-rel-h">Related</h2>
@@ -721,9 +748,10 @@ function role(r) {
   const committees = list(M.committeesOf && M.committeesOf[r.id]).filter((c) => is(c.committee, 'committee') && visible(E[c.committee]));
   return `<div class="page">
 ${head(`${L('role')}${party ? ` · ${party}` : ''}${team}`, r, mine(r.id) ? `<span class="cue">Your ${L.lower('role')}</span>` : '')}
+${peopleLine(r) ? `<section class="section" aria-labelledby="om-ppl-h" data-testid="role-people"><h2 id="om-ppl-h">People</h2><ul class="people-list">${r.people.filter((n) => typeof n === 'string' && n.trim()).map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
 ${committees.length ? `<section class="section" data-testid="role-committees"><h2>${L('committees')}</h2><ul class="step-list">${committees.map((c) => `<li><a href="${href({ view: 'element', id: c.committee })}">${esc(E[c.committee].name)}</a><span class="step-tags">${letterHtml(c.letter, isJoint(E[c.committee]))}${badge(E[c.committee].change)}</span></li>`).join('')}</ul></section>` : ''}
 <section class="section" aria-labelledby="om-where-h"><h2 id="om-where-h">Where this ${L.lower('role')} takes part</h2>
-${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a></h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${s.owner === r.id ? '<span class="tag">Owner</span>' : ''}${s.raci[r.id] ? letterHtml(s.raci[r.id]) : ''}${via(s)}${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">Not part of any ${L.lower('steps')} yet.</p>`}
+${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${s.owner === r.id ? '<span class="tag">Owner</span>' : ''}${s.raci[r.id] ? letterHtml(s.raci[r.id]) : ''}${via(s)}${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">Not part of any ${L.lower('steps')} yet.</p>`}
 </section>
 ${diagrams.length ? `<section class="section" data-testid="role-structures"><h2>${L('structures')} with this ${L.lower('role')}</h2><p class="chips">${diagrams.map(structureChip).join('')}</p></section>` : ''}
 </div>`;
@@ -748,7 +776,7 @@ function committeeSections(c) {
   const groups = M.order.process.map((p) => ({ p: E[p], steps: owned.filter((s) => s.process === p) })).filter((g) => g.steps.length);
   return `<section class="section" data-testid="committee-members"><h2>Members</h2>${membersHtml(c, 'h3')}</section>
 <section class="section" data-testid="committee-steps"><h2>${L('steps')} this ${L.lower('committee')} owns</h2>
-${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a></h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">No ${L.lower('steps')} yet.</p>`}
+${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">No ${L.lower('steps')} yet.</p>`}
 </section>`;
 }
 
@@ -780,7 +808,7 @@ function search() {
 ${groups
   .map(
     (g) => `<section class="section" data-testid="search-group-${g.t}"><h2>${L(plurals[g.t])} <span class="count">${g.items.length}</span></h2><ul class="results">${g.items
-      .map((x) => `<li><a href="${(targets[g.t] || ((y) => href({ view: 'element', id: y.id })))(x)}" data-testid="search-result">${esc(x.name)}</a>${g.t === 'step' ? `<span class="result-ctx">${L('process')}: ${esc(E[x.process].name)}</span>` : ''}${boxCtx(boxHit(x))}${badge(x.change)}</li>`)
+      .map((x) => `<li><a href="${(targets[g.t] || ((y) => href({ view: 'element', id: y.id })))(x)}" data-testid="search-result">${esc(x.name)}</a>${g.t === 'step' ? `<span class="result-ctx">${L('process')}: ${esc(E[x.process].name)}</span>` : ''}${boxCtx(boxHit(x))}${g.t === 'process' || g.t === 'structure' ? statusBadge(x) : ''}${badge(x.change)}</li>`)
       .join('')}</ul></section>`,
   )
   .join('')}
@@ -797,6 +825,6 @@ function me() {
 <header class="page-head"><p class="eyebrow">${esc(p.name)}</p><h1 tabindex="-1">What matters for me</h1>
 <p class="lead">Every ${L.lower('step')}, across all ${L.lower('processes')}, where ${roles.map((r) => esc(E[r].name)).join(' or ')} ${roles.length === 1 ? 'is' : 'are'} the owner${list(M.order.committee).length ? `, in the RACI or on the ${L.lower('committee')} that owns it` : ' or in the RACI'}.</p>
 ${hasChanges() ? `<label class="toggle" data-testid="only-changes"><input type="checkbox" id="om-only"${only ? ' checked' : ''}><span>Only changes</span></label>` : ''}</header>
-${groups.length ? groups.map((g) => `<section class="section group" data-testid="me-group-${esc(g.p.id)}"><h2><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a></h2><ul class="step-list">${g.steps.map((s) => `<li data-testid="me-step"><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${roles.filter((r) => involved(s, r)).map((r) => `${letterHtml(letterOf(s, r))}${roles.length > 1 ? `<span class="letter-role">${esc(E[r].name)}</span>` : ''}`).join('')}${via(s)}${badge(s.change, only)}</span></li>`).join('')}</ul></section>`).join('') : `<p class="note">${only ? `No changes affect you.` : `No ${L.lower('steps')} involve you yet.`}</p>`}
+${groups.length ? groups.map((g) => `<section class="section group" data-testid="me-group-${esc(g.p.id)}"><h2><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h2><ul class="step-list">${g.steps.map((s) => `<li data-testid="me-step"><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${roles.filter((r) => involved(s, r)).map((r) => `${letterHtml(letterOf(s, r))}${roles.length > 1 ? `<span class="letter-role">${esc(E[r].name)}</span>` : ''}`).join('')}${via(s)}${badge(s.change, only)}</span></li>`).join('')}</ul></section>`).join('') : `<p class="note">${only ? `No changes affect you.` : `No ${L.lower('steps')} involve you yet.`}</p>`}
 </div>`;
 }

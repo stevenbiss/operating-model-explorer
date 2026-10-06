@@ -530,3 +530,44 @@ test('1.4 committees are normalised at load: ownerType, parties, committeesOf wi
   assert.equal(snap.stepsOf['bid-board'].length, 2);
   assert.deepEqual(snap.committeesOf['account-lead'], [{ committee: 'bid-board', letter: 'A' }]);
 });
+
+// ---------- people, status and view (add-people-status-simple-view 1.1) ----------
+
+const STRUCT = (extra) => `---\nid: org\ntype: structure\nname: Org\nmain: true\n${extra}bands:\n  - { id: top, name: Top }\nboxes:\n  - { band: top, role: account-lead }\n---\n`;
+
+test('1.1 people, status and view load, with defaults applied at load and carried into the snapshot', () => {
+  const r = loadModel(files({ 'model.md': MODEL, ...processWith('  - {id: a, name: A, owner: account-lead, raci: {account-lead: A}}\n'), 'roles/al.md': '---\nid: account-lead\ntype: role\nname: AL\nparty: acme\npeople: [Sam Example, Alex Sample]\n---\n', 'structures/o.md': STRUCT('status: agreed\n') }));
+  assert.deepEqual(r.messages, []);
+  const el = r.model.elements;
+  assert.deepEqual(el['account-lead'].people, ['Sam Example', 'Alex Sample']);
+  assert.equal(el['solution-architect'].people, undefined, 'no people: nothing added');
+  assert.equal(el.qualify.status, 'under-review', 'the default');
+  assert.equal(el.org.status, 'agreed');
+  assert.equal(r.model.model.view, 'simple', 'the default');
+  const snap = JSON.parse(JSON.stringify(toSnapshot(r.model)));
+  assert.deepEqual([snap.model.view, snap.elements.qualify.status, snap.elements.org.status, snap.elements['account-lead'].people.length], ['simple', 'under-review', 'agreed', 2]);
+  assert.equal(loadModel(files({ 'model.md': MODEL.replace('key_messages', 'view: detailed\nkey_messages') })).model.model.view, 'detailed');
+});
+
+test('1.1 an invalid view: an error naming model.md and listing simple and detailed', () => {
+  const m = only(run({ 'model.md': MODEL.replace('key_messages', 'view: compact\nkey_messages') }));
+  assert.deepEqual([m.level, m.file], ['error', 'model.md']);
+  assert.equal(m.problem, '"view" is "compact", which is not an allowed value.');
+  assert.equal(m.fix, 'Use one of: simple, detailed.');
+});
+
+test('1.1 an invalid status on a structure or a process: an error naming it and listing under-review and agreed', () => {
+  const s = only(run({ ...ROLES, 'structures/o.md': STRUCT('status: approved\n') }));
+  assert.deepEqual([s.level, s.file, s.element, s.fix], ['error', 'structures/o.md', 'org', 'Use one of: under-review, agreed.']);
+  const proc = processWith('  - {id: a, name: A, owner: account-lead}\n');
+  const p = only(run({ ...proc, 'processes/p.md': proc['processes/p.md'].replace('workstream:', 'status: done\nworkstream:') }));
+  assert.deepEqual([p.level, p.element, p.problem], ['error', 'qualify', '"status" is "done", which is not an allowed value.']);
+});
+
+test('1.1 people that is not a list of names: an error naming the role and saying it is a list of names', () => {
+  const m = only(run({ ...ROLES, 'roles/al.md': '---\nid: account-lead\ntype: role\nname: AL\nparty: acme\npeople: Sam Example\n---\n' }));
+  assert.deepEqual([m.level, m.element], ['error', 'account-lead']);
+  assert.equal(m.problem, '"people" should be a list of names, but it is text.');
+  const item = only(run({ ...ROLES, 'roles/al.md': '---\nid: account-lead\ntype: role\nname: AL\nparty: acme\npeople: [Sam Example, 42]\n---\n' }));
+  assert.equal(item.problem, '"people item 2" should be text, but it is a whole number.');
+});
