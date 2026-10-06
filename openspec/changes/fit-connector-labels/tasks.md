@@ -38,5 +38,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.7.1 with the three standard assets and checksums
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.7.1 with the three standard assets and checksums
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated

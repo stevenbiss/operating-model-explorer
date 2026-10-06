@@ -27,3 +27,7 @@ New tests are in `tests/e2e/connector-labels.spec.js`.
 # Round 3: PASS (2.12 and 2.7)
 - **2.12:** source in the top lane and in the bottom lane. The skip branch's path, sampled every 2px, enters no step box and stays inside the viewBox; labels are clear. Tested in author mode and in a snapshot.
 - **Results:** unit 277 of 277; e2e 387 of 387 (24 in `connector-labels.spec.js`). All of 2.1–2.12 are ticked.
+
+# Round 4: PASS (2.13 and 2.7)
+- **2.13:** a variant with "Cleared", "Approved" and one unlabelled connector into one step. Three distinct entries on the left edge; both labels in full, clear of steps and each other; no path point (sampled every 2px) inside either label's box. Tested in author mode and in a snapshot.
+- **Results:** unit 279 of 279; e2e 389 of 389 (26 in `connector-labels.spec.js`). All of 2.1–2.13 are ticked.
