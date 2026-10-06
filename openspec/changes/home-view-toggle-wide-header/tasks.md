@@ -42,8 +42,8 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 3. Verify
 
-- [ ] 3.1 html-verifier checks every requirement in the three delta specs against the running engine and a snapshot at 2560, 1920, 1280 and 375, light and dark, plus a regression pass. It returns VERIFIED. The report is saved to `openspec/changes/home-view-toggle-wide-header/reports/html-verifier.md`
-- [ ] 3.2 Confirm there are no real names in the repo
+- [x] 3.1 html-verifier checks every requirement in the three delta specs against the running engine and a snapshot at 2560, 1920, 1280 and 375, light and dark, plus a regression pass. It returns VERIFIED. The report is saved to `openspec/changes/home-view-toggle-wide-header/reports/html-verifier.md`
+- [x] 3.2 Confirm there are no real names in the repo
 
 ## 4. QA
 
@@ -51,5 +51,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.8.0 with the three standard assets and checksums
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.8.0 with the three standard assets and checksums
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated

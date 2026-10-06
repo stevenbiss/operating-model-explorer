@@ -4,7 +4,7 @@ An engine that turns an operating model, written as one capture sheet or a folde
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.7.1 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.7.1)). Swimlane branch labels now always fit: the gap before a step widens to fit its labels, long labels wrap, every label sits clear of the steps on its own connector, and branches that skip a column no longer run behind other steps. Built, tested (389 end-to-end and 279 unit tests), verified and QA-approved. Reports are in `openspec/changes/fit-connector-labels/reports/`.
+**Status:** v1.8.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.8.0)). Viewers can now switch the home page between Simple and Detailed themselves (the author's `View:` sets where it starts), and the header lines up with full-width process and structure pages on wide screens. Built, tested (397 end-to-end and 280 unit tests), verified and QA-approved. Reports are in `openspec/changes/home-view-toggle-wide-header/reports/`.
 
 
 ## For authors
