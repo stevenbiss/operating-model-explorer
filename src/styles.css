@@ -209,7 +209,7 @@ main { padding: 36px 24px 72px; }
   font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1.5; white-space: nowrap; font-family: var(--om-font-body);
 }
 .rev-review { color: var(--om-text); background: var(--om-surface); border: 1.5px dashed var(--om-changed); }
-.rev-review::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; border: 2px solid var(--om-changed); border-right-color: transparent; }
+.rev-review::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--om-changed); background: linear-gradient(90deg, var(--om-changed) 50%, transparent 50%); }
 .rev-agreed { color: #ffffff; background: #1a7f4b; border: 1.5px solid #1a7f4b; }
 .rev-agreed::before { content: "✓" / ""; font-weight: 800; }
 .review-note {
@@ -221,6 +221,7 @@ main { padding: 36px 24px 72px; }
 .people { font-size: 0.85em; font-weight: 500; color: var(--om-muted); overflow-wrap: anywhere; }
 .chip-text { display: inline-flex; flex-direction: column; line-height: 1.25; }
 .owner .people, .raci-table th .people, .sd-roles .people { display: block; }
+.sd-roles .people { font-weight: 400; }
 .fi-lane .people { font: inherit; color: inherit; }
 .people-list { margin: 0; padding-left: 1.2em; }
 .people-tip {
@@ -687,6 +688,8 @@ main { padding: 36px 24px 72px; }
 .preview-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-block: 36px 12px; }
 .preview-head h2 { margin: 0; font-size: 1.35rem; }
 .preview-head p { margin: 0; color: var(--om-muted); font-size: 0.9rem; }
+.preview-head .btn[aria-pressed="true"] { color: var(--om-on-primary); background: var(--om-primary); border-color: var(--om-primary); }
+.preview-head .btn[aria-pressed="true"]::before { content: "✓" / ""; }
 #om-preview {
   position: relative; overflow: clip; background: var(--om-bg); color: var(--om-text); font-family: var(--om-font-body);
   border: 1px solid var(--om-border); border-radius: 16px; box-shadow: 0 30px 70px -45px var(--om-shadow);

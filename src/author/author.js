@@ -7,7 +7,7 @@ import { embedJson, toSnapshot } from '../model/snapshot.js';
 import { contentReference } from '../model/reference.js';
 import { schemas } from '../model/schemas.js';
 import { renderMarkdown } from '../model/markdown.js';
-import { previewView, render } from '../viewer/app.js';
+import { render } from '../viewer/app.js';
 import { esc } from '../viewer/esc.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 const count = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -214,15 +214,21 @@ function show(reload) {
   const toggle = $('[data-act="preview-view"]');
   toggle.textContent = `Preview ${views.other} view`;
   toggle.setAttribute('aria-pressed', String(otherView));
-  const preview = $('#om-preview');
-  try {
-    render(toSnapshot(result.model), preview, otherView ? views.other.toLowerCase() : null);
-  } catch {
-    preview.innerHTML = '<p class="note preview-note">The preview cannot be shown until the errors above are fixed.</p>';
-  }
+  paint();
   document.title = `${(result.model.model && result.model.model.name) || 'Operating Model Explorer'}: author mode`;
   say(`${reload ? 'Reloaded' : 'Loaded'} ${source}: ${counts}.${errors.length ? '' : ' Ready to export.'}`);
   if (!reload && !document.querySelector('dialog:modal')) $('#om-report-title').focus();
+}
+
+// The preview: the real viewer, in the published home-page view or, while the toggle is pressed, the other one.
+function paint() {
+  const { model } = current.result;
+  const preview = $('#om-preview');
+  try {
+    render(toSnapshot(model), preview, otherView ? viewsOf(model).other.toLowerCase() : null);
+  } catch {
+    preview.innerHTML = '<p class="note preview-note">The preview cannot be shown until the errors above are fixed.</p>';
+  }
 }
 
 const viewsOf = (model) => {
@@ -317,7 +323,7 @@ function onClick(e) {
   else if (a === 'preview-view') {
     otherView = !otherView;
     act.setAttribute('aria-pressed', String(otherView));
-    previewView(otherView ? viewsOf(current.result.model).other.toLowerCase() : null);
+    paint();
   }
   else if (a === 'export') exportSnapshot();
   else if (a === 'close') act.closest('dialog').close();

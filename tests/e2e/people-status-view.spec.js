@@ -468,6 +468,19 @@ test.describe('people (exported people-mix)', () => {
     await expect(page.getByTestId('role-people')).toHaveCount(0);
   });
 
+  test('2.44 role-people › No pop-up on a box with its own name', async ({ page }) => {
+    await openSnapshot(page, snap, '#/d/org');
+    const box = page.getByTestId('structure-box').filter({ has: page.locator('.sd-box-title', { hasText: 'Account lead' }) });
+    await expect(box.locator('.sd-box-name')).toHaveText('TBA');
+    await expect(box).not.toHaveAttribute('data-people');
+    await expect(box).not.toHaveAccessibleDescription(/Sam Example/);
+    await hover(page, box);
+    await expect(tip(page)).toBeHidden();
+    // A box without its own name text, for a role with people, still has the pop-up.
+    await hover(page, page.locator('[data-testid="structure-box"][data-people="gamma-lead"]'));
+    await expect(tip(page)).toBeVisible();
+  });
+
   test('2.10 role-people › Pop-up stays on screen', async ({ page }) => {
     const vp = page.viewportSize();
     expect(vp.width).toBe(1280);

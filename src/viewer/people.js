@@ -3,7 +3,7 @@
 // aria-describedby pointing to a hidden "People: …" span, so the pop-up is never the only way to read the names.
 import { esc } from './esc.js';
 
-const names = (role) => (role && Array.isArray(role.people) ? role.people.filter((p) => typeof p === 'string' && p.trim()) : []);
+export const names = (role) => (role && Array.isArray(role.people) ? role.people.filter((p) => typeof p === 'string' && p.trim()) : []);
 
 // '' for no people, the one name, or "Multiple people". Plain text: escape it where it goes into HTML.
 export const peopleLine = (role) => {
@@ -41,9 +41,10 @@ export function initPeopleTip(doc, getRole) {
     const r = el.getBoundingClientRect();
     const w = t.offsetWidth;
     const h = t.offsetHeight;
-    const top = r.bottom + 6 + h <= innerHeight ? r.bottom + 6 : Math.max(4, r.top - 6 - h);
+    const { clientWidth: vw, clientHeight: vh } = doc.documentElement; // the window less its scrollbars
+    const top = r.bottom + 6 + h <= vh ? r.bottom + 6 : Math.max(4, r.top - 6 - h);
     t.style.top = `${top}px`;
-    t.style.left = `${Math.max(4, Math.min(r.left, innerWidth - w - 4))}px`;
+    t.style.left = `${Math.max(4, Math.min(r.left, vw - w - 4))}px`;
   };
   const target = (e) => e.target.closest && e.target.closest('[data-people]');
   doc.addEventListener('pointerover', (e) => {
@@ -62,9 +63,10 @@ export function initPeopleTip(doc, getRole) {
       if (on && on !== doc.activeElement) timer = setTimeout(hide, 100);
     }
   });
+  // Keyboard focus only: a mouse click focuses the element too, and hover already covers the pointer.
   doc.addEventListener('focusin', (e) => {
     const el = target(e);
-    if (el) {
+    if (el && el.matches(':focus-visible')) {
       clearTimeout(timer);
       show(el);
     } else if (on) hide();

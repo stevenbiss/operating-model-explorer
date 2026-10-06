@@ -27,3 +27,13 @@ Only where the new behaviour changes what's on screen: overview tests (now the S
 - `rev-*` class names.
 - The badge sits inside the heading.
 - The phone list shows the person in brackets.
+
+## Round 2: html-qa polish (after SHIP)
+1. The Under review icon is now a half-filled dot, so it no longer reads as a "C".
+2. A box with its own name gets no `data-people` or `aria-describedby`. New e2e test 2.44, with the Gamma lead box as a control.
+3. The pop-up is clamped to `clientWidth`/`clientHeight`.
+4. `focusin` opens the pop-up only on `:focus-visible`.
+6. The preview toggle has a pressed style (filled background and a ✓); the label is unchanged.
+7. Tidy-ups: `names` reused; `roleChip` calls `ppl()` once; the per-box closure is inlined; one way to set the preview view (`render()`'s third parameter, via a `paint()` helper in author mode).
+9. The team-box people line uses weight 400.
+- **Results:** unit 256 of 256; e2e 349 of 349.

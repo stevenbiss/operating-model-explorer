@@ -28,14 +28,13 @@ export function structureHtml(ctx) {
     const mine = ctx.mine(b);
     const tags = `${mine ? `<span class="cue">Your ${L.lower('role')}</span>` : ''}${ctx.badge(b.change)}`;
     const target = b.role ? { view: 'role', id: b.role } : { view: 'element', id: b.team };
-    // The box's own name text wins over its role's people line (role-people spec).
+    // The box's own name text wins over its role's people line, and then the box has no people pop-up or description.
     const role = b.role && holder && holder.type === 'role' ? holder : null;
     const who = b.name || peopleLine(role);
-    const line = (r) => (peopleLine(el[r]) ? `<span class="people">${esc(peopleLine(el[r]))}</span>` : '');
-    return `<li><a class="sd-box${mine ? ' mine' : ''}${b.change ? ` status-${esc(b.change.status)}` : ''}" href="${ctx.href(target)}" data-testid="structure-box" data-box="${i}"${role ? peopleAttrs(b.role, role) : ''}>
+    return `<li><a class="sd-box${mine ? ' mine' : ''}${b.change ? ` status-${esc(b.change.status)}` : ''}" href="${ctx.href(target)}" data-testid="structure-box" data-box="${i}"${role && !b.name ? peopleAttrs(b.role, role) : ''}>
   <span class="sd-box-title">${esc(holder ? holder.name : b.role || b.team)}</span>
   ${who ? `<span class="sd-box-name">${esc(who)}</span>` : ''}${b.note ? `<span class="sd-box-note">${esc(b.note)}</span>` : ''}
-  ${roles.length ? `<span class="vh">${L('roles')}:</span><ul class="sd-roles">${roles.map((r) => `<li>${esc(el[r].name)}${line(r)}</li>`).join('')}</ul>` : ''}
+  ${roles.length ? `<span class="vh">${L('roles')}:</span><ul class="sd-roles">${roles.map((r) => `<li>${esc(el[r].name)}${peopleLine(el[r]) ? `<span class="people">${esc(peopleLine(el[r]))}</span>` : ''}</li>`).join('')}</ul>` : ''}
   ${tags ? `<span class="tags">${tags}</span>` : ''}${ctx.badge(b.change) && b.change.today ? `<span class="sd-today" data-testid="today"><span class="k">Today</span> ${esc(b.change.today)}</span>` : ''}
 </a></li>`;
   };

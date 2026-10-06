@@ -68,7 +68,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.8 Keyboard shows the names
 - [x] 2.9 Screen-reader description
 - [x] 2.10 Pop-up stays on screen
-- [ ] 2.44 No pop-up on a box with its own name (role-people; added after QA)
+- [x] 2.44 No pop-up on a box with its own name (role-people; added after QA)
 - [x] 2.11 Role page lists people
 - [x] 2.12 Mobile people line (@mobile)
 - [x] 2.13 Sample people load

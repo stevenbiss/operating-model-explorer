@@ -8,7 +8,7 @@ import { swimlaneSvg } from './swimlane.js';
 import { mountLines, structureHtml } from './structure.js';
 import { esc } from './esc.js';
 import { initPan } from './pan.js';
-import { initPeopleTip, peopleAttrs, peopleHtml, peopleLine } from './people.js';
+import { initPeopleTip, names, peopleAttrs, peopleHtml, peopleLine } from './people.js';
 // OM_VERSION: package.json's version, put in by the build (esbuild define; design D11).
 
 const list = (v) => (Array.isArray(v) ? v : []);
@@ -98,7 +98,10 @@ const partyChip = (p) => (is(p, 'party') ? `<a class="chip"${dp(p)} href="${href
 // People on a role (role-people spec): the line under its name, and the attributes for the pop-up and description.
 const ppl = (r) => (is(r, 'role') && peopleLine(E[r]) ? `<span class="people" data-testid="people-line">${esc(peopleLine(E[r]))}</span>` : '');
 const pplAttrs = (r) => (is(r, 'role') ? peopleAttrs(r, E[r]) : '');
-const roleChip = (r) => `<a class="chip${mine(r) ? ' mine' : ''}"${dp(E[r] && E[r].party)}${pplAttrs(r)} href="${href({ view: 'role', id: r })}">${mark(E[r] && E[r].party)}${ppl(r) ? `<span class="chip-text">${esc(nameOf(r))}${ppl(r)}</span>` : esc(nameOf(r))}${mine(r) ? ` <span class="cue">Your ${L.lower('role')}</span>` : ''}</a>`;
+const roleChip = (r) => {
+  const p = ppl(r);
+  return `<a class="chip${mine(r) ? ' mine' : ''}"${dp(E[r] && E[r].party)}${pplAttrs(r)} href="${href({ view: 'role', id: r })}">${mark(E[r] && E[r].party)}${p ? `<span class="chip-text">${esc(nameOf(r))}${p}</span>` : esc(nameOf(r))}${mine(r) ? ` <span class="cue">Your ${L.lower('role')}</span>` : ''}</a>`;
+};
 // Review status on processes and structures (review-status spec, design D5): always text, never colour alone.
 const statusBadge = (x) => (x.status === 'agreed' ? '<span class="rev rev-agreed" data-testid="status-badge">Agreed</span>' : '<span class="rev rev-review" data-testid="status-badge">Under review</span>');
 const reviewNote = (x, term) => (x.status === 'agreed' ? '' : `<p class="review-note" data-testid="review-note">This ${L.lower(term)} is under review and may still change.</p>`);
@@ -236,12 +239,6 @@ function shell() {
 </dialog>
 <div class="vh" aria-live="polite" data-testid="announcer" id="om-live"></div>
 ${peopleHtml(E, M.order.role)}`;
-}
-
-// Author mode: preview the other home-page view (or null for the published one), without touching the content.
-export function previewView(view) {
-  viewOverride = view;
-  if (route) onRoute();
 }
 
 // The header lockup (design D6): every party's mark at the same height, in party order, when at least one party has a brand.
@@ -748,7 +745,7 @@ function role(r) {
   const committees = list(M.committeesOf && M.committeesOf[r.id]).filter((c) => is(c.committee, 'committee') && visible(E[c.committee]));
   return `<div class="page">
 ${head(`${L('role')}${party ? ` · ${party}` : ''}${team}`, r, mine(r.id) ? `<span class="cue">Your ${L.lower('role')}</span>` : '')}
-${peopleLine(r) ? `<section class="section" aria-labelledby="om-ppl-h" data-testid="role-people"><h2 id="om-ppl-h">People</h2><ul class="people-list">${r.people.filter((n) => typeof n === 'string' && n.trim()).map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
+${names(r).length ? `<section class="section" aria-labelledby="om-ppl-h" data-testid="role-people"><h2 id="om-ppl-h">People</h2><ul class="people-list">${names(r).map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
 ${committees.length ? `<section class="section" data-testid="role-committees"><h2>${L('committees')}</h2><ul class="step-list">${committees.map((c) => `<li><a href="${href({ view: 'element', id: c.committee })}">${esc(E[c.committee].name)}</a><span class="step-tags">${letterHtml(c.letter, isJoint(E[c.committee]))}${badge(E[c.committee].change)}</span></li>`).join('')}</ul></section>` : ''}
 <section class="section" aria-labelledby="om-where-h"><h2 id="om-where-h">Where this ${L.lower('role')} takes part</h2>
 ${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${s.owner === r.id ? '<span class="tag">Owner</span>' : ''}${s.raci[r.id] ? letterHtml(s.raci[r.id]) : ''}${via(s)}${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">Not part of any ${L.lower('steps')} yet.</p>`}
