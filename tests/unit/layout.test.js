@@ -135,12 +135,15 @@ test('2.18 two committees: one group, in the order their first steps appear in t
   const m = withCommittees(step('a', 'rx') + step('b', 'second') + step('c', 'first') + step('d', 'rz'), { first: XY, second: '{rx: A, rz: A}' });
   const f = flow(m, 'p');
   assert.deepEqual(m.order.committee, ['first', 'second']);
-  assert.deepEqual(f.groups.map((g) => g.lanes), [['rx'], ['second', 'first'], ['ry'], ['rz']]);
+  // ry takes part only through "first", so it is idle there and has no lane (list-idle-committee-members D2).
+  assert.deepEqual(f.groups.map((g) => g.lanes), [['rx'], ['second', 'first'], ['rz']]);
+  assert.deepEqual(f.idle, { second: [], first: ['ry'] });
   assert.equal(f.groups.filter((g) => g.committee).length, 1);
 });
 
 test('2.18 committee after the first party with members: Customer (A), Acme (B), Committees, Globex (C)', () => {
-  const f = flow(withCommittees(step('a', 'rx') + step('b', 'board') + step('c', 'rz'), { board: '{ry: A, rz: A}' }), 'p');
+  // ry is informed on a role-owned step, so it has a lane and the B group is shown (an idle member would have none).
+  const f = flow(withCommittees(step('a', 'rx', '    raci: { ry: I }\n') + step('b', 'board') + step('c', 'rz'), { board: '{ry: A, rz: A}' }), 'p');
   assert.deepEqual(f.groups.map((g) => (g.committee ? 'committees' : g.party)), ['pa', 'pb', 'committees', 'pc']);
   assert.deepEqual(f.lanes, ['rx', 'ry', 'board', 'rz']);
 });
@@ -156,4 +159,55 @@ test('2.61 a process with no committee-owned steps has the same layout as before
   assert.ok(!plain.groups.some((g) => g.committee));
   // The same process in a model with a committee that owns nothing here: an identical layout.
   assert.deepEqual(flow(withCommittees(steps, { board: XY }), 'p'), plain);
+  assert.deepEqual(plain.idle, {});
+});
+
+// ---------- idle committee members (list-idle-committee-members D2) ----------
+
+test('1.1 a member that takes part only through its committee is idle: no lane, listed in idle', () => {
+  const f = flow(withCommittees(step('a', 'rx') + step('b', 'board'), { board: XY }), 'p');
+  assert.deepEqual(f.lanes, ['rx', 'board']);
+  assert.deepEqual(f.idle, { board: ['ry'] });
+});
+
+test('1.1 a member that owns a step keeps its lane and is not idle', () => {
+  const f = flow(withCommittees(step('a', 'board') + step('b', 'ry'), { board: XY }), 'p');
+  assert.ok(f.lanes.includes('ry'));
+  assert.deepEqual(f.idle, { board: ['rx'] });
+});
+
+test('1.1 a member with a letter on a role-owned step keeps its lane', () => {
+  const f = flow(withCommittees(step('a', 'rx', '    raci: { ry: I }\n') + step('b', 'board'), { board: XY }), 'p');
+  assert.deepEqual(f.lanes, ['rx', 'board', 'ry']);
+  assert.deepEqual(f.idle, { board: [] });
+});
+
+test("1.1 a member with a letter on its own committee's step is still idle", () => {
+  const f = flow(withCommittees(step('a', 'rx') + step('b', 'board', '    raci: { ry: C }\n'), { board: XY }), 'p');
+  assert.ok(!f.lanes.includes('ry'));
+  assert.deepEqual(f.idle, { board: ['ry'] });
+});
+
+test('1.1 a letter on a step owned by a committee the role is not on counts as taking part', () => {
+  const f = flow(withCommittees(step('a', 'rx') + step('b', 'board', '    raci: { rz: I }\n') + step('c', 'panel'), { board: XY, panel: '{rz: A, rx: A}' }), 'p');
+  assert.ok(f.lanes.includes('rz'));
+  assert.deepEqual(f.idle, { board: ['ry'], panel: [] });
+});
+
+test('1.1 a role idle in two committees is listed in both', () => {
+  const f = flow(withCommittees(step('a', 'rx') + step('b', 'board') + step('c', 'panel'), { board: XY, panel: '{ry: A, rx: A}' }), 'p');
+  assert.ok(!f.lanes.includes('ry'));
+  assert.deepEqual(f.idle, { board: ['ry'], panel: ['ry'] });
+});
+
+test('1.1 idle members are in party order, then role order, not member order', () => {
+  const f = flow(withCommittees(step('a', 'board'), { board: '{rz: C, ry: A, rx: A}' }), 'p');
+  assert.deepEqual(f.idle, { board: ['rx', 'ry', 'rz'] });
+  assert.deepEqual(f.lanes, ['board']);
+});
+
+test("1.1 idleness is per process: the sample's Legal counsel is idle in Qualify and has a lane in Build the proposal", () => {
+  assert.deepEqual(flow(sample, 'qualify-opportunity').idle, { 'bid-board': ['legal-counsel'] });
+  assert.ok(!flow(sample, 'qualify-opportunity').lanes.includes('legal-counsel'));
+  assert.ok(flow(sample, 'build-proposal').lanes.includes('legal-counsel'));
 });

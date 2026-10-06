@@ -621,7 +621,7 @@ function processView(p) {
   const w = E[p.workstream];
   const lane = narrow.matches ? flowList() : swimlaneSvg({
     m: M, L, f: F, dp, mark: (p) => mark(p, false), selected: sel && sel.id, label: `${esc(p.name)}: ${L.lower('steps')} by ${L.lower('role')}`,
-    mine: persona() ? mine : null, cue, badge: (c) => badgeText(c), stepLabel, roleHref: (r) => href({ view: is(r, 'committee') ? 'element' : 'role', id: r }),
+    mine: persona() ? mine : null, cue, badge: (c) => badgeText(c), stepLabel, roleHref: (r) => href({ view: is(r, 'committee') ? 'element' : 'role', id: r }), letterWord: (l) => RACI[l] || l,
   });
   return `<div class="page page-full">
 <header class="page-head"><p class="eyebrow">${L('process')}${is(p.workstream, 'workstream') ? ` · <a href="${href({ view: 'workstream', id: w.id })}">${esc(w.name)}</a>` : ''}</p>

@@ -304,8 +304,9 @@ test.describe('committees (exported committee-basic)', () => {
     expect(g.bands.map((b) => b.name)).toEqual(['Alpha Ltd', 'Committees', 'Beta Inc']);
     expect(bandOf(g, 'bid-board')).toBe('Committees');
     expect(bandOf(g, 'account-lead')).toBe('Alpha Ltd');
-    expect(bandOf(g, 'partner-manager')).toBe('Beta Inc');
-    // Header: only the committee's name, linking to its page; no member list.
+    // Partner manager takes part only through the bid board, so it has no lane (list-idle-committee-members).
+    expect(bandOf(g, 'solution-architect')).toBe('Beta Inc');
+    // The committee's own link is its name only, linking to its page; idle members are separate links.
     expect(g.lane('bid-board').text.trim()).toBe('Bid board');
     await expect(page.getByTestId('lane-bid-board')).toHaveAttribute('href', /#\/e\/bid-board/);
     await expect(page.getByTestId('lane-bid-board').locator('.lane-party, .lane-team')).toHaveCount(0);
@@ -360,7 +361,7 @@ test.describe('committees (exported sample)', () => {
 
   test('2.19 committees › Lane header opens the committee', async ({ page }) => {
     await openSnapshot(page, snap, '#/p/qualify-opportunity');
-    await page.getByTestId('lane-bid-board').click();
+    await page.getByTestId('lane-bid-board').locator('.lane-name').click(); // the name: idle members' links sit below it
     await expect(page).toHaveURL(/#\/e\/bid-board/);
     await expect(page.locator('main h1')).toHaveText('Acme + Globex bid board');
     await expect(page.getByTestId('committee-members')).toBeVisible();
@@ -378,6 +379,7 @@ test.describe('committees (exported sample)', () => {
     expect(await memberRows(block)).toEqual([
       ['Acme Corp', 'Account lead', 'A Accountable, jointly'],
       ['Acme Corp', 'Bid manager', 'I Informed'],
+      ['Acme Corp', 'Legal counsel', 'C Consulted'],
       ['Globex', 'Partner manager', 'A Accountable, jointly'],
       ['Globex', 'Solution architect', 'C Consulted'],
     ]);
@@ -398,6 +400,7 @@ test.describe('committees (exported sample)', () => {
     expect(await memberRows(members)).toEqual([
       ['Acme Corp', 'Account lead', 'A Accountable, jointly'],
       ['Acme Corp', 'Bid manager', 'I Informed'],
+      ['Acme Corp', 'Legal counsel', 'C Consulted'],
       ['Globex', 'Partner manager', 'A Accountable, jointly'],
       ['Globex', 'Solution architect', 'C Consulted'],
     ]);
@@ -418,7 +421,7 @@ test.describe('committees (exported sample)', () => {
 
   test('2.23 committees › Deep link to a committee', async ({ page, context }) => {
     await openSnapshot(page, snap, '#/p/qualify-opportunity');
-    await page.getByTestId('lane-bid-board').click();
+    await page.getByTestId('lane-bid-board').locator('.lane-name').click(); // the name: idle members' links sit below it
     await expect(page.locator('main h1')).toHaveText('Acme + Globex bid board');
     const url = page.url();
     const tab = await context.newPage();
@@ -461,7 +464,8 @@ test.describe('committees (exported sample)', () => {
     await expect(page.getByRole('group', { name: 'Globex roles', exact: true }).getByTestId('lane-partner-manager')).toHaveCount(1);
     await expect(page.getByRole('group', { name: 'Acme Corp roles', exact: true }).getByTestId('lane-account-lead')).toHaveCount(1);
     // Lane headers are reached in screen order: Acme's roles, the committee, then Globex's roles.
-    expect(await page.locator('.lane-heads .lane-link').evaluateAll((as) => as.map((a) => a.dataset.testid.slice(5)))).toEqual(['account-lead', 'bid-manager', 'delivery-manager', 'bid-board', 'partner-manager', 'solution-architect']);
+    // Legal counsel is idle in this process, so it is listed in the committee's header after the committee's name.
+    expect(await page.locator('.lane-heads .lane-link').evaluateAll((as) => as.map((a) => a.dataset.testid))).toEqual(['lane-account-lead', 'lane-bid-manager', 'lane-delivery-manager', 'lane-bid-board', 'idle-bid-board-legal-counsel', 'lane-partner-manager', 'lane-solution-architect']);
     await expect(page.getByTestId('lane-partner-manager')).toHaveAccessibleName(/Acme \+ Globex bid board member · A/);
   });
 

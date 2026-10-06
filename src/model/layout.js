@@ -52,22 +52,27 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   const rankOf = (id) => (rank[id] ??= Math.max(0, ...into[id].map((f) => rankOf(f) + 1)));
   steps.forEach((s) => rankOf(s.id));
 
-  // Lanes: every role that owns or takes part (RACI, which includes committee membership) in a shown step, grouped
-  // by party in content order. Each committee that owns a shown step gets a lane too (design D3): all of them in one
-  // group in the order their first steps appear in the flow.
+  // Lanes: every role that owns or takes part (RACI) in a shown step, grouped by party in content order. Each committee
+  // that owns a shown step gets a lane too (design D3): all of them in one group in the order their first steps appear.
+  // A committee member that takes part only through its committees is idle (list-idle-committee-members D2): no lane,
+  // listed in idle[committee] instead. Its letter on a step owned by one of its committees is committee participation.
   const committees = [];
   const used = new Set();
   for (const s of steps) {
     if (s.ownerType === 'committee') committees.includes(s.owner) || committees.push(s.owner);
     else if (typeof s.owner === 'string') used.add(s.owner);
-    Object.keys(s.raci).forEach((r) => used.add(r));
+    const members = s.ownerType === 'committee' ? m.elements[s.owner].members : {};
+    Object.keys(s.raci).forEach((r) => Object.hasOwn(members, r) || used.add(r));
   }
-  const known = m.order.role.filter((r) => used.has(r));
-  const roles = [...known, ...[...used].filter((r) => !known.includes(r))];
   const partyOf = (r) => (m.elements[r] && m.order.party.includes(m.elements[r].party) ? m.elements[r].party : null);
-  const groups = [...m.order.party, null]
-    .map((party) => ({ party, lanes: roles.filter((r) => partyOf(r) === party) }))
-    .filter((g) => g.lanes.length);
+  // Party order, then role order (ids not in the model last).
+  const byParty = (set) => {
+    const known = m.order.role.filter((r) => set.has(r));
+    const roles = [...known, ...[...set].filter((r) => !known.includes(r))];
+    return [...m.order.party, null].map((party) => ({ party, lanes: roles.filter((r) => partyOf(r) === party) }));
+  };
+  const groups = byParty(used).filter((g) => g.lanes.length);
+  const idle = Object.fromEntries(committees.map((c) => [c, byParty(new Set(Object.keys(m.elements[c].members).filter((r) => !used.has(r)))).flatMap((g) => g.lanes)]));
   const first = (c) => Math.min(...steps.filter((s) => s.owner === c).map((s) => rank[s.id]));
   // The committees group goes directly after the first party group with a member of any of them (design D5).
   const memberParty = new Set(committees.flatMap((c) => Object.keys(m.elements[c].members).map(partyOf)));
@@ -89,7 +94,7 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   // Flow order (also the Tab order): by rank, then lane, then slot.
   const order = steps.map((s) => s.id).sort((a, b) => nodes[a].rank - nodes[b].rank || nodes[a].lane - nodes[b].lane || nodes[a].slot - nodes[b].slot);
 
-  return { nodes, edges, groups, lanes, rows, order, ranks: Math.max(0, ...Object.values(rank)) + 1 };
+  return { nodes, edges, groups, lanes, rows, order, idle, ranks: Math.max(0, ...Object.values(rank)) + 1 };
 }
 
 export const nextOf = (f, id) => f.edges.filter((e) => e.from === id);

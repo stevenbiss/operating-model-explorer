@@ -16,11 +16,11 @@ const COMPACT = 50; // lanes that only take part (RACI)
 
 export const laneHeight = (rows) => (rows ? PAD_T + rows * NH + (rows - 1) * 16 + PAD_B : COMPACT);
 
-// Word-wrap for SVG text: up to `lines` lines of about `max` characters.
+// Word-wrap for SVG text: up to `lines` lines of about `max` characters. text: a string, or its words (kept whole).
 export function wrap(text, max, lines) {
   const out = [];
   let cur = '';
-  for (const w of String(text).split(/\s+/)) {
+  for (const w of Array.isArray(text) ? text : String(text).split(/\s+/)) {
     if (cur && (cur + ' ' + w).length > max) {
       out.push(cur);
       cur = w;
@@ -53,7 +53,7 @@ const pill = (x, y, text, cls) => {
 };
 
 // ctx: { m, L, f (flow), dp(partyId) -> ' data-party="n"', mark(partyId) -> <img> or initials HTML, mine(role) -> bool, cue(step) -> text|null, badge(change) -> text|null,
-//        stepLabel(step) -> accessible name, roleHref(id), label, selected }
+//        stepLabel(step) -> accessible name, roleHref(id), letterWord(letter) -> "Consulted", label, selected }
 // L, cue, stepLabel, roleHref and label return HTML-safe text; everything taken from the model is escaped here.
 export function swimlaneSvg(ctx) {
   const { m, f } = ctx;
@@ -64,9 +64,34 @@ export function swimlaneSvg(ctx) {
 
   // Lane headers: the full role name (wrapped, never truncated), its people line (role-people spec), team, and cues ("Your lane", a change badge)
   // stacked below. A lane that only takes part (RACI) stays compact while its name fits one line and it has no cues.
-  // A committee lane (design D3) shows only its name; a member's own lane says, as text, which committees in
-  // this process it sits on, with its letter, so membership never relies on marks or colour.
+  // A committee lane shows its name, then its idle members (see idleOf); a member's own lane says, as text, which
+  // committees in this process it sits on, with its letter, so membership never relies on marks or colour.
   const committees = f.groups.filter((g) => g.committee).flatMap((g) => g.lanes);
+  // A committee's idle members (list-idle-committee-members D3, D4), in f.idle's order: "Role · Letter" (the letter, and
+  // the persona's "You", kept with the last word of the name), then the person line, wrapped to two lines at most.
+  // All of them when they fit in four lines; otherwise as many as fit in three, then "+ N more".
+  const idleOf = (c) => {
+    const entries = (f.idle[c] || []).map((r) => {
+      const role = el[r];
+      const words = String(role ? role.name : r).split(/\s+/);
+      const you = persona && ctx.mine(r);
+      const main = words.join(' ').length + 4; // with " · A"
+      words[words.length - 1] += ` · ${el[c].members[r]}${you ? ' You' : ''}`;
+      const person = role && role.type === 'role' ? peopleLine(role) : '';
+      let lines = wrap([...words, ...(person ? person.split(/\s+/) : [])], 24, 2);
+      if (you && !lines.join(' ').slice(0, main + 4).endsWith(' You')) lines = wrap(words, 24, 2); // never cut "You"
+      return { r, role, you, main, person, lines };
+    });
+    const room = entries.reduce((n, e) => n + e.lines.length, 0) <= 4 ? 4 : 3;
+    let used = 0;
+    const shown = [];
+    for (const e of entries) {
+      if (used + e.lines.length > room) break;
+      shown.push(e);
+      used += e.lines.length;
+    }
+    return { entries, shown, lines: used + (shown.length < entries.length ? 1 : 0) };
+  };
   const head = {};
   for (const r of f.lanes) {
     const role = el[r];
@@ -85,8 +110,11 @@ export function swimlaneSvg(ctx) {
     const people = role && role.type === 'role' && peopleLine(role) ? wrap(peopleLine(role), 24, 2) : [];
     const compact = !f.rows[r] && !cues.length && name.length === 1 && !member.length && !people.length;
     const team = !compact && role && role.team && el[role.team] ? el[role.team].name : '';
-    const need = 30 + (name.length - 1) * 17 + people.length * 16 + (team ? 18 : 0) + member.length * 16 + (cues.length ? 28 : 0) + 16;
-    head[r] = { cues, name, people, team, member, h: compact ? COMPACT : Math.max(laneHeight(f.rows[r]), need) };
+    const idle = isCommittee ? idleOf(r) : { lines: 0 };
+    // The idle list starts 20px below the line above it (44px below a row of cues), one line every 16px.
+    const list = idle.lines ? (cues.length ? 44 : 20) + (idle.lines - 1) * 16 : cues.length ? 28 : 0;
+    const need = 30 + (name.length - 1) * 17 + people.length * 16 + (team ? 18 : 0) + member.length * 16 + list + 16;
+    head[r] = { cues, name, people, team, member, idle, h: compact ? COMPACT : Math.max(laneHeight(f.rows[r]), need) };
   }
   const lh = (r) => head[r].h;
 
@@ -223,7 +251,48 @@ export function swimlaneSvg(ctx) {
       inner += pl.svg;
       px += pl.w + 6;
     }
-    links[r] = `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"${el[r] && el[r].type === 'role' ? peopleAttrs(r, el[r]) : ''}><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>`;
+    // A committee's idle list (design D3, D4): each entry, and "+ N more", is its own link after the committee name's,
+    // drawn over it (the committee's link still spans the lane). A party mark is an <img> over the header (marks);
+    // a party without a brand gets a swatch in its colour.
+    const { idle } = head[r];
+    let list = '';
+    if (idle.lines) {
+      let y = below + (cues.length ? 44 : 20);
+      const partyOf = (e) => (e.role && el[e.role.party] && el[e.role.party].type === 'party' ? e.role.party : null);
+      const label = (e) => [e.role ? e.role.name : e.r, partyOf(e) && el[partyOf(e)].name, String(ctx.letterWord(el[r].members[e.r])).toLowerCase(), e.person, e.you && 'you'].filter(Boolean).map(esc).join(', ');
+      for (const e of idle.shown) {
+        const p = partyOf(e);
+        const mk = ctx.mark(p);
+        if (mk.startsWith('<img')) marks += `<span class="idle-mark" style="top:${y - 11}px">${mk}</span>`;
+        const swatch = mk.startsWith('<img') ? '' : `<rect class="idle-swatch" x="18" y="${y - 9}" width="14" height="9" rx="2"${ctx.dp(p)}/>`;
+        // Characters up to e.main are "Role · A", then " You" (bold), then the person line (muted).
+        const cls = (i) => (i < e.main ? '' : e.you && i < e.main + 4 ? 'idle-you' : 'lane-people');
+        let at = 0;
+        const text = e.lines.map((line, n) => {
+          let out = '';
+          for (let i = 0; i < line.length; ) {
+            const c = cls(at + i);
+            let j = i;
+            while (j < line.length && cls(at + j) === c) j++;
+            out += `<tspan${c ? ` class="${c}"` : ''}>${esc(line.slice(i, j))}</tspan>`;
+            i = j;
+          }
+          at += line.length + 1;
+          return `<text class="idle-name" x="38" y="${y + n * 16}">${out}</text>`;
+        });
+        list += `<a class="lane-link idle-entry" href="${ctx.roleHref(e.r)}" data-testid="idle-${esc(r)}-${esc(e.r)}" aria-label="${label(e)}"${e.role && e.role.type === 'role' ? peopleAttrs(e.r, e.role) : ''}>` +
+          `<rect class="lane-hit" x="0" y="${y - 12}" width="${HEAD}" height="${e.lines.length * 16}"/>${swatch}${text.join('')}</a>`;
+        y += e.lines.length * 16;
+      }
+      const hidden = idle.entries.slice(idle.shown.length);
+      if (hidden.length) {
+        const you = hidden.some((e) => e.you);
+        const members = { name: el[r].name, list: idle.entries.map((e) => [`${e.role ? e.role.name : e.r} · ${el[r].members[e.r]}`, [partyOf(e) && el[partyOf(e)].name, e.person].filter(Boolean).join(' · ')]) };
+        list += `<a class="lane-link idle-more" href="${ctx.roleHref(r)}" data-testid="idle-more-${esc(r)}" data-members="${esc(JSON.stringify(members))}" aria-label="${hidden.length} more members. All ${idle.entries.length}: ${idle.entries.map(label).join('; ')}">` +
+          `<rect class="lane-hit" x="0" y="${y - 12}" width="${HEAD}" height="16"/><text class="idle-name" x="38" y="${y}">+ ${hidden.length} more${you ? ' <tspan class="idle-you">You</tspan>' : ''}</text></a>`;
+      }
+    }
+    links[r] = `<a class="lane-link" href="${ctx.roleHref(r)}" data-testid="lane-${esc(r)}"${el[r] && el[r].type === 'role' ? peopleAttrs(r, el[r]) : ''}><rect class="lane-hit" x="0" y="${top}" width="${HEAD}" height="${lh(r)}"/>${inner}</a>${list}`;
   }
 
   const groupLabel = (g) => (g.committee ? ctx.L('committees') : g.party && el[g.party] ? `${esc(el[g.party].name)} ${ctx.L.lower('roles')}` : ctx.L('roles'));

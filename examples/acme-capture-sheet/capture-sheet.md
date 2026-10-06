@@ -50,7 +50,7 @@ see how the engine works, and copy it as a starting point for your own model.
 
 | Committee | Members | Summary | ID |
 |---|---|---|---|
-| Acme + Globex bid board | Account lead (A); Partner manager (A); Solution architect (C); Bid manager (I) | Decides together whether to bid. | bid-board |
+| Acme + Globex bid board | Account lead (A); Partner manager (A); Solution architect (C); Bid manager (I); Legal counsel (C) | Decides together whether to bid. | bid-board |
 
 ## Notes: Acme + Globex bid board
 

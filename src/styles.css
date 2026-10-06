@@ -370,6 +370,13 @@ main { padding: 36px 24px 72px; }
 .lane-link { outline: none; }
 .lane-link:hover .lane-name { text-decoration: underline; }
 .lane-link:focus-visible .lane-hit { stroke: var(--om-link); stroke-width: 3; }
+/* A committee's idle members (list-idle-committee-members D3): party mark or swatch, "Role · A", the person muted. */
+.swimlane .idle-name { font-size: 12px; }
+.swimlane .idle-you { font-weight: 700; }
+.lane-link:hover .idle-name { text-decoration: underline; }
+.idle-swatch { fill: var(--p-band); stroke: color-mix(in srgb, var(--om-text) 35%, transparent); }
+.idle-mark { position: absolute; left: 18px; --mk: 14px; line-height: 0; pointer-events: none; }
+.idle-mark .mk { padding: 1px; }
 
 .raci circle { fill: var(--om-surface); stroke: var(--om-line); stroke-dasharray: 2 2; }
 .swimlane .raci text { font-size: 11px; font-weight: 700; fill: var(--om-muted); }

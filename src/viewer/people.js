@@ -20,6 +20,17 @@ export const peopleHtml = (els, ids) =>
   `<div hidden>${ids.filter((id) => names(els[id]).length).map((id) => `<span id="${esc(descId(id))}">People: ${esc(names(els[id]).join(', '))}</span>`).join('')}</div>` +
   '<div id="om-people-tip" class="people-tip" role="tooltip" data-testid="people-tip" hidden></div>';
 
+// The pop-up's content: a role's people, or a committee's idle members from data-members (list-idle-committee-members
+// D3: JSON { name, list: [[ "Role · A", "Party · person" ]] }, written by the swimlane).
+function tipHtml(el, getRole) {
+  if (el.dataset.members) {
+    const { name, list } = JSON.parse(el.dataset.members);
+    return `<p class="people-tip-h">${esc(name)}</p><ul>${list.map(([who, more]) => `<li>${esc(who)}${more ? ` <span class="people">${esc(more)}</span>` : ''}</li>`).join('')}</ul>`;
+  }
+  const role = getRole(el.dataset.people);
+  return role && names(role).length ? `<p class="people-tip-h">${esc(role.name)}</p><ul>${names(role).map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : '';
+}
+
 // Delegated listeners, added once. getRole(id) -> the role element of the model on screen.
 export function initPeopleTip(doc, getRole) {
   let timer = 0;
@@ -32,10 +43,10 @@ export function initPeopleTip(doc, getRole) {
   };
   const show = (el) => {
     const t = tip();
-    const role = getRole(el.dataset.people);
-    if (!t || !role || !names(role).length) return;
+    const html = t && tipHtml(el, getRole);
+    if (!html) return;
     on = el;
-    t.innerHTML = `<p class="people-tip-h">${esc(role.name)}</p><ul>${names(role).map((n) => `<li>${esc(n)}</li>`).join('')}</ul>`;
+    t.innerHTML = html;
     t.hidden = false;
     // Below the element, or above it when there is no room; always inside the window.
     const r = el.getBoundingClientRect();
@@ -46,7 +57,7 @@ export function initPeopleTip(doc, getRole) {
     t.style.top = `${top}px`;
     t.style.left = `${Math.max(4, Math.min(r.left, vw - w - 4))}px`;
   };
-  const target = (e) => e.target.closest && e.target.closest('[data-people]');
+  const target = (e) => e.target.closest && e.target.closest('[data-people], [data-members]');
   doc.addEventListener('pointerover', (e) => {
     if (e.pointerType === 'touch') return;
     if (tip() && tip().contains(e.target)) return clearTimeout(timer); // the pop-up can be hovered (WCAG 1.4.13)

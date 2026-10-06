@@ -2,27 +2,27 @@
 
 ## 1. Build
 
-- [ ] 1.1 Idleness in `flow()` (D2), in `src/model/layout.js`:
+- [x] 1.1 Idleness in `flow()` (D2), in `src/model/layout.js`:
   - a member is active if it owns a shown step or has a letter in the own `raci` of a shown step not owned by one of its committees;
   - idle members are left out of the lane roles;
   - `f.idle[committeeId]` is returned in party, then role, order.
 
   Verify with unit tests in `tests/unit/layout.test.js`: an idle member; a member that owns a step; a member with a letter on a role-owned step; a member with a letter on its own committee's step (still idle); a role idle in two committees; per-process idleness; and an unchanged layout for processes without committees
-- [ ] 1.2 Committee lane header list (D3, D4), in `src/viewer/swimlane.js`:
+- [x] 1.2 Committee lane header list (D3, D4), in `src/viewer/swimlane.js`:
   - after the committee name, idle entries with a party mark or swatch, then "Role · Letter" and the person line;
   - each entry is a link to its role page, with an accessible name that includes the party and the letter;
   - the header grows to at most four lines, then "+ N more", which links to the committee page with `data-members` (shared tooltip) and an `aria-label` listing everyone;
   - the persona "You" cue goes on the entry, or on "+ N more" when the entry is hidden.
 
   Verify manually at 1280 in light and dark with the sample and a long-list fixture
-- [ ] 1.3 Tooltip support for `data-members` in `src/viewer/people.js` (same behaviour as the people pop-up: hover delay, keyboard focus, Escape, window clamp). Verify manually by hover and Tab
-- [ ] 1.4 Fixtures, fictional names only:
+- [x] 1.3 Tooltip support for `data-members` in `src/viewer/people.js` (same behaviour as the people pop-up: hover delay, keyboard focus, Escape, window clamp). Verify manually by hover and Tab
+- [x] 1.4 Fixtures, fictional names only:
   - `committee-idle-long`: a committee with 9 idle members across two parties, one with a person listed, plus a persona mapped to a member hidden behind "+ N more";
   - `committee-idle-persona`: a persona mapped to an idle member.
 
   Verify that each loads with 0 errors
-- [ ] 1.5 Acme sample (D6), both forms, in parity: add Legal counsel (C) to the bid board. Verify that both load with 0 errors and 0 warnings, that the parity test passes, and that Legal counsel is idle in "Qualify an opportunity" and has a lane in "Build the proposal"
-- [ ] 1.6 Docs: the authoring guide's committee section explains idle members and how they're shown. Version 1.7.0 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version and skill-folder-current unit tests
+- [x] 1.5 Acme sample (D6), both forms, in parity: add Legal counsel (C) to the bid board. Verify that both load with 0 errors and 0 warnings, that the parity test passes, and that Legal counsel is idle in "Qualify an opportunity" and has a lane in "Build the proposal"
+- [x] 1.6 Docs: the authoring guide's committee section explains idle members and how they're shown. Version 1.7.0 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version and skill-folder-current unit tests
 
 ## 2. Test
 
@@ -34,6 +34,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [ ] 2.3 Two committees in one process
 - [ ] 2.4 Lane header opens the committee
 - [ ] 2.5 Committee after the first party with members
+- [ ] 2.22 Placement when member parties have no lanes (added during build)
 - [ ] 2.6 Idle member listed in the committee lane
 - [ ] 2.7 Member with its own step keeps its lane
 - [ ] 2.8 Member with a RACI letter on another step keeps its lane

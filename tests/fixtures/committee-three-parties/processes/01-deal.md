@@ -9,6 +9,7 @@ steps:
     owner: buyer
     raci:
       buyer: A
+      account-lead: I
   - id: decide
     name: Decide on the deal
     owner: deal-board

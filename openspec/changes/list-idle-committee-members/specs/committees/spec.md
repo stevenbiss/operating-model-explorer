@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Committee lanes in the swimlane
-Each committee that owns a shown step in a process SHALL get its own lane. A process MAY have several committees. All committee lanes SHALL form one group under one heading with the committees label ("Committees" by default), stacked in the order their first steps appear. The group SHALL sit in the middle of the swimlane: directly after the first party group, in the model's party order, that has a member of any committee shown in that process. So with two parties the committees sit between them, and with a client party first (e.g. Customer, Acme, Globex, with Acme and Globex members) they sit between the members' parties. With only one party group shown, the group SHALL sit after it.
+Each committee that owns a shown step in a process SHALL get its own lane. A process MAY have several committees. All committee lanes SHALL form one group under one heading with the committees label ("Committees" by default), stacked in the order their first steps appear. The group SHALL sit in the middle of the swimlane, where the first party (in the model's party order) that has a member of any committee shown in that process sits: directly after that party's group, or, when that party has no lanes in the process (because all its members there are idle), between the shown party groups that come before and after it in the party order. So with two parties the committees sit between them, and with a client party first (e.g. Customer, Acme, Globex, with Acme and Globex members) they sit between the members' parties. With only one party group shown, the group SHALL sit after it.
 
 A committee member SHALL get its own lane in its party group only when, in that process, it owns a shown step or has a RACI letter on a shown step that isn't owned by one of its committees. That lane's header SHALL list each committee in the process that the role sits on, with the role's letter in it (e.g. "Bid board member · A"). A member that takes part in the process only through its committees is an **idle member** there, and SHALL NOT get a lane. Idleness SHALL be worked out per process.
 
@@ -14,7 +14,7 @@ A committee lane's header SHALL show the committee's name, linking to the commit
 Members that have their own lane SHALL NOT be listed. When the list needs more than four lines, the header SHALL show the first entries and "+ N more". "+ N more" SHALL link to the committee page, and its tooltip and accessible name SHALL list every idle member. All of a committee's members SHALL still be shown when a committee step is opened (see Members shown when a committee step is opened) and on the committee page. A step owned by a committee SHALL sit in the committee's lane and show a text badge "By committee" (following the committee label).
 
 #### Scenario: Committee lane and badge
-- **WHEN** the viewer opens a process in which a committee of an Acme role and a Globex role owns one step
+- **WHEN** the viewer opens a process in which a committee of an Acme role and a Globex role owns one step, and both members also take part in other steps
 - **THEN** a lane under "Committees" sits between the Acme group and the Globex group, its header shows the committee name, and the step sits in that lane with a "By committee" badge
 
 #### Scenario: Membership shown in the member's own lane
@@ -32,6 +32,10 @@ Members that have their own lane SHALL NOT be listed. When the list needs more t
 #### Scenario: Committee after the first party with members
 - **WHEN** a model's parties are Customer, Acme and Globex in that order, and a process has steps owned by a Customer role and by a committee of an Acme role and a Globex role
 - **THEN** the order of groups in the swimlane is Customer, Acme, Committees, Globex
+
+#### Scenario: Placement when member parties have no lanes
+- **WHEN** a model's parties are Customer, Acme and Globex in that order, a process has steps owned by Customer roles and Globex roles, and its committee's only members are Acme roles that are idle there
+- **THEN** the groups are shown in the order Customer, Committees, Globex, and the committee lane lists the idle Acme members
 
 #### Scenario: Idle member listed in the committee lane
 - **WHEN** the viewer opens the sample's "Qualify an opportunity", where the bid board's member Legal counsel (C) owns no step and has no other RACI letter
