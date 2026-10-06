@@ -28,7 +28,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 3. Verify
 
-- [ ] 3.1 html-verifier checks the requirement against the running engine and a snapshot at 1920 and 1280, light and dark, with the sample and the fixtures, plus a regression pass over the swimlane (drag to pan, selected step in view, keyboard, committees, idle members). It returns VERIFIED. The report is saved to `openspec/changes/fit-connector-labels/reports/html-verifier.md`
+- [x] 3.1 html-verifier checks the requirement against the running engine and a snapshot at 1920 and 1280, light and dark, with the sample and the fixtures, plus a regression pass over the swimlane (drag to pan, selected step in view, keyboard, committees, idle members). It returns VERIFIED. The report is saved to `openspec/changes/fit-connector-labels/reports/html-verifier.md`
 - [x] 3.2 Confirm there are no real names in the repo (private-names guard plus `git grep -iw` for common real company names)
 
 ## 4. QA
