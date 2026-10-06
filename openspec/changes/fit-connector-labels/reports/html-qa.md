@@ -23,3 +23,18 @@
 | Code and Ponytail | Lean (+33 / +4 lines), pure and unit-tested |
 
 *Saved by the orchestrator, because html-qa is read-only. 4.1 stays open until the re-check.*
+
+## Round 2 verdict: SHIP (1 major, 3 minor)
+- **Fixed:**
+  - B1: skip branches drop in the gap before the target, with no connector through a step.
+  - The own-lane detour reads well on the lane divider.
+  - Labelled entries get separate rows.
+  - Long words break after a hyphen.
+  - m3–m5 done.
+- **M1.** When labelled and unlabelled connectors enter the same step, the unlabelled one still enters at the centre and runs through a neighbouring label ("Prepare pack —Approved→ Send the pack"). Not a regression on 1.7.0. Fix: give every forward connector into a step an entry point (unlabelled = 0 lines or a 16px slot), and add an e2e scenario.
+- **m1.** The bottom-lane detour sits on the diagram's bottom edge, reading as a double border. Fix: about 10px more SVG height, or route it inside the lane, clear of loop-backs.
+- **m2.** W/M-heavy capitals overflow the 6.4px estimate. Fix: count capitals about 1.15 (or W and M about 1.5).
+- **m3.** `entryPoints` is dense. Fix: a worked example in the comment; the M1 fix may simplify it.
+- **Passed:** axe 0 violations in 24 runs; console and network clean; security (escaped tspans); visual; performance (30 steps, longest task 82ms); code lean.
+
+*Saved by the orchestrator. 4.1 ticked on SHIP. M1 and m1–m3 folded in before packaging.*

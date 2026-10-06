@@ -4,7 +4,7 @@
 
 ### Requirement: Connector labels fit between steps
 In the swimlane, every label on a forward connector (a decision branch) SHALL be fully readable: no part of it SHALL overlap a step box, and labels SHALL NOT overlap each other.
-- **Placement.** A label SHALL sit on the connector's last horizontal segment, the one entering its target step, just before the target. When several labelled connectors enter the same step, each SHALL enter at its own point along the step's left edge, at least 16px apart while they fit within that edge, or spread evenly along it when there are more. Each label SHALL sit next to its own connector where there is room; where there isn't, the labels SHALL be stacked in the same top-to-bottom order as their connectors. No label SHALL extend outside the diagram.
+- **Placement.** A label SHALL sit on the connector's last horizontal segment, the one entering its target step, just before the target. When several connectors enter the same step and at least one has a label, each of them, labelled or not, SHALL enter at its own point along the step's left edge, at least 16px apart while they fit within that edge, or spread evenly along it when there are more. Each label SHALL sit next to its own connector where there is room; where there isn't, the labels SHALL be stacked in the same top-to-bottom order as their connectors. No label SHALL extend outside the diagram.
 - **Gap sizing.** The gap in front of each column SHALL be at least as wide as the widest label on a forward connector entering that column, plus padding on both sides, and never narrower than today's gap. Columns without such labels SHALL keep today's width.
 - **Wrapping.** A gap SHALL be at most 220px wide. A label too long for that SHALL wrap onto two or more lines, as many as it needs, still clear of the step boxes. A single word too long for a line SHALL be broken (after a hyphen or slash, or else mid-word) rather than overlap a step. A label SHALL never be truncated.
 - **Routing.** A forward connector that skips one or more columns SHALL NOT pass through or behind any step box on its way to its target.
@@ -31,6 +31,10 @@ The layout SHALL be the same in author mode and in an exported snapshot.
 #### Scenario: Label past the maximum wraps
 - **WHEN** a branch label is 60 characters long
 - **THEN** its gap is at most 220px, and the label shows on two or more lines, in full, without overlapping any step box
+
+#### Scenario: Labelled and unlabelled connectors into one step
+- **WHEN** two labelled connectors and one unlabelled connector enter the same step
+- **THEN** all three enter at their own points, both labels are fully visible, and no connector line crosses either label
 
 #### Scenario: Many connectors into one step
 - **WHEN** six labelled connectors with short labels enter the same step
