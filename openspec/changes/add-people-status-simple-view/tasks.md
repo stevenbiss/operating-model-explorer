@@ -58,62 +58,62 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`, at 1280×800 unless a scenario says otherwise. `@mobile` scenarios also run at 375×812. Node tests cover schema, sheet and model logic. Skill trials follow `tests/skill-packs/README.md`, run in a fresh context with only the skill and the pack, with results in `reports/skill-trials.md`.
 
 ### role-people
-- [ ] 2.1 Role with people loads
-- [ ] 2.2 Markup in a name
-- [ ] 2.3 One person
-- [ ] 2.4 Several people
-- [ ] 2.5 Box with its own name text
-- [ ] 2.6 No people
-- [ ] 2.7 Hover shows the names
-- [ ] 2.8 Keyboard shows the names
-- [ ] 2.9 Screen-reader description
-- [ ] 2.10 Pop-up stays on screen
-- [ ] 2.11 Role page lists people
-- [ ] 2.12 Mobile people line (@mobile)
-- [ ] 2.13 Sample people load
+- [x] 2.1 Role with people loads
+- [x] 2.2 Markup in a name
+- [x] 2.3 One person
+- [x] 2.4 Several people
+- [x] 2.5 Box with its own name text
+- [x] 2.6 No people
+- [x] 2.7 Hover shows the names
+- [x] 2.8 Keyboard shows the names
+- [x] 2.9 Screen-reader description
+- [x] 2.10 Pop-up stays on screen
+- [x] 2.11 Role page lists people
+- [x] 2.12 Mobile people line (@mobile)
+- [x] 2.13 Sample people load
 
 ### review-status
-- [ ] 2.14 Default is under review
-- [ ] 2.15 Agreed in a sheet
-- [ ] 2.16 Invalid status
-- [ ] 2.17 Badges on the home page
-- [ ] 2.18 Badge on the page
-- [ ] 2.19 Badge in search
-- [ ] 2.20 Notice on an under-review process
-- [ ] 2.21 No notice when agreed
-- [ ] 2.22 Mobile status (@mobile)
-- [ ] 2.23 Sample statuses
+- [x] 2.14 Default is under review
+- [x] 2.15 Agreed in a sheet
+- [x] 2.16 Invalid status
+- [x] 2.17 Badges on the home page
+- [x] 2.18 Badge on the page
+- [x] 2.19 Badge in search
+- [x] 2.20 Notice on an under-review process
+- [x] 2.21 No notice when agreed
+- [x] 2.22 Mobile status (@mobile)
+- [x] 2.23 Sample statuses
 
 ### explorer-views
-- [ ] 2.24 Overview content
-- [ ] 2.25 Detailed view
-- [ ] 2.26 Key messages still reachable in Simple view
-- [ ] 2.27 Processes listed on the home page
-- [ ] 2.28 Main diagram first
-- [ ] 2.29 Home page on a phone (@mobile)
+- [x] 2.24 Overview content
+- [x] 2.25 Detailed view
+- [x] 2.26 Key messages still reachable in Simple view
+- [x] 2.27 Processes listed on the home page
+- [x] 2.28 Main diagram first
+- [x] 2.29 Home page on a phone (@mobile)
 
 ### content-schema
-- [ ] 2.30 Invalid view
-- [ ] 2.31 People must be a list
-- [ ] 2.32 Reference lists the fields
+- [x] 2.30 Invalid view
+- [x] 2.31 People must be a list
+- [x] 2.32 Reference lists the fields
 
 ### capture-sheet
-- [ ] 2.33 People from the sheet
-- [ ] 2.34 Unknown status value
-- [ ] 2.35 Detailed from the sheet
-- [ ] 2.36 Unknown view value
+- [x] 2.33 People from the sheet
+- [x] 2.34 Unknown status value
+- [x] 2.35 Detailed from the sheet
+- [x] 2.36 Unknown view value
 
 ### author-mode
-- [ ] 2.37 Reload after an edit
-- [ ] 2.38 Preview the other view
-- [ ] 2.39 Export ignores the preview toggle
-- [ ] 2.40 Keyboard toggle
+- [x] 2.37 Reload after an edit
+- [x] 2.38 Preview the other view
+- [x] 2.39 Export ignores the preview toggle
+- [x] 2.40 Keyboard toggle
 
 ### authoring-skill
-- [ ] 2.41 People drafted, status left as review (skill trial)
-- [ ] 2.42 Agreed when told (skill trial)
+- [x] 2.41 People drafted, status left as review (skill trial)
+- [x] 2.42 Agreed when told (skill trial)
 
-- [ ] 2.43 The full existing suite (`npm run test:unit` and `npm test`) still passes. Existing overview tests are updated only where the new Simple default changes what the home page shows
+- [x] 2.43 The full existing suite (`npm run test:unit` and `npm test`) still passes. Existing overview tests are updated only where the new Simple default changes what the home page shows
 
 ## 3. Verify
 
