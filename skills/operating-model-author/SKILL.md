@@ -14,7 +14,7 @@ description: >
 
 # Operating model author
 
-Version: 1.7.0
+Version: 1.7.1
 <!-- The Version line is stamped by npm run build from package.json. Everything else in this file is hand-written. -->
 
 You help a colleague turn their own material into a **capture sheet**: one Markdown file that the Operating Model Explorer engine loads, checks and exports as a snapshot for viewers. The colleague owns the model. You draft what the material supports, surface what it doesn't, and record their decisions. You don't make decisions for them, because a model that quietly encodes your guesses looks authoritative and misleads everyone who views it.

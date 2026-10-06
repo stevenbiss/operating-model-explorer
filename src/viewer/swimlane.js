@@ -2,12 +2,9 @@
 // Steps are <g role="button"> in flow order so Tab follows the flow; lane-header role links come last.
 import { esc } from './esc.js';
 import { peopleAttrs, peopleLine } from './people.js';
+import { columns, GAP_MAX, GAP_MIN, HEAD, LABEL_PAD, labelWidth, NW } from '../model/layout.js';
 
-const HEAD = 196; // lane header width
-const COL = 244; // column width (one per rank)
-const NW = 164; // node width
 const NH = 70; // node height
-const GAP = COL - NW;
 const PARTY_H = 34; // a party row; a two-line party name adds BAND_LINE
 const BAND_LINE = 16;
 const PAD_T = 18;
@@ -59,7 +56,8 @@ export function swimlaneSvg(ctx) {
   const { m, f } = ctx;
   const el = m.elements;
   const persona = !!ctx.mine;
-  const width = HEAD + f.ranks * COL + 8;
+  const cols = columns(f).x;
+  const width = cols[cols.length - 1] + NW + GAP_MIN / 2 + 8;
   const FULL = width + 4000; // backgrounds run on when the SVG is stretched to fill a wide container
 
   // Lane headers: the full role name (wrapped, never truncated), its people line (role-people spec), team, and cues ("Your lane", a change badge)
@@ -140,7 +138,7 @@ export function swimlaneSvg(ctx) {
   const height = y;
   const pos = (id) => {
     const n = f.nodes[id];
-    const x = HEAD + n.rank * COL + GAP / 2;
+    const x = cols[n.rank];
     const top = laneTop[n.step.owner] + PAD_T + n.slot * (NH + 16);
     return { x, y: top, cx: x + NW / 2, cy: top + NH / 2, bottom: top + NH, laneBottom: laneTop[n.step.owner] + lh(n.step.owner) };
   };
@@ -172,7 +170,7 @@ export function swimlaneSvg(ctx) {
   let raci = '';
   for (const id of f.order) {
     const s = f.nodes[id].step;
-    const col = HEAD + f.nodes[id].rank * COL + COL / 2;
+    const col = cols[f.nodes[id].rank] + NW / 2;
     for (const [r, letter] of Object.entries(s.raci)) {
       if (r === s.owner || !(r in laneTop)) continue;
       if (Object.values(f.nodes).some((n) => n.step.owner === r && n.rank === f.nodes[id].rank)) continue;
@@ -185,27 +183,40 @@ export function swimlaneSvg(ctx) {
   let edges = '';
   let labels = '';
   const loops = {};
+  const stack = {}; // label lines already drawn above each target's entry line
   for (const e of f.edges) {
     const a = pos(e.from);
     const b = pos(e.to);
     const emph = persona ? (ctx.mine(f.nodes[e.from].step.owner) || ctx.mine(f.nodes[e.to].step.owner) ? ' mine' : ' dim') : '';
     const cls = `edge${e.crossParty ? ' cross' : ''}${e.back ? ' back' : ''}${emph}`;
     let d;
-    let lx;
-    let ly;
     if (e.back || b.x <= a.x) {
       const base = Math.max(a.laneBottom, b.laneBottom);
       loops[base] = (loops[base] ?? -1) + 1;
       const yl = base - 12 - loops[base] * 7;
       d = path([[a.cx + 18, a.bottom], [a.cx + 18, yl], [b.cx - 18, yl], [b.cx - 18, b.bottom + 3]]);
-      [lx, ly] = [(a.cx + b.cx) / 2, yl - 5];
+      if (e.label) labels += `<text class="edge-label${emph}" x="${(a.cx + b.cx) / 2}" y="${yl - 5}" text-anchor="middle">${esc(e.label)}</text>`;
     } else {
-      const mx = b.x - GAP / 2;
+      // Bend just past the source, then enter the target across the gap, with the label on that entry line (D4).
+      const mx = a.x + NW + 12;
       d = path([[a.x + NW, a.cy], [mx, a.cy], [mx, b.cy], [b.x - 3, b.cy]]);
-      [lx, ly] = [mx, b.cy - 8];
+      if (e.label) {
+        // Too wide for the largest gap: two lines, split at the space nearest the middle, stacking upwards.
+        const t = String(e.label);
+        let lines = [t];
+        if (labelWidth(t) + LABEL_PAD > GAP_MAX) {
+          const mid = t.length / 2;
+          const at = [...t.matchAll(/ /g)].map((s) => s.index).sort((p, q) => Math.abs(p - mid) - Math.abs(q - mid))[0];
+          if (at !== undefined) lines = [t.slice(0, at), t.slice(at + 1)];
+        }
+        // Labelled edges into the same step stack above one another.
+        const y0 = b.cy - 6 - (stack[e.to] ?? 0) * 14;
+        stack[e.to] = (stack[e.to] ?? 0) + lines.length;
+        const text = lines.length > 1 ? lines.map((l, i) => `<tspan x="${b.x - 8}" y="${y0 - (lines.length - 1 - i) * 14}">${i ? ' ' : ''}${esc(l)}</tspan>`).join('') : esc(t);
+        labels += `<text class="edge-label${emph}" x="${b.x - 8}" y="${y0}" text-anchor="end">${text}</text>`;
+      }
     }
     edges += `<path class="${cls}" d="${d}" marker-end="url(#om-${e.crossParty ? 'open' : 'arrow'})" data-from="${esc(e.from)}" data-to="${esc(e.to)}"/>`;
-    if (e.label) labels += `<text class="edge-label${emph}" x="${lx}" y="${ly}" text-anchor="middle">${esc(e.label)}</text>`;
   }
 
   // Steps, in flow order.

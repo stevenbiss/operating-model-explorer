@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
-import { flow } from '../../src/model/layout.js';
+import { columns, flow, labelWidth } from '../../src/model/layout.js';
 import { files, MODEL, readFolder, SAMPLE, withoutAccountable } from './helpers.js';
 
 const sample = loadModel(readFolder(SAMPLE)).model;
@@ -224,4 +224,43 @@ test("1.1 idleness is per process: the sample's Legal counsel is idle in Qualify
   assert.deepEqual(flow(sample, 'qualify-opportunity').idle, { 'bid-board': ['legal-counsel'] });
   assert.ok(!flow(sample, 'qualify-opportunity').lanes.includes('legal-counsel'));
   assert.ok(flow(sample, 'build-proposal').lanes.includes('legal-counsel'));
+});
+
+// fit-connector-labels 1.1: column positions sized to connector labels (D2, D3).
+const gaps = (f) => columns(f).x.slice(1).map((x, k) => x - columns(f).x[k] - 164);
+const chain = (label) => mini(step('a', 'rx') + step('b', 'ry', label ? `    next:\n      - to: c\n        label: ${label}\n` : '') + step('c', 'rx') + step('d', 'ry'));
+
+test('1.1 with no labels every step keeps its 1.7.0 position', () => {
+  assert.deepEqual(columns(flow(chain(), 'p')).x, [0, 1, 2, 3].map((k) => 196 + k * 244 + 40));
+});
+
+test('1.1 a long label widens only the gap in front of its target', () => {
+  const label = 'Needs a second look'; // 19 characters
+  assert.equal(labelWidth(label), Math.ceil(19 * 7.2) + 8);
+  assert.deepEqual(gaps(flow(chain(label), 'p')), [80, labelWidth(label) + 48, 80]);
+  // The sample: the gap before "Submit the proposal" is wider than 1.7.0's 80px.
+  const f = flow(sample, 'build-proposal');
+  assert.ok(gaps(f)[f.nodes['submit-proposal'].rank - 1] > 80);
+});
+
+test('1.1 a 60-character label caps its gap at 220px', () => {
+  const label = 'Approved by both parties and ready to send to the client now';
+  assert.equal(label.length, 60);
+  assert.deepEqual(gaps(flow(chain(label), 'p')), [80, 220, 80]);
+});
+
+test('1.1 the width estimate is at least the width from a bold sans-serif character table, for the sample and fixture labels', () => {
+  // Advance widths of a bold sans-serif (Helvetica Bold / Arial Bold, units per 1000 em), at 12px. Others count as "W".
+  const em = { ' ': 278, ',': 278, '.': 278, '-': 333, "'": 238, f: 333, i: 278, j: 278, l: 278, r: 389, t: 333, z: 500, m: 889, w: 778, I: 278, J: 556, M: 833, W: 944, E: 667, F: 611, L: 611, P: 667, S: 667, T: 611, V: 667, X: 667, Y: 667, Z: 611, G: 778, O: 778, Q: 778 };
+  for (const c of 'acekmsvxy') em[c] ??= 556;
+  for (const c of 'bdghnopqu') em[c] ??= 611;
+  for (const c of 'ABCDHKNRU') em[c] ??= 722;
+  const table = (s) => [...s].reduce((w, c) => w + (em[c] ?? 944), 0) * 12 / 1000;
+  const labels = [
+    ...Object.values(sample.elements).filter((e) => e.type === 'process').flatMap((p) => p.steps.flatMap((s) => s.next.map((n) => n.label).filter(Boolean))),
+    'Existing account', 'New initiative', 'Not for us', 'Refer to the other party', 'Park or decline',
+    'Approved by both parties and ready to send to the client now',
+  ];
+  assert.ok(labels.includes('Approved, ready to submit'));
+  for (const l of labels) assert.ok(labelWidth(l) >= table(l), `${l}: ${labelWidth(l)} < ${table(l)}`);
 });

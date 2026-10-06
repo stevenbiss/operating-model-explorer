@@ -105,3 +105,22 @@ export function flow(m, processId, { showRemoved = false } = {}) {
 
 export const nextOf = (f, id) => f.edges.filter((e) => e.from === id);
 export const prevOf = (f, id) => f.edges.filter((e) => e.to === id);
+
+// Column positions sized to connector labels (fit-connector-labels D2, D3). Shared with the swimlane renderer.
+export const HEAD = 196; // lane header width
+export const NW = 164; // step box width
+export const GAP_MIN = 80;
+export const GAP_MAX = 220;
+export const LABEL_PAD = 2 * 12 + 24; // padding on both sides, plus room for the bend and the arrowhead
+
+// A generous estimate of a label's width at its 12px font, so the layout never depends on fonts or the DOM.
+export const labelWidth = (text) => Math.ceil(String(text).length * 7.2) + 8;
+
+// The left edge of each rank's step box. The gap in front of rank k fits the widest label on a forward edge into it.
+export function columns(f) {
+  const need = Array(f.ranks).fill(0);
+  for (const e of f.edges) if (!e.back && e.label) need[f.nodes[e.to].rank] = Math.max(need[f.nodes[e.to].rank], labelWidth(e.label));
+  const x = [HEAD + GAP_MIN / 2];
+  for (let k = 1; k < f.ranks; k++) x.push(x[k - 1] + NW + Math.min(GAP_MAX, Math.max(GAP_MIN, need[k] + LABEL_PAD)));
+  return { x };
+}

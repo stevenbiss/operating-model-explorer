@@ -40,7 +40,7 @@ steps:
       delivery-manager: C
     next:
       - to: submit-proposal
-        label: Approved
+        label: Approved, ready to submit
       - to: design-solution
         label: Needs rework
   - id: submit-proposal

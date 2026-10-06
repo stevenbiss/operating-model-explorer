@@ -82,7 +82,7 @@ test('steps are resolved to owner, lane and party, and edges are precomputed (D4
   const out = q.edges.find((x) => x.from === 'go-no-go' && x.to === 'decline');
   assert.deepEqual([out.label, out.handoff, out.crossParty], ['No go', true, true]);
   const same = el['build-proposal'].edges.find((x) => x.from === 'review-proposal' && x.to === 'submit-proposal');
-  assert.deepEqual([same.label, same.handoff, same.crossParty], ['Approved', false, false]);
+  assert.deepEqual([same.label, same.handoff, same.crossParty], ['Approved, ready to submit', false, false]);
   assert.ok(q.body.includes('## Why this matters'), 'body kept as raw Markdown');
 });
 

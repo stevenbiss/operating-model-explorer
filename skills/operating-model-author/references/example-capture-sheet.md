@@ -113,7 +113,7 @@ Summary: Design, price and review the proposal, then send it to the client.
 | 1 | Plan the bid | Bid manager | Break the bid into tasks and agree who writes what. | Bid plan | Task list | | | | | |
 | 2 | Design the solution | Solution architect | Write the solution and the delivery approach. | | Solution design | | | | | |
 | 3 | Price the solution | Pricing analyst | Build the price from the design and check the margin. | Solution design | Price model | Pricing tool | | | | |
-| 4 | Review the proposal | Account lead | Read the whole proposal as the client would. | | | | | Approved: 5; Needs rework: 2 | | |
+| 4 | Review the proposal | Account lead | Read the whole proposal as the client would. | | | | | Approved, ready to submit: 5; Needs rework: 2 | | |
 | 5 | Submit the proposal | Account lead | Send the proposal to the client and confirm it arrived. | | | | Submitted on or before the deadline | | | |
 | 6 | Courier printed copies | Bid manager | Print and courier bound copies to the client. | | | | | | Removed | Every proposal was printed and couriered, even when the client asked for email. |
 

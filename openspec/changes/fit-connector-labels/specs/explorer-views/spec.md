@@ -6,7 +6,7 @@
 In the swimlane, every label on a forward connector (a decision branch) SHALL be fully readable: no part of it SHALL overlap a step box, and labels SHALL NOT overlap each other.
 - **Placement.** A label SHALL sit on the connector's last horizontal segment, the one entering its target step, just before the target.
 - **Gap sizing.** The gap in front of each column SHALL be at least as wide as the widest label on a forward connector entering that column, plus padding on both sides, and never narrower than today's gap. Columns without such labels SHALL keep today's width.
-- **Wrapping.** A gap SHALL be at most 220px wide. A label too long for that SHALL wrap onto two lines, still clear of the step boxes.
+- **Wrapping.** A gap SHALL be at most 220px wide. A label too long for that SHALL wrap onto two or more lines, as many as it needs, still clear of the step boxes. It SHALL never be truncated.
 - **Loop-back labels.** Labels on loop-back (rework) connectors SHALL keep their current placement under the steps.
 
 The layout SHALL be the same in author mode and in an exported snapshot.
@@ -25,7 +25,7 @@ The layout SHALL be the same in author mode and in an exported snapshot.
 
 #### Scenario: Label past the maximum wraps
 - **WHEN** a branch label is 60 characters long
-- **THEN** its gap is at most 220px, and the label shows on two lines without overlapping any step box
+- **THEN** its gap is at most 220px, and the label shows on two or more lines, in full, without overlapping any step box
 
 #### Scenario: Loop-back label unchanged
 - **WHEN** the sample's "Build the proposal" is opened

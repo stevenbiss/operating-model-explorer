@@ -2,11 +2,11 @@
 
 ## 1. Build
 
-- [ ] 1.1 Pure layout (D2, D3): `labelWidth(text)` and `columns(f)` (per-rank step `x` from label-sized gaps between 80 and 220px). Verify with unit tests: no labels gives today's positions; a long label widens only its gap; a 60-character label caps at 220; the estimate is at least the width from a fixed character-width table for the sample labels
-- [ ] 1.2 Swimlane rendering (D4, D5) in `src/viewer/swimlane.js`: node `x` from `columns()`, the bend just past the source, the label right-aligned on the entry segment above the line, a two-line wrap past the maximum, loop-back labels unchanged, and the total width from the new positions. Verify manually at 1280 in light and dark with the sample and the fixtures
-- [ ] 1.3 Fixtures, fictional names only: `branches-five` (a decision with five branches, labels up to 24 characters, to five steps) and `branch-label-long` (one 60-character label). Verify that each loads with 0 errors
-- [ ] 1.4 Sample (D6): "Review the proposal" → `Approved, ready to submit` in both forms, in parity. Update the two tests that assert "Approved". Verify that both load with 0 errors and 0 warnings and that the parity test passes
-- [ ] 1.5 Version 1.7.1 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version unit test
+- [x] 1.1 Pure layout (D2, D3): `labelWidth(text)` and `columns(f)` (per-rank step `x` from label-sized gaps between 80 and 220px). Verify with unit tests: no labels gives today's positions; a long label widens only its gap; a 60-character label caps at 220; the estimate is at least the width from a fixed character-width table for the sample labels
+- [x] 1.2 Swimlane rendering (D4, D5) in `src/viewer/swimlane.js`: node `x` from `columns()`, the bend just past the source, the label right-aligned on the entry segment above the line, a two-line wrap past the maximum, loop-back labels unchanged, and the total width from the new positions. Verify manually at 1280 in light and dark with the sample and the fixtures
+- [x] 1.3 Fixtures, fictional names only: `branches-five` (a decision with five branches, labels up to 24 characters, to five steps) and `branch-label-long` (one 60-character label). Verify that each loads with 0 errors
+- [x] 1.4 Sample (D6): "Review the proposal" → `Approved, ready to submit` in both forms, in parity. Update the two tests that assert "Approved". Verify that both load with 0 errors and 0 warnings and that the parity test passes
+- [x] 1.5 Version 1.7.1 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version unit test
 
 ## 2. Test
 

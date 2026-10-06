@@ -28,7 +28,7 @@ No new dependencies.
 
 ### D3. Gap per column *(answers open question 2)*
 - A pure function `columns(f)` returns `{ x: [..] }`: the left edge of each rank's step box.
-- `gap[k] = clamp(max(labelWidth of forward edges into rank k) + 2 * 12 + 24, 80, 220)`. The extra 24 leaves room for the bend near the source and the arrowhead.
+- `gap[k] = clamp(max(labelWidth of labelled forward edges into rank k) + 2 * 12, 80, 220)`. The bend sits 12px past the source and the label ends 8px before the target, so the label has `gap - 20` of room, which is at least `labelWidth + 4`. Short labels ("Go", "No go") stay within today's 80px. *(Corrected during build: an earlier `+ 24` widened even short labels and contradicted the "no change" scenario.)*
 - Then `x[k] = x[k-1] + NW + gap[k]`.
 - Rejected: one gap for the whole diagram. A single long label would widen every column and make big diagrams much wider for no benefit.
 
@@ -39,11 +39,12 @@ No new dependencies.
 - A decision's branches go to different targets, which sit in different lanes or slots, so their entry lines are at least one step height apart. The labels land on separate rows by construction.
 - **Edges that skip columns** (rank difference greater than 1): only the gap directly in front of the target is sized for the label, which is where the label sits.
 - **Same-lane edges** (a straight horizontal line): same placement, above the line.
-- **Wrapping:** when `labelWidth > 220 - padding`, the text is split into two lines at the word boundary nearest the middle, as two `<tspan>`s stacked upwards from the line. The two lines fit within the vertical space between lanes, because lane heights are already much taller than two text lines.
+- **Wrapping:** when `labelWidth + 24 > 220`, the text is wrapped greedily at word boundaries into as many lines as needed, so that each line's estimated width is at most `220 - 24`. The lines are `<tspan>`s stacked upwards from the entry line. A single word longer than a line stays whole. Typical long labels take two lines, which fit easily in the vertical space between lanes.
+- **Two labelled edges into the same step** stack their labels one line height apart, so they never overlap (added during build).
 
 ### D5. Unchanged parts
 - Rework loops, the "More steps" cue, drag to pan, `scrollIntoView` for the selected and focused step, Tab order and accessible names are unchanged; they read positions from the same layout.
-- The total width becomes `x[last] + NW + 8 + HEAD`.
+- The total width keeps 1.7.0's right margin: `x[last] + NW + 40 + 8`. It is unchanged when no gap widens.
 
 ### D6. Sample and version
 - "Review the proposal" gets the branch label "Approved, ready to submit" in both forms.
