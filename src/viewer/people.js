@@ -21,11 +21,11 @@ export const peopleHtml = (els, ids) =>
   '<div id="om-people-tip" class="people-tip" role="tooltip" data-testid="people-tip" hidden></div>';
 
 // The pop-up's content: a role's people, or a committee's idle members from data-members (list-idle-committee-members
-// D3: JSON { name, list: [[ "Role · A", "Party · person" ]] }, written by the swimlane).
+// D3: JSON { name, list: [[ "Role · A", "Party · person", you ]] }, written by the swimlane).
 function tipHtml(el, getRole) {
   if (el.dataset.members) {
     const { name, list } = JSON.parse(el.dataset.members);
-    return `<p class="people-tip-h">${esc(name)}</p><ul>${list.map(([who, more]) => `<li>${esc(who)}${more ? ` <span class="people">${esc(more)}</span>` : ''}</li>`).join('')}</ul>`;
+    return `<p class="people-tip-h">${esc(name)}</p><ul>${list.map(([who, more, you]) => `<li>${esc(who)}${you ? ' <strong>You</strong>' : ''}${more ? ` <span class="people">${esc(more)}</span>` : ''}</li>`).join('')}</ul>`;
   }
   const role = getRole(el.dataset.people);
   return role && names(role).length ? `<p class="people-tip-h">${esc(role.name)}</p><ul>${names(role).map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : '';

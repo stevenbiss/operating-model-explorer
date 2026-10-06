@@ -67,28 +67,31 @@ export function swimlaneSvg(ctx) {
   // A committee lane shows its name, then its idle members (see idleOf); a member's own lane says, as text, which
   // committees in this process it sits on, with its letter, so membership never relies on marks or colour.
   const committees = f.groups.filter((g) => g.committee).flatMap((g) => g.lanes);
-  // A committee's idle members (list-idle-committee-members D3, D4), in f.idle's order: "Role · Letter" (the letter, and
-  // the persona's "You", kept with the last word of the name), then the person line, wrapped to two lines at most.
+  // A committee's idle members (list-idle-committee-members D3, D4), in f.idle's order: "Role · Letter" (and the
+  // persona's "You") on up to two lines, where only the name is ever cut, then the person line on a line of its own.
   // All of them when they fit in four lines; otherwise as many as fit in three, then "+ N more".
   const idleOf = (c) => {
     const entries = (f.idle[c] || []).map((r) => {
       const role = el[r];
       const words = String(role ? role.name : r).split(/\s+/);
       const you = persona && ctx.mine(r);
-      const main = words.join(' ').length + 4; // with " · A"
-      words[words.length - 1] += ` · ${el[c].members[r]}${you ? ' You' : ''}`;
+      const suffix = ` · ${el[c].members[r]}${you ? ' You' : ''}`;
+      let name = wrap([...words.slice(0, -1), words[words.length - 1] + suffix], 24, 99);
+      if (name.length > 2) {
+        // Too long: the first line as usual, then the rest of the name cut to leave room for the suffix.
+        const [line] = wrap(words, 24, 99);
+        name = [line, wrap(words.slice(line.split(' ').length), 24 - suffix.length, 1)[0] + suffix];
+      }
       const person = role && role.type === 'role' ? peopleLine(role) : '';
-      let lines = wrap([...words, ...(person ? person.split(/\s+/) : [])], 24, 2);
-      if (you && !lines.join(' ').slice(0, main + 4).endsWith(' You')) lines = wrap(words, 24, 2); // never cut "You"
-      return { r, role, you, main, person, lines };
+      return { r, role, you, person, name, people: person ? wrap(person, 24, 1) : [], lines: name.length + (person ? 1 : 0) };
     });
-    const room = entries.reduce((n, e) => n + e.lines.length, 0) <= 4 ? 4 : 3;
+    const room = entries.reduce((n, e) => n + e.lines, 0) <= 4 ? 4 : 3;
     let used = 0;
     const shown = [];
     for (const e of entries) {
-      if (used + e.lines.length > room) break;
+      if (used + e.lines > room) break;
       shown.push(e);
-      used += e.lines.length;
+      used += e.lines;
     }
     return { entries, shown, lines: used + (shown.length < entries.length ? 1 : 0) };
   };
@@ -259,36 +262,26 @@ export function swimlaneSvg(ctx) {
     if (idle.lines) {
       let y = below + (cues.length ? 44 : 20);
       const partyOf = (e) => (e.role && el[e.role.party] && el[e.role.party].type === 'party' ? e.role.party : null);
-      const label = (e) => [e.role ? e.role.name : e.r, partyOf(e) && el[partyOf(e)].name, String(ctx.letterWord(el[r].members[e.r])).toLowerCase(), e.person, e.you && 'you'].filter(Boolean).map(esc).join(', ');
+      // The entry's own name leaves out the person: its aria-describedby (peopleAttrs) already reads them out.
+      const label = (e, person) => [e.role ? e.role.name : e.r, partyOf(e) && el[partyOf(e)].name, String(ctx.letterWord(el[r].members[e.r])).toLowerCase(), person && e.person, e.you && 'you'].filter(Boolean).map(esc).join(', ');
       for (const e of idle.shown) {
         const p = partyOf(e);
         const mk = ctx.mark(p);
         if (mk.startsWith('<img')) marks += `<span class="idle-mark" style="top:${y - 11}px">${mk}</span>`;
         const swatch = mk.startsWith('<img') ? '' : `<rect class="idle-swatch" x="18" y="${y - 9}" width="14" height="9" rx="2"${ctx.dp(p)}/>`;
-        // Characters up to e.main are "Role · A", then " You" (bold), then the person line (muted).
-        const cls = (i) => (i < e.main ? '' : e.you && i < e.main + 4 ? 'idle-you' : 'lane-people');
-        let at = 0;
-        const text = e.lines.map((line, n) => {
-          let out = '';
-          for (let i = 0; i < line.length; ) {
-            const c = cls(at + i);
-            let j = i;
-            while (j < line.length && cls(at + j) === c) j++;
-            out += `<tspan${c ? ` class="${c}"` : ''}>${esc(line.slice(i, j))}</tspan>`;
-            i = j;
-          }
-          at += line.length + 1;
-          return `<text class="idle-name" x="38" y="${y + n * 16}">${out}</text>`;
-        });
+        // The name's last line ends with " · A" and, for the persona, a bold " You"; the person line is muted.
+        const name = e.name.map((l, n) => `<text class="idle-name" x="38" y="${y + n * 16}">${n === e.name.length - 1 && e.you ? `${esc(l.slice(0, -4))}<tspan class="idle-you"> You</tspan>` : esc(l)}</text>`);
+        const people = e.people.map((l) => `<text class="lane-people" x="38" y="${y + e.name.length * 16}">${esc(l)}</text>`);
         list += `<a class="lane-link idle-entry" href="${ctx.roleHref(e.r)}" data-testid="idle-${esc(r)}-${esc(e.r)}" aria-label="${label(e)}"${e.role && e.role.type === 'role' ? peopleAttrs(e.r, e.role) : ''}>` +
-          `<rect class="lane-hit" x="0" y="${y - 12}" width="${HEAD}" height="${e.lines.length * 16}"/>${swatch}${text.join('')}</a>`;
-        y += e.lines.length * 16;
+          `<rect class="lane-hit" x="0" y="${y - 12}" width="${HEAD}" height="${e.lines * 16}"/>${swatch}${name.join('')}${people.join('')}</a>`;
+        y += e.lines * 16;
       }
       const hidden = idle.entries.slice(idle.shown.length);
       if (hidden.length) {
         const you = hidden.some((e) => e.you);
-        const members = { name: el[r].name, list: idle.entries.map((e) => [`${e.role ? e.role.name : e.r} · ${el[r].members[e.r]}`, [partyOf(e) && el[partyOf(e)].name, e.person].filter(Boolean).join(' · ')]) };
-        list += `<a class="lane-link idle-more" href="${ctx.roleHref(r)}" data-testid="idle-more-${esc(r)}" data-members="${esc(JSON.stringify(members))}" aria-label="${hidden.length} more members. All ${idle.entries.length}: ${idle.entries.map(label).join('; ')}">` +
+        // [ "Role · A", "Party · person", persona's member ] per idle member, for the shared pop-up (people.js).
+        const members = { name: el[r].name, list: idle.entries.map((e) => [`${e.role ? e.role.name : e.r} · ${el[r].members[e.r]}`, [partyOf(e) && el[partyOf(e)].name, e.person].filter(Boolean).join(' · '), !!e.you]) };
+        list += `<a class="lane-link idle-more" href="${ctx.roleHref(r)}" data-testid="idle-more-${esc(r)}" data-members="${esc(JSON.stringify(members))}" aria-label="${hidden.length} more members. All ${idle.entries.length}: ${idle.entries.map((e) => label(e, true)).join('; ')}">` +
           `<rect class="lane-hit" x="0" y="${y - 12}" width="${HEAD}" height="16"/><text class="idle-name" x="38" y="${y}">+ ${hidden.length} more${you ? ' <tspan class="idle-you">You</tspan>' : ''}</text></a>`;
       }
     }

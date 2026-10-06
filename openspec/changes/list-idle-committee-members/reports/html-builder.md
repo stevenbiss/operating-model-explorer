@@ -29,3 +29,13 @@ The committees group goes where the first member party sits in the party order: 
 - The legend lists only parties that have lanes.
 - The tooltip doesn't mark "You".
 - Very long role names are cut with "…"; the full name stays in the accessible name and the tooltip.
+
+## Round 3: html-qa polish (after SHIP)
+- **m1 and m5:** the per-character class code is removed. Each entry is name lines ending in " · L" (with a bold " You"), plus the person on its own unsplit line. The 4-line cap counts both.
+- **m2:** only the name is cut, so the " · L You" suffix always fits.
+- **m3:** a `you` flag per tooltip item, shown in bold.
+- **m4:** the entry's accessible name no longer includes the person (the description still reads it); "+ N more" keeps people.
+- **m6:** the legend includes the parties of idle members.
+- **Ordering:** unchanged. Accountable-first is waiting for the user's decision.
+- **Tests:** `idle-members.spec.js` 2.9 updated; 2.10 gains a legend check; 2.20 gains a tooltip "You" check.
+- **Results:** unit 265 of 265; e2e 361 of 361.

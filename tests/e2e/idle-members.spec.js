@@ -47,8 +47,8 @@ async function entryParty(page, entry) {
   }
   return null;
 }
-// Distinct text lines drawn in a committee lane's idle list (entries and "+ N more").
-const idleLines = (page, c) => page.locator(`.lane-heads [data-testid^="idle-${c}-"] text.idle-name`).evaluateAll((ts) => new Set(ts.map((t) => t.getAttribute('y'))).size);
+// Distinct text lines drawn in a committee lane's idle list (names, person lines and "+ N more").
+const idleLines = (page, c) => page.locator(`.lane-heads [data-testid^="idle-${c}-"] text`).evaluateAll((ts) => new Set(ts.map((t) => t.getAttribute('y'))).size);
 const tip = (page) => page.getByTestId('people-tip');
 
 const NINE = ['Finance director', 'Legal counsel', 'HR partner', 'Risk officer', 'Comms lead', 'Partner director', 'Delivery director', 'Security officer', 'Quality lead'];
@@ -177,11 +177,12 @@ test.describe('idle members (exported sample with a person on Legal counsel)', (
   test('2.9 committees › People on a listed member', async ({ page }) => {
     await openSnapshot(page, snap, '#/p/qualify-opportunity');
     const e = page.getByTestId('idle-bid-board-legal-counsel');
-    const text = (await e.locator('text.idle-name').allTextContents()).join(' ').replace(/\s+/g, ' ');
-    expect(text).toBe('Legal counsel · C Sam Example');
-    // The person is drawn as the muted person line (it may wrap onto the entry's second line).
-    expect((await e.locator('tspan.lane-people').allTextContents()).join(' ').replace(/\s+/g, ' ').trim()).toBe('Sam Example');
-    await expect(e).toHaveAccessibleName('Legal counsel, Acme Corp, consulted, Sam Example');
+    expect((await e.locator('text').allTextContents()).map((t) => t.replace(/\s+/g, ' ').trim())).toEqual(['Legal counsel · C', 'Sam Example']);
+    // The person is the muted person line, on a line of its own, never split.
+    await expect(e.locator('text.lane-people')).toHaveText('Sam Example');
+    // The name leaves the person out; the description (aria-describedby) reads it out once.
+    await expect(e).toHaveAccessibleName('Legal counsel, Acme Corp, consulted');
+    await expect(e).toHaveAccessibleDescription('People: Sam Example');
   });
 });
 
@@ -197,6 +198,8 @@ test.describe('idle members (exported committee-idle-long)', () => {
     expect(shown.length).toBeLessThan(9);
     // The first entries, in party then role order.
     expect(shown).toEqual(['finance-director', 'legal-counsel', 'hr-partner', 'risk-officer', 'comms-lead', 'partner-director', 'delivery-director', 'security-officer', 'quality-lead'].slice(0, shown.length));
+    // Beta Inc has no lanes (all its members are idle), but its members are listed, so the legend has its key.
+    await expect(page.getByTestId('legend-party')).toHaveText([/Alpha Ltd$/, /Beta Inc$/]); // after the mark (initials for Beta)
     const more = page.getByTestId('idle-more-steering-group');
     await expect(more).toHaveText(`+ ${9 - shown.length} more`);
     expect(await idleLines(page, 'steering-group'), 'the list, with "+ N more", fits in four lines').toBeLessThanOrEqual(4);
@@ -242,6 +245,10 @@ test.describe('idle members (exported committee-idle-long)', () => {
     await expect(page.getByTestId('lane-steering-group').locator('.pill.cue')).toHaveText('Your committee');
     // No shown entry carries the cue.
     await expect(page.locator('.lane-heads .idle-entry .idle-you')).toHaveCount(0);
+    // The pop-up marks the persona's member, and only that one.
+    await more.locator('text').hover();
+    await expect(tip(page).locator('li strong')).toHaveText(['You']);
+    await expect(tip(page).locator('li', { has: page.locator('strong') })).toContainText('Quality lead · I');
   });
 });
 

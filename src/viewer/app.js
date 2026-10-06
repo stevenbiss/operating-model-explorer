@@ -639,13 +639,18 @@ ${p.body ? `<section class="section about"><h2>About this ${L.lower('process')}<
 </div>`;
 }
 
+// The parties with lanes, plus those of idle committee members, which are listed in a committee lane (design D3).
+const legendParties = () => {
+  const idle = Object.values(F.idle).flat().map((r) => is(r, 'role') && E[r].party);
+  return M.order.party.filter((p) => F.groups.some((g) => g.party === p) || idle.includes(p));
+};
 function legend() {
   if (narrow.matches) return persona() ? `<p class="legend" data-testid="legend"><span class="cue">Your ${L.lower('step')}</span> marks where you take part</p>` : '';
   return `<ul class="legend" data-testid="legend">
   <li><svg width="44" height="12" aria-hidden="true"><path class="edge" d="M2 6H34" marker-end="url(#om-arrow)"/></svg>Handoff within ${L.a('party')}</li>
   <li><svg width="44" height="12" aria-hidden="true"><path class="edge cross" d="M2 6H34" marker-end="url(#om-open)"/></svg>Handoff between ${L.lower('parties')}</li>
   <li><span class="raci-key" aria-hidden="true">C</span>Consulted or informed (RACI)</li>
-  ${F.groups.filter((g) => is(g.party, 'party')).map((g) => `<li data-testid="legend-party"${dp(g.party)}><span class="swatch" aria-hidden="true"></span>${mark(g.party, false)}${esc(E[g.party].name)}</li>`).join('')}
+  ${legendParties().map((p) => `<li data-testid="legend-party"${dp(p)}><span class="swatch" aria-hidden="true"></span>${mark(p, false)}${esc(E[p].name)}</li>`).join('')}
   ${persona() ? '<li><span class="cue">Your lane</span> Emphasised for you; everything else stays open</li>' : ''}
 </ul>`;
 }
