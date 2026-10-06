@@ -86,7 +86,7 @@ A committee-owned step's RACI SHALL be the committee's member letters, plus any 
 - **THEN** the report shows a warning saying members' letters are set on the committee, and the step detail shows that member as Accountable
 
 ### Requirement: Committee lanes in the swimlane
-Each committee that owns a shown step in a process SHALL get its own lane. A process MAY have several committees. All committee lanes SHALL form one group under one heading with the committees label ("Committees" by default), stacked in the order their first steps appear. The group SHALL sit in the middle of the swimlane: directly after the first party group shown, in the model's party order, so with two parties the committees sit between them. With only one party group shown, the group SHALL sit after it.
+Each committee that owns a shown step in a process SHALL get its own lane. A process MAY have several committees. All committee lanes SHALL form one group under one heading with the committees label ("Committees" by default), stacked in the order their first steps appear. The group SHALL sit in the middle of the swimlane: directly after the first party group, in the model's party order, that has a member of any committee shown in that process. So with two parties the committees sit between them, and with a client party first (e.g. Customer, Acme, Globex, with Acme and Globex members) they sit between the members' parties. With only one party group shown, the group SHALL sit after it.
 
 A committee lane's header SHALL show only the committee's name, linking to the committee page. It SHALL NOT list the members, which are shown when a committee step is opened (see Members shown when a committee step is opened) and on the committee page. Every member SHALL also get its own lane in its party group, like a role that takes part through RACI. That lane's header SHALL list each committee in the process that the role sits on, with the role's letter in it (e.g. "Bid board member · A"). A step owned by a committee SHALL sit in the committee's lane and show a text badge "By committee" (following the committee label).
 
@@ -105,6 +105,10 @@ A committee lane's header SHALL show only the committee's name, linking to the c
 #### Scenario: Lane header opens the committee
 - **WHEN** the viewer activates the committee name in the lane header
 - **THEN** the committee page opens
+
+#### Scenario: Committee after the first party with members
+- **WHEN** a model's parties are Customer, Acme and Globex in that order, and a process has steps owned by a Customer role and by a committee of an Acme role and a Globex role
+- **THEN** the order of groups in the swimlane is Customer, Acme, Committees, Globex
 
 ### Requirement: Members shown when a committee step is opened
 Activating a committee-owned step SHALL open its step detail, as for any step. That detail SHALL lead with the committee's name and "By committee" badge, followed by all its members **split by organisation**: one heading per party, with the party's mark and name, listing each member role (linking to its role profile) with its RACI letter written out (e.g. "Accountable"). When more than one member is marked A, each SHALL be shown as "Accountable, jointly". The rest of the detail (description, RACI for non-members, inputs, outputs and the flow navigation) SHALL follow as for any step.

@@ -6,15 +6,43 @@ The views viewers use to explore an operating model at four zoom levels (model o
 ## Requirements
 
 ### Requirement: L0 model overview
-The overview SHALL show the model's name, its purpose (rendered narrative), its parties, its workstreams at a glance, its structure diagrams and its key messages. Structure diagrams SHALL be listed with the main diagram first and marked as the main diagram, each with its kind when it has one. A model with no structures SHALL show no structure list.
+The home page SHALL be shown in the view the author chose for the model: **Simple** (the default) or **Detailed**. Viewers SHALL NOT be able to switch between them.
+
+In both views the home page SHALL show the model's name and then, in this order:
+1. its parties (organisation);
+2. its workstreams at a glance;
+3. its processes, as one list in workstream order, each with its workstream and its review status;
+4. its structure diagrams.
+
+Structure diagrams SHALL be listed with the main diagram first and marked as the main diagram, each with its kind when it has one. A model with no structures SHALL show no structure list, and a model with no processes SHALL show no process list.
+
+The **Detailed** view SHALL also show the purpose (rendered narrative) and the "About this model" narrative under the name, the key messages section, and the persona doors. The **Simple** view SHALL show none of these on the home page.
+
+Only the home page SHALL differ between the views. The Key messages control, the exploration progress, the persona prompt and every other page SHALL be the same in both.
 
 #### Scenario: Overview content
-- **WHEN** the sample model opens with no persona selected
-- **THEN** the overview shows the model name, the purpose text, every party, every workstream, every structure diagram and every key message
+- **WHEN** the sample model, which sets no view, opens with no persona selected
+- **THEN** the home page shows the model name, every party, every workstream, every process and every structure diagram, and shows no purpose text, key messages section or persona doors
+
+#### Scenario: Detailed view
+- **WHEN** a model with `view: detailed` opens
+- **THEN** the home page also shows the purpose text, every key message and the persona doors
+
+#### Scenario: Key messages still reachable in Simple view
+- **WHEN** a Simple-view snapshot is on its home page and the viewer activates "Key messages"
+- **THEN** the key messages are shown
+
+#### Scenario: Processes listed on the home page
+- **WHEN** the sample opens on the home page
+- **THEN** a processes section lists every process in workstream order, each showing its workstream and status, and activating one opens its swimlane
 
 #### Scenario: Main diagram first
 - **WHEN** a model has three structures and the main one is listed last in the content
 - **THEN** the overview lists the main diagram first, marked as the main diagram, and each link opens its diagram
+
+#### Scenario: Home page on a phone
+- **WHEN** the sample home page is opened at 375px wide
+- **THEN** the sections stack in order and the page does not scroll horizontally
 
 ### Requirement: Key messages always reachable
 The model's key messages SHALL be reachable in one action from every view, and SHALL be identical for every persona.
@@ -141,11 +169,19 @@ Parties, teams, committees and personas SHALL each have a page showing their nam
 - **THEN** a page shows the party's name, its summary, and links to its teams and roles
 
 ### Requirement: Wide swimlanes scroll within their own area
-When a swimlane is wider than the viewport, it SHALL scroll horizontally inside its own container, never the page. Lane headers SHALL stay visible while it scrolls. A visible "More steps" cue SHALL show while steps lie off-screen to the right. A step that receives keyboard focus, or is selected, SHALL be scrolled fully into view clear of the lane headers.
+A process page SHALL use the full width of the browser window, less a margin of at most 24px on each side, in a snapshot, and SHALL fill the width of the preview in author mode. Its heading, summary and narrative SHALL keep their readable line length. When a swimlane is wider or taller than the space it has, it SHALL scroll inside its own area, never the page. At viewport widths of 768px and more, that area SHALL be no taller than the browser window, so both its scrollbars stay on screen. Lane headers SHALL stay visible while it scrolls. A visible "More steps" cue SHALL show while steps lie off-screen to the right. A step that receives keyboard focus, or is selected, SHALL be scrolled fully into view clear of the lane headers.
 
 #### Scenario: More steps cue
 - **WHEN** a process whose swimlane is wider than a 1024px viewport is opened
 - **THEN** the page does not scroll horizontally, the lane headers stay visible, and a "More steps" cue is shown
+
+#### Scenario: Swimlane uses the full width
+- **WHEN** a process with a wide swimlane is opened at 1920×1080, in a snapshot and in the author-mode preview
+- **THEN** the swimlane area is at least 1850px wide in the snapshot, fills the preview's width in author mode, and the page does not scroll horizontally
+
+#### Scenario: Both scrollbars stay on screen
+- **WHEN** a process whose swimlane is taller and wider than a 1280×800 viewport is opened and scrolled to the swimlane
+- **THEN** the swimlane area is no taller than the window, its bottom edge (with its horizontal scrollbar) is visible on screen, and the lanes scroll vertically inside it
 
 ### Requirement: Change state in the URL
 Whether change markers are on, and whether "Only changes" is on, SHALL be part of the URL, so a link reproduces the same view.
@@ -167,3 +203,30 @@ Roles, teams, parties and other elements marked removed SHALL open normally. Whe
 #### Scenario: Removed role profile
 - **WHEN** change markers are on and the viewer opens the profile of a removed role
 - **THEN** the profile opens and shows a "Removed" badge
+
+### Requirement: Drag to pan diagrams
+At viewport widths of 768px and more, the viewer SHALL be able to move a swimlane or structure diagram that is larger than its area by holding the left mouse button anywhere on it and dragging, in any direction. While the pointer is over a pannable diagram, the cursor SHALL show an open hand, and a closed hand while dragging. A press and release with little or no movement (under 5px) SHALL still count as a click, so it opens a step, a box or a link as before. A drag SHALL NOT open anything when released, and SHALL NOT select text. Keyboard, mouse wheel, trackpad and touch scrolling SHALL work as before, and dragging SHALL never change the model.
+
+#### Scenario: Drag the swimlane
+- **WHEN** at 1280×800 the viewer presses the left mouse button on an empty part of a wide, tall swimlane and drags 300px left and 200px up
+- **THEN** the swimlane scrolls about 300px right and 200px down inside its area, and the page itself does not scroll
+
+#### Scenario: Drag starting on a step
+- **WHEN** the viewer presses on a step, drags 100px and releases
+- **THEN** the swimlane pans and the step's detail does not open
+
+#### Scenario: Click still opens a step
+- **WHEN** the viewer clicks a step without moving the mouse
+- **THEN** the step's detail opens as before
+
+#### Scenario: Hand cursor
+- **WHEN** the mouse is over a pannable swimlane, then the left button is held down
+- **THEN** the cursor is an open hand over empty areas, then a closed hand while the button is held
+
+#### Scenario: Keyboard unchanged
+- **WHEN** a keyboard user tabs into a swimlane, presses the Right arrow, then Enter, then Escape
+- **THEN** focus moves to the next step in the flow, its detail opens, and on Escape the detail closes with focus back on that step
+
+#### Scenario: Phones keep the list
+- **WHEN** a process is opened at 375px wide
+- **THEN** the steps appear as a vertical list as before, with no hand cursor or panning area, and the page does not scroll horizontally
