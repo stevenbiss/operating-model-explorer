@@ -37,7 +37,7 @@ Wherever a role is shown by name, the viewer SHALL show, directly under the role
 - **THEN** its lane header shows only the role name and team, as before
 
 ### Requirement: People pop-up
-Hovering over a role that lists people, or giving it keyboard focus, SHALL show a pop-up next to it, titled with the role name and listing every person's name. The pop-up SHALL close when the pointer leaves or focus moves on, and when Escape is pressed. It SHALL NOT hide the element it describes, SHALL stay within the window, and SHALL NOT be the only way to read the names: the role's page also lists them, and the list SHALL be exposed to screen readers as the role's description.
+Hovering over a role that lists people, or giving it keyboard focus, SHALL show a pop-up (except on a structure box that shows its own name text, which keeps that text as the only name it shows or describes) next to it, titled with the role name and listing every person's name. The pop-up SHALL close when the pointer leaves or focus moves on, and when Escape is pressed. It SHALL NOT hide the element it describes, SHALL stay within the window, and SHALL NOT be the only way to read the names: the role's page also lists them, and the list SHALL be exposed to screen readers as the role's description.
 
 #### Scenario: Hover shows the names
 - **WHEN** the viewer hovers over the Solution architect lane header
@@ -50,6 +50,10 @@ Hovering over a role that lists people, or giving it keyboard focus, SHALL show 
 #### Scenario: Screen-reader description
 - **WHEN** a screen reader reaches a lane-header link for a role with people
 - **THEN** its accessible description includes every person's name
+
+#### Scenario: No pop-up on a box with its own name
+- **WHEN** the viewer hovers over a structure box for a role with people, where the box has the name text "TBA"
+- **THEN** no people pop-up appears, and the box's accessible description does not list the role's people
 
 #### Scenario: Pop-up stays on screen
 - **WHEN** the viewer hovers over a role near the right edge of a 1280px window

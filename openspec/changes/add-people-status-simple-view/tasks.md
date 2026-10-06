@@ -68,6 +68,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.8 Keyboard shows the names
 - [x] 2.9 Screen-reader description
 - [x] 2.10 Pop-up stays on screen
+- [ ] 2.44 No pop-up on a box with its own name (role-people; added after QA)
 - [x] 2.11 Role page lists people
 - [x] 2.12 Mobile people line (@mobile)
 - [x] 2.13 Sample people load
@@ -122,7 +123,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate:
+- [x] 4.1 html-qa final gate:
   - security: markup and script in people names, status values and view values, all shown as text;
   - accessibility: axe at 1920, 1280 and 375, tooltip behaviour (WCAG 1.4.13: dismissable, hoverable, persistent), badge contrast, focus order with the preview toggle;
   - visual polish of people lines, pop-ups, badges and the two home views, in light and dark;
