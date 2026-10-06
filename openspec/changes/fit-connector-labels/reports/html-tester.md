@@ -18,3 +18,8 @@ New tests are in `tests/e2e/connector-labels.spec.js`.
 - **2.5:** the loop-back label is middle-anchored, halfway between the step centres, below both boxes.
 - **2.6:** author-mode and snapshot positions are deep-equal for both sample processes.
 - **Phones:** these scenarios don't apply, because swimlanes are lists at 375px.
+
+# Round 2: PASS (2.1–2.11)
+- New tests 2.8–2.11 cover: four labels into a top-lane step; a skip branch past a step in the target's lane (path sampled every 2px); a 47-character hyphenated word; six connectors into one step. Each runs in author mode and in a snapshot.
+- **Results:** unit 276 of 276; e2e 383 of 383.
+- **Found outside the scenarios:** a skip branch runs through a step in the *source's* lane in the skipped column (1.7.0 had the same). The spec's Routing rule already forbids it. Added as scenario 2.12, and sent to html-builder.

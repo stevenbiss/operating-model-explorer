@@ -40,6 +40,10 @@ The layout SHALL be the same in author mode and in an exported snapshot.
 - **WHEN** a decision has one labelled branch to the next column and another labelled branch two columns on, into a lane that has a step in the skipped column
 - **THEN** the longer branch passes no step box, and its label sits clear of every step box
 
+#### Scenario: Skip branch past a step in its own lane
+- **WHEN** a labelled branch skips a column, and the source step's own lane has a step in the skipped column
+- **THEN** the branch passes no step box on its way to its target
+
 #### Scenario: One very long word
 - **WHEN** a branch label is a single 47-character hyphenated word
 - **THEN** it is shown in full on more than one line, and no part of it overlaps a step box

@@ -3,8 +3,9 @@
 // Export button, at 1280×800. Tests are named "<task> <requirement> › <scenario>".
 // Overlap checks compare each forward label's <text> box (getBoundingClientRect, which covers all its tspans) against
 // every step rect.box and every other forward label. Positions come from the SVG's own attributes (user units).
-// Fixtures: the Acme sample, branches-five (five branches, labels up to 24 chars), branch-label-long (a 60-char label).
-import { test, expect, useSnapshot, openSnapshot, openEngine, trySample, loadZip, skipPrompt, go } from './helpers.js';
+// Fixtures: the Acme sample, branches-five (five branches, labels up to 24 chars), branch-label-long (a 60-char label),
+// and in-memory variants of branches-five for 2.8–2.11 (VARIANTS below).
+import { test, expect, useSnapshot, openSnapshot, openEngine, trySample, loadZip, skipPrompt, go, variant } from './helpers.js';
 
 const REQ = 'explorer-views › Connector labels fit between steps';
 const NW = 164;
@@ -38,7 +39,14 @@ async function measure(page) {
         rect: r(t),
       };
     });
-    return { steps, labels, svg: r(s) };
+    // Connector paths as their points (M/L/Q coordinates in order; a Q's control point is the rounded corner).
+    const paths = [...s.querySelectorAll('path.edge[data-from]')].map((p) => {
+      const n = (p.getAttribute('d').match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+      const pts = [];
+      for (let i = 0; i + 1 < n.length; i += 2) pts.push([n[i], n[i + 1]]);
+      return { from: p.dataset.from, to: p.dataset.to, back: p.classList.contains('back'), pts };
+    });
+    return { steps, labels, paths, svg: r(s) };
   });
 }
 
@@ -97,6 +105,72 @@ async function fixtureProcess(mode, page, snap, fixture, pid) {
   }
   await expect(page.getByTestId('swimlane')).toHaveAttribute('data-layout', 'svg');
   return measure(page);
+}
+
+// ---------- in-memory variants of branches-five (roles: account-lead = top lane, reviewer, solution-architect) ----------
+const yq = (t) => JSON.stringify(t);
+const step = (id, owner, next) =>
+  `  - id: ${id}\n    name: ${yq(id.replace(/-/g, ' '))}\n    owner: ${owner}\n    raci:\n      ${owner}: A\n    next:${next.length ? '' : ' []'}\n` +
+  next.map((n) => `      - to: ${n.to}\n${n.label ? `        label: ${yq(n.label)}\n` : ''}`).join('');
+const proc = (id, steps) => `---\nid: ${id}\ntype: process\nname: ${yq(id.replace(/-/g, ' '))}\nworkstream: main-ws\nsteps:\n${steps.join('')}---\n`;
+const fromFive = (name, pid, steps) => variant('branches-five', name, { 'processes/01-triage.md': null, [`processes/01-${pid}.md`]: proc(pid, steps) });
+
+// 2.8: four labelled connectors (up to 60 chars) from four steps into one top-lane step.
+const FOUR = {
+  'src-one': 'Approved by both parties and ready to send to the client now',
+  'src-two': 'Escalated to the partnership board for a decision',
+  'src-three': 'Signed off by the reviewer',
+  'src-four': 'Fast track',
+};
+const fourInto = fromFive('labels-four-into-one', 'four-into-one', [
+  step('kick-off', 'account-lead', Object.keys(FOUR).map((to) => ({ to }))),
+  step('src-one', 'account-lead', [{ to: 'final-step', label: FOUR['src-one'] }]),
+  step('src-two', 'reviewer', [{ to: 'final-step', label: FOUR['src-two'] }]),
+  step('src-three', 'solution-architect', [{ to: 'final-step', label: FOUR['src-three'] }]),
+  step('src-four', 'reviewer', [{ to: 'final-step', label: FOUR['src-four'] }]),
+  step('final-step', 'account-lead', []),
+]);
+
+// 2.9: one labelled branch to the next column, one two columns on into a lane with a step in the skipped column.
+const skip = fromFive('labels-skip-column', 'skip-column', [
+  step('decide-path', 'account-lead', [{ to: 'next-col', label: 'Needs a review' }, { to: 'far-step', label: 'Skip straight to delivery' }, { to: 'skipped-step' }]),
+  step('next-col', 'reviewer', [{ to: 'far-step' }]),
+  step('skipped-step', 'solution-architect', [{ to: 'far-step' }]),
+  step('far-step', 'solution-architect', []),
+]);
+
+// 2.10: one 47-character hyphenated word.
+const WORD = 'pre-approval-required-before-any-client-contact';
+const longWord = fromFive('labels-long-word', 'long-word', [
+  step('weigh-up', 'account-lead', [{ to: 'go-ahead', label: WORD }]),
+  step('go-ahead', 'reviewer', []),
+]);
+
+// 2.11: six short-labelled connectors from six steps into one step.
+const SIX = { 'six-a': 'Yes', 'six-b': 'No', 'six-c': 'Later', 'six-d': 'Partly', 'six-e': 'Urgent', 'six-f': 'Other' };
+const SIX_OWNER = { 'six-a': 'account-lead', 'six-b': 'account-lead', 'six-c': 'reviewer', 'six-d': 'reviewer', 'six-e': 'solution-architect', 'six-f': 'solution-architect' };
+const sixInto = fromFive('labels-six-into-one', 'six-into-one', [
+  step('fan-out', 'account-lead', Object.keys(SIX).map((to) => ({ to }))),
+  ...Object.entries(SIX).map(([id, label]) => step(id, SIX_OWNER[id], [{ to: 'merge-step', label }])),
+  step('merge-step', 'reviewer', []),
+]);
+
+// Each forward connector into `to`: its source and the y where it enters (its last point), top to bottom.
+const entries = (m, to) =>
+  m.paths
+    .filter((p) => p.to === to && !p.back)
+    .map((p) => ({ from: p.from, x: p.pts[p.pts.length - 1][0], y: p.pts[p.pts.length - 1][1] }))
+    .sort((a, b) => a.y - b.y);
+
+// Points along each straight run of a path (corners included), every 2px.
+function samples(pts) {
+  const out = [];
+  for (let i = 1; i < pts.length; i++) {
+    const [[x0, y0], [x1, y1]] = [pts[i - 1], pts[i]];
+    const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 2));
+    for (let k = 0; k <= n; k++) out.push([x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n]);
+  }
+  return out;
 }
 
 // Step rank = its column, from the distinct x positions in order.
@@ -173,6 +247,82 @@ for (const mode of ['snapshot', 'author']) {
       expect(l.rect.top, 'under the source box').toBeGreaterThanOrEqual(a.rect.bottom);
       expect(l.rect.top, 'under the target box').toBeGreaterThanOrEqual(b.rect.bottom);
       expect(l.tspans).toBe(0);
+    });
+  });
+
+  test.describe(`connector labels, many-entry variants (${mode})`, () => {
+    const four = mode === 'snapshot' ? useSnapshot(fourInto) : null;
+    const sk = mode === 'snapshot' ? useSnapshot(skip) : null;
+    const word = mode === 'snapshot' ? useSnapshot(longWord) : null;
+    const six = mode === 'snapshot' ? useSnapshot(sixInto) : null;
+
+    test(`2.8 ${REQ} › Several labels into one step [${mode}]`, async ({ page }) => {
+      const m = await fixtureProcess(mode, page, four, fourInto, 'four-into-one');
+      const s = byId(m);
+      const t = s['final-step'];
+      expect(t.y, 'target in the top lane').toBe(Math.min(...m.steps.map((x) => x.y)));
+      expect(Math.max(...Object.values(FOUR).map((l) => l.length))).toBe(60);
+      // Each connector enters the step's left edge at its own point, at least 16px apart.
+      const ins = entries(m, 'final-step');
+      expect(ins.map((e) => e.from).sort()).toEqual(Object.keys(FOUR).sort());
+      for (const e of ins) {
+        expect(e.x, `${e.from} enters at the left edge`).toBe(t.x - 3);
+        expect(e.y, `${e.from} enters within the step`).toBeGreaterThanOrEqual(t.y);
+        expect(e.y, `${e.from} enters within the step`).toBeLessThanOrEqual(t.y + 70);
+      }
+      for (let i = 1; i < ins.length; i++) expect(ins[i].y - ins[i - 1].y, `entry ${i} apart from ${i - 1}`).toBeGreaterThanOrEqual(16);
+      // All four labels in full, inside the diagram, clear of steps and of each other.
+      for (const text of Object.values(FOUR)) label(m, text);
+      expectClear(m);
+      // Labels run top to bottom in the same order as their connectors.
+      const labelOrder = Object.values(FOUR).map((text) => ({ text, top: label(m, text).rect.top })).sort((a, b) => a.top - b.top).map((x) => x.text);
+      expect(labelOrder).toEqual(ins.map((e) => FOUR[e.from]));
+    });
+
+    test(`2.9 ${REQ} › Branch that skips a column [${mode}]`, async ({ page }) => {
+      const m = await fixtureProcess(mode, page, sk, skip, 'skip-column');
+      const s = byId(m);
+      // Set-up: far-step is two columns on, in a lane that has a step in the skipped column.
+      const xs = ranks(m);
+      expect(xs.indexOf(s['far-step'].x) - xs.indexOf(s['decide-path'].x)).toBe(2);
+      expect(xs.indexOf(s['skipped-step'].x)).toBe(xs.indexOf(s['decide-path'].x) + 1);
+      expect(s['skipped-step'].y).toBe(s['far-step'].y);
+      // The longer branch passes no step box.
+      const p = m.paths.find((x) => x.from === 'decide-path' && x.to === 'far-step');
+      expect(p, 'decide-path → far-step connector').toBeTruthy();
+      for (const st of m.steps)
+        for (const [x, y] of samples(p.pts)) {
+          const inside = x > st.x + 0.5 && x < st.x + NW - 0.5 && y > st.y + 0.5 && y < st.y + 70 - 0.5;
+          expect(inside, `long branch passes through ${st.id} at (${x.toFixed(1)}, ${y.toFixed(1)})`).toBe(false);
+        }
+      // Its label sits clear of every step box (and the other label).
+      expect(forward(m).map((l) => l.text).sort()).toEqual(['Needs a review', 'Skip straight to delivery']);
+      expectClear(m);
+    });
+
+    test(`2.10 ${REQ} › One very long word [${mode}]`, async ({ page }) => {
+      expect(WORD.length).toBe(47);
+      expect(WORD).not.toMatch(/\s/);
+      const m = await fixtureProcess(mode, page, word, longWord, 'long-word');
+      const l = label(m, WORD); // textContent equals the whole word: nothing cut, no added spaces
+      expect(l.tspans, 'more than one line').toBeGreaterThanOrEqual(2);
+      expect(new Set(l.tspanPos.map((p) => p[1])).size).toBe(l.tspans);
+      expectClear(m);
+    });
+
+    test(`2.11 ${REQ} › Many connectors into one step [${mode}]`, async ({ page }) => {
+      const m = await fixtureProcess(mode, page, six, sixInto, 'six-into-one');
+      const t = byId(m)['merge-step'];
+      const ins = entries(m, 'merge-step');
+      expect(ins.length).toBe(6);
+      for (const e of ins) {
+        expect(e.x, `${e.from} enters at the left edge`).toBe(t.x - 3);
+        expect(e.y, `${e.from} enters within the step's left edge`).toBeGreaterThanOrEqual(t.y);
+        expect(e.y, `${e.from} enters within the step's left edge`).toBeLessThanOrEqual(t.y + 70);
+      }
+      expect(new Set(ins.map((e) => e.y)).size, 'six distinct entry points').toBe(6);
+      expect(forward(m).map((l) => l.text).sort()).toEqual(Object.values(SIX).sort());
+      expectClear(m);
     });
   });
 }
