@@ -319,9 +319,34 @@ test('1.1 entry points: one label sits 6px above the centre line; several get th
       for (let j = 0; j < i; j++) assert.ok(boxes[j][1] < boxes[i][0] || boxes[i][1] < boxes[j][0], `${counts}: labels ${j} and ${i} overlap`);
     });
   }
+  // Labels always stack in their connectors' order, top to bottom, whether or not they fit beside their own lines.
+  for (const counts of [[1, 1], [3, 3, 3, 3], [1, 3, 1, 3, 1], [2, 2, 2, 2, 2, 2], [3, 1, 1, 1, 1, 1, 3]]) {
+    for (const [cy, limit] of [[87, 400], [87, 1000], [300, 340], [200, 400]]) {
+      const pts = entryPoints(counts, cy, cy - 25, cy + 25, limit);
+      pts.forEach((pt, i) => i && assert.ok(pt.baseline > pts[i - 1].baseline + (counts[i - 1] - 1) * 14, `${counts} at ${cy}: label ${i} above label ${i - 1}`));
+      pts.forEach((pt, i) => i && assert.ok(pt.y > pts[i - 1].y, `${counts} at ${cy}: entry order`));
+    }
+  }
   // Few short labels sit directly above their own lines, with no other line between.
   const two = entryPoints([1, 1], 200, 175, 225, 400);
   two.forEach((pt) => assert.equal(pt.baseline, pt.y - 6));
+});
+
+test('1.1 six entries: spread evenly along the step edge when 16px apart would leave it; labels still clear of each other', () => {
+  const counts = [1, 1, 1, 1, 1, 1];
+  const pts = entryPoints(counts, 87, 62, 112, 600);
+  const ys = pts.map((p) => p.y);
+  assert.equal(ys[0], 62);
+  assert.equal(ys[5], 112);
+  ys.forEach((y, i) => i && assert.ok(Math.abs(y - ys[i - 1] - 10) < 1e-9, 'even pitch of 50 / 5'));
+  const boxes = pts.map((pt) => [pt.baseline - 12, pt.baseline + 3]);
+  boxes.forEach((b, i) => {
+    assert.ok(b[0] >= 0 && b[1] <= 600, 'inside the diagram');
+    if (i) assert.ok(boxes[i - 1][1] < b[0], `labels ${i - 1} and ${i} overlap`);
+  });
+  // Four still keep 16px.
+  const four = entryPoints([1, 1, 1, 1], 87, 62, 112, 600).map((p) => p.y);
+  four.forEach((y, i) => i && assert.ok(y - four[i - 1] >= 16));
 });
 
 test('1.1 several labelled connectors into one step enter at their own points, ordered by the source height', () => {

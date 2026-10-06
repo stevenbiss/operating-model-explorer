@@ -150,7 +150,8 @@ export function labelLines(text) {
 }
 
 // Where several labelled connectors enter one step (D4): one entry line each, at least 16px apart around the step's
-// centre cy and within [top, bottom], in the given order (top to bottom), each label on its own line. counts: each
+// centre cy and within [top, bottom] (spread evenly over it when 16px doesn't fit), in the given order, top to bottom.
+// Labels keep that order too, each on its own line where there is room. counts: each
 // label's number of lines. The first k labels sit above their lines and the rest below, trying k = n, n - 1, ... 0 until
 // no label leaves the diagram (0 to limit). Returns each entry's y and its label's first baseline; lines are 14px apart.
 const ASC = 12; // a label line's box: 12px above its baseline, 3px below
@@ -161,7 +162,8 @@ export function entryPoints(counts, cy, top, bottom, limit) {
   for (let k = n; k >= 0; k--) {
     // Room between two entry lines for the label that sits between them, or 16px when neither does.
     let pitch = counts.slice(1).map((c, j) => Math.max(16, j + 1 < k ? boxH(c) + 4 : j >= k ? boxH(counts[j]) + 4 : 16));
-    if (pitch.reduce((s, p) => s + p, 0) > bottom - top) pitch = pitch.map(() => 16);
+    // No room: 16px apart, or, when even that leaves the step's edge (more than four), spread evenly along it.
+    if (pitch.reduce((s, p) => s + p, 0) > bottom - top) pitch = pitch.map(() => Math.min(16, (bottom - top) / (n - 1)));
     const ys = [cy - pitch.reduce((s, p) => s + p, 0) / 2];
     for (const p of pitch) ys.push(ys[ys.length - 1] + p);
     // Label boxes' tops: above their lines, pushed up clear of the one below; below their lines, pushed down.

@@ -29,3 +29,8 @@
 - **Unit tests:** skip bend, entry spreading for several shapes, rendered entry order, long words, wide characters. The sample gap is now 192 on one line.
 - **Results:** unit 275 of 275; e2e 375 of 375.
 - **Limit raised:** four long multi-line labels can't each sit on their own line, because the step edge is 70px. The orchestrator's decision: they stack in connector order (spec updated), and 5 or more entries spread evenly within the edge (new scenario 2.11).
+
+## Round 4: label order and the more-than-four guard
+- **Label order:** already held in every case; a new unit test covers several label sets at top, middle and cramped heights.
+- **Guard:** entries that can't keep 16px within the step edge now spread evenly along it. 6 entries span 62–112 at 10px spacing, with no overlapping labels, all inside the diagram. 4 entries keep 16px.
+- **Results:** unit 276 of 276; e2e 375 of 375.
