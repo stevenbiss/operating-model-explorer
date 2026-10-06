@@ -114,8 +114,10 @@ export const GAP_MAX = 220;
 export const LABEL_PAD = 2 * 12; // the bend sits 12px past the column before, the label ends 8px before the target: 4px slack
 
 // An estimate of a label's width at its 12px font, so the layout never depends on fonts or the DOM (D2). Characters
-// from U+2E80 on (CJK and other wide scripts) count as 1.7, since 6.4px a character assumes Latin text.
-export const labelWidth = (text) => Math.ceil([...String(text)].reduce((n, c) => n + (c.codePointAt(0) >= 0x2e80 ? 1.7 : 1), 0) * 6.4) + 8;
+// from U+2E80 on (CJK and other wide scripts) count as 1.7, W and M as 1.5 and other capitals as 1.25, since 6.4px a
+// character assumes lower-case Latin text.
+const units = (c) => (c.codePointAt(0) >= 0x2e80 ? 1.7 : /[WM]/.test(c) ? 1.5 : /[A-Z]/.test(c) ? 1.25 : 1);
+export const labelWidth = (text) => Math.ceil([...String(text)].reduce((n, c) => n + units(c), 0) * 6.4) + 8;
 const fits = (s) => labelWidth(s) + LABEL_PAD <= GAP_MAX;
 
 // The left edge of each rank's step box. The gap in front of rank k fits the widest label on a forward edge into it.
@@ -149,22 +151,25 @@ export function labelLines(text) {
   return lines;
 }
 
-// Where several labelled connectors enter one step (D4): one entry line each, at least 16px apart around the step's
-// centre cy and within [top, bottom] (spread evenly over it when 16px doesn't fit), in the given order, top to bottom.
-// Labels keep that order too, each on its own line where there is room. counts: each
-// label's number of lines. The first k labels sit above their lines and the rest below, trying k = n, n - 1, ... 0 until
-// no label leaves the diagram (0 to limit). Returns each entry's y and its label's first baseline; lines are 14px apart.
+// Entry points into one step that has a labelled connector (D4): every forward connector into it gets its own entry
+// line, in the given order (by source height, top to bottom), at least 16px apart around the step's centre cy and within
+// [top, bottom], or spread evenly over that when 16px doesn't fit. counts: each connector's label lines (0: unlabelled).
+// Labels keep the same order. The first k sit above their lines and the rest below, trying k = n, n - 1, ... 0 until no
+// label leaves the diagram (0 to limit); each label is pushed clear of its neighbours and of an unlabelled line.
+// Returns each entry's y and its label's first baseline (later lines 14px apart).
+// Example: counts [1, 0, 1] at cy 100 within [75, 125] gives lines at 82.5, 98.5 and 117.5 (a 16px slot for the
+// unlabelled line, then 19px for the last label's 15px box plus 4px) and label baselines 76.5 and 111.5 (the middle one
+// unused): each label sits just above its own line and no line crosses a label.
 const ASC = 12; // a label line's box: 12px above its baseline, 3px below
-const boxH = (lines) => ASC + 3 + (lines - 1) * 14;
+const boxH = (lines) => (lines ? ASC + 3 + (lines - 1) * 14 : 0);
 export function entryPoints(counts, cy, top, bottom, limit) {
   const n = counts.length;
   let first;
   for (let k = n; k >= 0; k--) {
-    // Room between two entry lines for the label that sits between them, or 16px when neither does.
-    let pitch = counts.slice(1).map((c, j) => Math.max(16, j + 1 < k ? boxH(c) + 4 : j >= k ? boxH(counts[j]) + 4 : 16));
-    // No room: 16px apart, or, when even that leaves the step's edge (more than four), spread evenly along it.
-    if (pitch.reduce((s, p) => s + p, 0) > bottom - top) pitch = pitch.map(() => Math.min(16, (bottom - top) / (n - 1)));
-    const ys = [cy - pitch.reduce((s, p) => s + p, 0) / 2];
+    // Room between two entry lines for the label between them (its box plus 4px), and never under 16px.
+    let pitch = counts.slice(1).map((c, j) => Math.max(16, (j + 1 < k ? boxH(c) : j >= k ? boxH(counts[j]) : 0) + 4));
+    if (pitch.reduce((t, p) => t + p, 0) > bottom - top) pitch = pitch.map(() => Math.min(16, (bottom - top) / (n - 1)));
+    const ys = [cy - pitch.reduce((t, p) => t + p, 0) / 2];
     for (const p of pitch) ys.push(ys[ys.length - 1] + p);
     // Label boxes' tops: above their lines, pushed up clear of the one below; below their lines, pushed down.
     const tops = [];

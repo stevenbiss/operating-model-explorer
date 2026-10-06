@@ -243,12 +243,12 @@ test('1.1 with no labels every step keeps its 1.7.0 position', () => {
 
 test('1.1 a long label widens only the gap in front of its target', () => {
   const label = 'Needs a second look'; // 19 characters
-  assert.equal(labelWidth(label), Math.ceil(19 * 6.4) + 8);
+  assert.equal(labelWidth(label), Math.ceil(19.25 * 6.4) + 8, 'one capital');
   assert.deepEqual(gaps(flow(chain(label), 'p')), [80, labelWidth(label) + 24, 80]);
   // The sample: the gap before "Submit the proposal" is wider than 1.7.0's 80px.
   const f = flow(sample, 'build-proposal');
   assert.equal(gaps(f)[f.nodes['submit-proposal'].rank - 1], labelWidth('Approved, ready to submit') + 24);
-  assert.equal(labelWidth('Approved, ready to submit') + 24, 192);
+  assert.equal(labelWidth('Approved, ready to submit') + 24, 194);
   assert.deepEqual(labelLines('Approved, ready to submit'), ['Approved, ready to submit'], 'fits on one line');
 });
 
@@ -276,9 +276,11 @@ test('1.1 a word longer than a line breaks after "-" or "/", or else mid-word, a
   assert.ok(plain.every((l) => labelWidth(l) + 24 <= 220), 'split mid-word into pieces that fit');
 });
 
-test('1.1 wide characters (U+2E80 and up) count as 1.7', () => {
+test('1.1 wide characters (U+2E80 and up) count as 1.7, W and M 1.5, other capitals 1.25', () => {
   assert.equal(labelWidth('承認'), Math.ceil(3.4 * 6.4) + 8);
   assert.equal(labelWidth('ab'), Math.ceil(2 * 6.4) + 8);
+  assert.equal(labelWidth('Ab'), Math.ceil(2.25 * 6.4) + 8, 'capitals count as 1.25');
+  assert.equal(labelWidth('WM'), Math.ceil(3 * 6.4) + 8, 'W and M count as 1.5');
 });
 
 const branches = (...bs) => `    next:\n${bs.map(([to, label]) => `      - to: ${to}\n        label: ${label}\n`).join('')}`;
@@ -386,7 +388,37 @@ test('1.1 the width estimate is at least the width from a bold sans-serif charac
     ...Object.values(sample.elements).filter((e) => e.type === 'process').flatMap((p) => p.steps.flatMap((s) => s.next.map((n) => n.label).filter(Boolean))),
     'Existing account', 'New initiative', 'Not for us', 'Refer to the other party', 'Park or decline',
     'Approved by both parties and ready to send to the client now',
+    'WHO MANAGES MOMENTUM WORKFLOW', 'MANAGEMENT', 'WORKFLOW', 'HANDOVER TO DELIVERY', 'Move to Wave Two',
   ];
   assert.ok(labels.includes('Approved, ready to submit'));
   for (const l of labels) assert.ok(labelWidth(l) >= table(l), `${l}: ${labelWidth(l)} < ${table(l)}`);
+});
+
+test('1.1 labelled and unlabelled connectors into one step each enter at their own point; no line crosses a label', () => {
+  const m = mini(step('s', 'rx', '    next: [a, b, u]\n') + step('a', 'rx', branches(['c', 'Approved'])) + step('b', 'ry', branches(['c', 'Needs a second look'])) + step('u', 'ry', '    next: [c]\n') + step('c', 'rx'));
+  const { html, edge, box } = svgOf(m, 'p');
+  const c = box('c');
+  const labels = [...html.matchAll(/<text class="edge-label" x="([\d.]+)" y="([\d.]+)" text-anchor="end">([^<]+)<\/text>/g)].map(([, x, y, t]) => ({ t, l: +x - labelWidth(t), r: +x, top: +y - 12, bottom: +y + 3 }));
+  assert.deepEqual(labels.map((l) => l.t).sort(), ['Approved', 'Needs a second look']);
+  const ends = ['a', 'b', 'u'].map((s) => +edge(s, 'c').trim().split(/\s+/).pop());
+  assert.equal(new Set(ends).size, 3, `three entry points: ${ends}`);
+  ends.forEach((y) => assert.ok(y > c.y && y < c.y + 70, 'on the step edge'));
+  const pts = (d) => [...d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((p) => [+p[1], +p[2]]);
+  for (const d of [...html.matchAll(/<path class="edge[^"]*" d="([^"]*)"/g)].map((x) => x[1])) {
+    pts(d).forEach(([x0, y0], i, all) => {
+      if (!i) return;
+      const [x1, y1] = all[i - 1];
+      for (const l of labels) assert.ok(!(Math.max(x0, x1) > l.l && Math.min(x0, x1) < l.r && Math.max(y0, y1) > l.top && Math.min(y0, y1) < l.bottom), `${d} crosses ${l.t}`);
+    });
+  }
+  // A step with only unlabelled connectors keeps its single centre entry.
+  assert.ok(edge('s', 'a').trim().endsWith(` ${box('a').cy}`));
+});
+
+test('1.1 a skip detour in the bottom lane runs inside it, not on the diagram edge', () => {
+  const m = mini(step('t', 'rx', '    next: [s]\n') + step('s', 'ry', branches(['mid', 'Next'], ['far', 'Skip ahead'])) + step('mid', 'ry', '    next: [far]\n') + step('far', 'ry'));
+  const { html, edge } = svgOf(m, 'p');
+  const height = +html.match(/<svg class="swimlane" width="[\d.]+" height="([\d.]+)"/)[1];
+  const ys = [...edge('s', 'far').matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((p) => +p[2]);
+  assert.equal(Math.max(...ys), height - 6);
 });

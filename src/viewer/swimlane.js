@@ -183,12 +183,13 @@ export function swimlaneSvg(ctx) {
   let edges = '';
   let labels = '';
   const loops = {};
-  // Labelled forward connectors into each step: each enters at its own point, ordered by the source's height (D4).
+  // Into a step with a labelled forward connector, every forward connector enters at its own point, ordered by the
+  // source's height, so no line crosses a label (D4). Other steps keep one entry at their centre.
   const forward = (e) => !e.back && pos(e.to).x > pos(e.from).x;
   const entry = new Map();
   for (const to of new Set(f.edges.filter((e) => e.label && forward(e)).map((e) => e.to))) {
     const b = pos(to);
-    const into = f.edges.filter((e) => e.to === to && e.label && forward(e)).map((e) => ({ e, a: pos(e.from), lines: labelLines(e.label) }));
+    const into = f.edges.filter((e) => e.to === to && forward(e)).map((e) => ({ e, a: pos(e.from), lines: e.label ? labelLines(e.label) : [] }));
     into.sort((p, q) => p.a.cy - q.a.cy || p.a.x - q.a.x);
     entryPoints(into.map((i) => i.lines.length), b.cy, b.y + 10, b.bottom - 10, height).forEach((pt, n) => entry.set(into[n].e, { ...pt, lines: into[n].lines }));
   }
@@ -218,11 +219,12 @@ export function swimlaneSvg(ctx) {
         const p = pos(id);
         return n.step.owner === src.owner && n.rank > from && n.rank < f.nodes[e.to].rank && a.cy > p.y && a.cy < p.bottom;
       });
-      const yb = b.cy < a.cy ? laneTop[src.owner] : a.laneBottom;
+      // In the bottom lane, 6px inside it rather than on the diagram's edge, still below any rework loop (12px up).
+      const yb = b.cy < a.cy ? laneTop[src.owner] : a.laneBottom - (a.laneBottom >= height ? 6 : 0);
       d = path(blocked
         ? [[a.x + NW, a.cy], [a.x + NW + 12, a.cy], [a.x + NW + 12, yb], [mx, yb], [mx, y], [b.x - 3, y]]
         : [[a.x + NW, a.cy], [mx, a.cy], [mx, y], [b.x - 3, y]]);
-      if (at) {
+      if (at && e.label) {
         // Wrapped lines run downwards from the first baseline; a line that starts a new word gets a leading space,
         // so the text reads back as the whole label.
         let rest = String(e.label).replace(/\s+/g, ' ').trim();

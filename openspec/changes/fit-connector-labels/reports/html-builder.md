@@ -41,3 +41,10 @@
 - **Edge case:** in the bottom lane, the boundary is the diagram's bottom edge.
 - **Unit test:** a rendered `s → mid → far` plus a labelled `s → far`. The skip branch crosses no box and runs along the lane line; the adjacent edge doesn't detour.
 - **Results:** unit 277 of 277; e2e 383 of 383.
+
+## Round 6: html-qa round 2 fixes
+- **M1:** when a step has any labelled incoming connector, every forward connector into it gets its own entry. Unlabelled ones get a 0-line, 16px slot, ordered by source. Unit test: 2 labelled + 1 unlabelled, all entries distinct, no segment crosses a label. Steps with only unlabelled connectors still use the centre.
+- **m1:** the bottom-lane detour runs 6px inside the lane, below rework loops.
+- **m2:** capitals count 1.25, and W and M 1.5. ~1.15 failed the fixed-table test; 1.25 is the minimum that passes, and the orchestrator accepted it. The sample gap is now 194, still one line.
+- **m3:** a worked example in the `entryPoints` comment; an unlabelled entry is just a 0-height label box.
+- **Results:** unit 279 of 279; e2e 387 of 387.
