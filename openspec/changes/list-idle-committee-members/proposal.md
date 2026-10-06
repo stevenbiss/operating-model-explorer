@@ -20,7 +20,7 @@ The membership is already shown in two places: on the committee page, and when a
 
 - **Idle members get no lane.** In a process's swimlane, a committee member gets its own lane only when it takes part in a shown step **other than through committee membership**: it owns a step, or it has a RACI letter on a step that isn't owned by one of its committees. A member that takes part only through its committees is an **idle member** in that process, and gets no lane.
 - **The committee lane lists its idle members.**
-  - A committee lane's header keeps the committee's name, which links to the committee page. Below it, the header lists that committee's idle members in this process, grouped by party in the model's party order, with each party's colour.
+  - A committee lane's header keeps the committee's name, which links to the committee page. Below it, the header lists that committee's idle members in this process, accountable (A) members first, then R, C and I, then in the model's party order, each with its party's colour.
   - Each entry shows the role's name and its letter in the committee (e.g. "Legal counsel · C"), and links to the role's page.
   - When a role has `People`, the person's name (or "Multiple people") follows the role, as elsewhere.
   - When the list is longer than four lines, the header shows the first members and "+ N more". "+ N more" links to the committee page; its tooltip and accessible name list everyone.

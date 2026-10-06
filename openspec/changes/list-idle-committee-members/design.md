@@ -30,7 +30,7 @@ For each committee shown in the process, a member is **active** if, among the sh
 Every other member is **idle**.
 
 - `flow()` leaves idle members out of the lane roles, unless they take part some other way.
-- It returns `f.idle = { [committeeId]: [roleId…] }`, ordered by the model's party order, then role order.
+- It returns `f.idle = { [committeeId]: [roleId…] }`, ordered by the member's letter (A, R, C, I), then the model's party order, then role order. Confirmed by the user after QA: the members who share the decision are never hidden behind "+ N more".
 - A role that sits on two committees in the process and is idle in both is listed in both committee lanes.
 - A member given a letter on its own committee's step (already a validation warning, where the committee's letter wins) counts as committee participation, so it stays idle.
 - Rejected: computing idleness in the renderer, because it would spread the rule across `swimlane.js` and make it untestable in Node.

@@ -5,7 +5,7 @@
 - [x] 1.1 Idleness in `flow()` (D2), in `src/model/layout.js`:
   - a member is active if it owns a shown step or has a letter in the own `raci` of a shown step not owned by one of its committees;
   - idle members are left out of the lane roles;
-  - `f.idle[committeeId]` is returned in party, then role, order.
+  - `f.idle[committeeId]` is returned in party, then role, order (changed to letter, then party, then role order in 1.7, below).
 
   Verify with unit tests in `tests/unit/layout.test.js`: an idle member; a member that owns a step; a member with a letter on a role-owned step; a member with a letter on its own committee's step (still idle); a role idle in two committees; per-process idleness; and an unchanged layout for processes without committees
 - [x] 1.2 Committee lane header list (D3, D4), in `src/viewer/swimlane.js`:
@@ -23,6 +23,8 @@
   Verify that each loads with 0 errors
 - [x] 1.5 Acme sample (D6), both forms, in parity: add Legal counsel (C) to the bid board. Verify that both load with 0 errors and 0 warnings, that the parity test passes, and that Legal counsel is idle in "Qualify an opportunity" and has a lane in "Build the proposal"
 - [x] 1.6 Docs: the authoring guide's committee section explains idle members and how they're shown. Version 1.7.0 in `package.json` and `package-lock.json`, with the build stamping the plugin and skill. Verify with the version and skill-folder-current unit tests
+
+- [ ] 1.7 Accountable members first (user decision after QA): order `f.idle` by letter (A, R, C, I), then party order, then role order. Verify with a unit test in `tests/unit/layout.test.js`
 
 ## 2. Test
 
@@ -55,7 +57,9 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.19 Persona is an idle member
 - [x] 2.20 Hidden behind more
 
-- [x] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes. Lane-count assertions on the sample are updated only where this rule changes them
+- [ ] 2.23 Accountable members first
+- [ ] 2.24 Accountable member not hidden
+- [ ] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes. Lane-count assertions on the sample are updated only where this rule changes them
 
 ## 3. Verify
 

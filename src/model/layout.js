@@ -72,7 +72,10 @@ export function flow(m, processId, { showRemoved = false } = {}) {
     return [...m.order.party, null].map((party) => ({ party, lanes: roles.filter((r) => partyOf(r) === party) }));
   };
   const groups = byParty(used).filter((g) => g.lanes.length);
-  const idle = Object.fromEntries(committees.map((c) => [c, byParty(new Set(Object.keys(m.elements[c].members).filter((r) => !used.has(r)))).flatMap((g) => g.lanes)]));
+  // Idle members: by their letter in the committee (A, R, C, I), so those who share the decision come first, then party
+  // and role order (the sort is stable).
+  const letter = (c, r) => 'ARCI'.indexOf(m.elements[c].members[r]);
+  const idle = Object.fromEntries(committees.map((c) => [c, byParty(new Set(Object.keys(m.elements[c].members).filter((r) => !used.has(r)))).flatMap((g) => g.lanes).sort((a, b) => letter(c, a) - letter(c, b))]));
   const first = (c) => Math.min(...steps.filter((s) => s.owner === c).map((s) => rank[s.id]));
   // The committees group goes where the first party (in party order) with a member of any of them sits (design D5):
   // after its group, or, when all its members here are idle and it has none, where its group would be. With only one

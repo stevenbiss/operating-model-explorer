@@ -8,7 +8,7 @@ Each committee that owns a shown step in a process SHALL get its own lane. A pro
 A committee member SHALL get its own lane in its party group only when, in that process, it owns a shown step or has a RACI letter on a shown step that isn't owned by one of its committees. That lane's header SHALL list each committee in the process that the role sits on, with the role's letter in it (e.g. "Bid board member · A"). A member that takes part in the process only through its committees is an **idle member** there, and SHALL NOT get a lane. Idleness SHALL be worked out per process.
 
 A committee lane's header SHALL show the committee's name, linking to the committee page, and below it list the committee's idle members in that process:
-- grouped by party in the model's party order, each with its party's colour or mark;
+- ordered by their letter in the committee (A, then R, then C, then I), then by the model's party order, then by role order, so the members who share the decision come first; each with its party's colour or mark;
 - each entry showing the role's name and its letter in the committee (e.g. "Legal counsel · C"), followed by the role's person line (see role-people), and linking to the role's page.
 
 Members that have their own lane SHALL NOT be listed. When the list needs more than four lines, the header SHALL show the first entries and "+ N more". "+ N more" SHALL link to the committee page, and its tooltip and accessible name SHALL list every idle member. All of a committee's members SHALL still be shown when a committee step is opened (see Members shown when a committee step is opened) and on the committee page. A step owned by a committee SHALL sit in the committee's lane and show a text badge "By committee" (following the committee label).
@@ -52,6 +52,14 @@ Members that have their own lane SHALL NOT be listed. When the list needs more t
 #### Scenario: People on a listed member
 - **WHEN** an idle member's role lists one person, "Sam Example"
 - **THEN** its entry in the committee lane's header shows the role, its letter and "Sam Example"
+
+#### Scenario: Accountable members first
+- **WHEN** a committee's idle members are an Acme role marked C, a Globex role marked A and an Acme role marked I
+- **THEN** the committee lane lists the Globex A member first, then the Acme C member, then the Acme I member
+
+#### Scenario: Accountable member not hidden
+- **WHEN** a committee has nine idle members and only one of them is marked A, and that member's party comes last in the party order
+- **THEN** the A member is among the entries shown above "+ N more"
 
 #### Scenario: Long member list
 - **WHEN** a committee has nine idle members in a process
