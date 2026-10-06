@@ -63,7 +63,7 @@ Each workstream SHALL show its summary, the parties and roles involved, its proc
 - **THEN** the workstream page links to that structure diagram
 
 ### Requirement: L2 process swimlane
-A process SHALL be shown as a swimlane with one lane per role that owns or takes part in its steps, and one lane per committee that owns any of its steps (see committees › Committee lanes in the swimlane). Role lanes SHALL be grouped and labelled by party. Committee lanes SHALL form one group in the middle, between the first party group and the rest. A role takes part in a step when it appears in the step's RACI or is a member of the committee that owns it. Steps SHALL appear in their owner's lane in flow order. Every `next` relationship SHALL be drawn as a connector. Handoffs that cross parties SHALL be visually distinct from handoffs within a party. Decision branches SHALL show their labels.
+A process SHALL be shown as a swimlane with one lane per role that owns or takes part in its steps (except idle committee members, which are listed in their committee's lane instead; see committees › Committee lanes in the swimlane), and one lane per committee that owns any of its steps (see committees › Committee lanes in the swimlane). Role lanes SHALL be grouped and labelled by party. Committee lanes SHALL form one group in the middle, between the first party group and the rest. A role takes part in a step when it appears in the step's RACI or is a member of the committee that owns it. A committee member that takes part only through its committees is idle in that process. Steps SHALL appear in their owner's lane in flow order. Every `next` relationship SHALL be drawn as a connector. Handoffs that cross parties SHALL be visually distinct from handoffs within a party. Decision branches SHALL show their labels.
 
 #### Scenario: Lanes and steps
 - **WHEN** the viewer opens a sample process whose steps are owned by roles from two parties
@@ -80,6 +80,10 @@ A process SHALL be shown as a swimlane with one lane per role that owns or takes
 #### Scenario: Process without committees
 - **WHEN** a process has no committee-owned steps
 - **THEN** no committees group or heading is shown
+
+#### Scenario: No empty member lanes
+- **WHEN** a process's committee has three members who take part in nothing else in that process
+- **THEN** none of the three has a lane, the committee lane lists all three, and every role lane shown owns a step or has a RACI letter on a role-owned step
 
 ### Requirement: L3 step detail
 Activating a step SHALL open its detail: name, owner, RACI, inputs, outputs, systems, KPIs and narrative, showing only fields that have content. A role owner SHALL be shown with its party. A committee owner SHALL be shown with its "By committee" badge and its members split by organisation, each with their RACI letter, and SHALL link to the committee page (see committees › Members shown when a committee step is opened). The detail SHALL offer navigation to the previous and next steps in the flow. When a step has several next steps, each SHALL be offered by its label.
@@ -230,3 +234,61 @@ At viewport widths of 768px and more, the viewer SHALL be able to move a swimlan
 #### Scenario: Phones keep the list
 - **WHEN** a process is opened at 375px wide
 - **THEN** the steps appear as a vertical list as before, with no hand cursor or panning area, and the page does not scroll horizontally
+
+### Requirement: Connector labels fit between steps
+In the swimlane, every label on a forward connector (a decision branch) SHALL be fully readable: no part of it SHALL overlap a step box, and labels SHALL NOT overlap each other.
+- **Placement.** A label SHALL sit on the connector's last horizontal segment, the one entering its target step, just before the target. When several connectors enter the same step and at least one has a label, each of them, labelled or not, SHALL enter at its own point along the step's left edge, at least 16px apart while they fit within that edge, or spread evenly along it when there are more. Each label SHALL sit next to its own connector where there is room; where there isn't, the labels SHALL be stacked in the same top-to-bottom order as their connectors. No label SHALL extend outside the diagram.
+- **Gap sizing.** The gap in front of each column SHALL be at least as wide as the widest label on a forward connector entering that column, plus padding on both sides, and never narrower than today's gap. Columns without such labels SHALL keep today's width.
+- **Wrapping.** A gap SHALL be at most 220px wide. A label too long for that SHALL wrap onto two or more lines, as many as it needs, still clear of the step boxes. A single word too long for a line SHALL be broken (after a hyphen or slash, or else mid-word) rather than overlap a step. A label SHALL never be truncated.
+- **Routing.** A forward connector that skips one or more columns SHALL NOT pass through or behind any step box on its way to its target.
+- **Loop-back labels.** Labels on loop-back (rework) connectors SHALL keep their current placement under the steps.
+
+The layout SHALL be the same in author mode and in an exported snapshot.
+
+#### Scenario: Short label, no change
+- **WHEN** a process's only branch labels are "Go" and "No go"
+- **THEN** every column keeps today's width, and each label sits clear of the step boxes
+
+#### Scenario: Long label widens its gap
+- **WHEN** the viewer opens the sample's "Build the proposal", whose "Review the proposal" step has the branch "Approved, ready to submit"
+- **THEN** the gap before "Submit the proposal" is wider than today's, the label is fully visible between the two steps, and it overlaps no step box
+
+#### Scenario: Five-branch decision
+- **WHEN** a decision step has five labelled branches to five different steps, with labels of up to 24 characters
+- **THEN** all five labels are fully visible, none overlaps a step box, and no two labels overlap
+
+#### Scenario: Several labels into one step
+- **WHEN** four labelled connectors, with labels up to 60 characters, enter the same step in the top lane
+- **THEN** each connector enters the step at its own point, all four labels are fully visible inside the diagram, none overlaps a step box or another label, and the labels run top to bottom in the same order as their connectors
+
+#### Scenario: Label past the maximum wraps
+- **WHEN** a branch label is 60 characters long
+- **THEN** its gap is at most 220px, and the label shows on two or more lines, in full, without overlapping any step box
+
+#### Scenario: Labelled and unlabelled connectors into one step
+- **WHEN** two labelled connectors and one unlabelled connector enter the same step
+- **THEN** all three enter at their own points, both labels are fully visible, and no connector line crosses either label
+
+#### Scenario: Many connectors into one step
+- **WHEN** six labelled connectors with short labels enter the same step
+- **THEN** all six enter within the step's left edge, all six labels are fully visible, and none overlaps another
+
+#### Scenario: Branch that skips a column
+- **WHEN** a decision has one labelled branch to the next column and another labelled branch two columns on, into a lane that has a step in the skipped column
+- **THEN** the longer branch passes no step box, and its label sits clear of every step box
+
+#### Scenario: Skip branch past a step in its own lane
+- **WHEN** a labelled branch skips a column, and the source step's own lane has a step in the skipped column
+- **THEN** the branch passes no step box on its way to its target
+
+#### Scenario: One very long word
+- **WHEN** a branch label is a single 47-character hyphenated word
+- **THEN** it is shown in full on more than one line, and no part of it overlaps a step box
+
+#### Scenario: Loop-back label unchanged
+- **WHEN** the sample's "Build the proposal" is opened
+- **THEN** the "Needs rework" loop-back label is drawn under the steps, as before
+
+#### Scenario: Same layout in the snapshot
+- **WHEN** the sample is exported and the snapshot's "Build the proposal" is opened
+- **THEN** the step and label positions match the author-mode preview

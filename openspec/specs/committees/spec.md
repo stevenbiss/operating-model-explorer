@@ -86,13 +86,19 @@ A committee-owned step's RACI SHALL be the committee's member letters, plus any 
 - **THEN** the report shows a warning saying members' letters are set on the committee, and the step detail shows that member as Accountable
 
 ### Requirement: Committee lanes in the swimlane
-Each committee that owns a shown step in a process SHALL get its own lane. A process MAY have several committees. All committee lanes SHALL form one group under one heading with the committees label ("Committees" by default), stacked in the order their first steps appear. The group SHALL sit in the middle of the swimlane: directly after the first party group, in the model's party order, that has a member of any committee shown in that process. So with two parties the committees sit between them, and with a client party first (e.g. Customer, Acme, Globex, with Acme and Globex members) they sit between the members' parties. With only one party group shown, the group SHALL sit after it.
+Each committee that owns a shown step in a process SHALL get its own lane. A process MAY have several committees. All committee lanes SHALL form one group under one heading with the committees label ("Committees" by default), stacked in the order their first steps appear. The group SHALL sit in the middle of the swimlane, where the first party (in the model's party order) that has a member of any committee shown in that process sits: directly after that party's group, or, when that party has no lanes in the process (because all its members there are idle), between the shown party groups that come before and after it in the party order. So with two parties the committees sit between them, and with a client party first (e.g. Customer, Acme, Globex, with Acme and Globex members) they sit between the members' parties. With only one party group shown, the group SHALL sit after it.
 
-A committee lane's header SHALL show only the committee's name, linking to the committee page. It SHALL NOT list the members, which are shown when a committee step is opened (see Members shown when a committee step is opened) and on the committee page. Every member SHALL also get its own lane in its party group, like a role that takes part through RACI. That lane's header SHALL list each committee in the process that the role sits on, with the role's letter in it (e.g. "Bid board member · A"). A step owned by a committee SHALL sit in the committee's lane and show a text badge "By committee" (following the committee label).
+A committee member SHALL get its own lane in its party group only when, in that process, it owns a shown step or has a RACI letter on a shown step that isn't owned by one of its committees. That lane's header SHALL list each committee in the process that the role sits on, with the role's letter in it (e.g. "Bid board member · A"). A member that takes part in the process only through its committees is an **idle member** there, and SHALL NOT get a lane. Idleness SHALL be worked out per process.
+
+A committee lane's header SHALL show the committee's name, linking to the committee page, and below it list the committee's idle members in that process:
+- ordered by their letter in the committee (A, then R, then C, then I), then by the model's party order, then by role order, so the members who share the decision come first; each with its party's colour or mark;
+- each entry showing the role's name and its letter in the committee (e.g. "Legal counsel · C"), followed by the role's person line (see role-people), and linking to the role's page.
+
+Members that have their own lane SHALL NOT be listed. When the list needs more than four lines, the header SHALL show the first entries and "+ N more". "+ N more" SHALL link to the committee page, and its tooltip and accessible name SHALL list every idle member. All of a committee's members SHALL still be shown when a committee step is opened (see Members shown when a committee step is opened) and on the committee page. A step owned by a committee SHALL sit in the committee's lane and show a text badge "By committee" (following the committee label).
 
 #### Scenario: Committee lane and badge
-- **WHEN** the viewer opens a process in which a committee of an Acme role and a Globex role owns one step
-- **THEN** a lane under "Committees" sits between the Acme group and the Globex group, its header shows the committee name only, with no member list, and the step sits in that lane with a "By committee" badge
+- **WHEN** the viewer opens a process in which a committee of an Acme role and a Globex role owns one step, and both members also take part in other steps
+- **THEN** a lane under "Committees" sits between the Acme group and the Globex group, its header shows the committee name, and the step sits in that lane with a "By committee" badge
 
 #### Scenario: Membership shown in the member's own lane
 - **WHEN** the viewer opens the sample's "Qualify an opportunity"
@@ -110,12 +116,48 @@ A committee lane's header SHALL show only the committee's name, linking to the c
 - **WHEN** a model's parties are Customer, Acme and Globex in that order, and a process has steps owned by a Customer role and by a committee of an Acme role and a Globex role
 - **THEN** the order of groups in the swimlane is Customer, Acme, Committees, Globex
 
+#### Scenario: Placement when member parties have no lanes
+- **WHEN** a model's parties are Customer, Acme and Globex in that order, a process has steps owned by Customer roles and Globex roles, and its committee's only members are Acme roles that are idle there
+- **THEN** the groups are shown in the order Customer, Committees, Globex, and the committee lane lists the idle Acme members
+
+#### Scenario: Idle member listed in the committee lane
+- **WHEN** the viewer opens the sample's "Qualify an opportunity", where the bid board's member Legal counsel (C) owns no step and has no other RACI letter
+- **THEN** the swimlane has no Legal counsel lane, and the bid board lane's header lists "Legal counsel · C" under Acme, linking to the Legal counsel page
+
+#### Scenario: Member with its own step keeps its lane
+- **WHEN** the bid board's member Account lead (A) also owns "Capture the lead"
+- **THEN** the swimlane has an Account lead lane whose header says it is a bid board member with the letter A, and the bid board lane's header doesn't list Account lead
+
+#### Scenario: Member with a RACI letter on another step keeps its lane
+- **WHEN** the bid board's member Partner manager owns no step but is marked I on "Assess solution fit", which a role owns
+- **THEN** Partner manager has its own lane, and isn't listed in the bid board lane's header
+
+#### Scenario: People on a listed member
+- **WHEN** an idle member's role lists one person, "Sam Example"
+- **THEN** its entry in the committee lane's header shows the role, its letter and "Sam Example"
+
+#### Scenario: Accountable members first
+- **WHEN** a committee's idle members are an Acme role marked C, a Globex role marked A and an Acme role marked I
+- **THEN** the committee lane lists the Globex A member first, then the Acme C member, then the Acme I member
+
+#### Scenario: Accountable member not hidden
+- **WHEN** a committee has nine idle members and only one of them is marked A, and that member's party comes last in the party order
+- **THEN** the A member is among the entries shown above "+ N more"
+
+#### Scenario: Long member list
+- **WHEN** a committee has nine idle members in a process
+- **THEN** the header shows the first entries and "+ N more" within four lines, "+ N more" opens the committee page, and its tooltip and accessible name list all nine members
+
+#### Scenario: Idle in one process, a lane in another
+- **WHEN** a committee member is idle in one process and owns a step in another
+- **THEN** it is listed in the committee lane in the first process, and has its own lane in the second
+
 ### Requirement: Members shown when a committee step is opened
 Activating a committee-owned step SHALL open its step detail, as for any step. That detail SHALL lead with the committee's name and "By committee" badge, followed by all its members **split by organisation**: one heading per party, with the party's mark and name, listing each member role (linking to its role profile) with its RACI letter written out (e.g. "Accountable"). When more than one member is marked A, each SHALL be shown as "Accountable, jointly". The rest of the detail (description, RACI for non-members, inputs, outputs and the flow navigation) SHALL follow as for any step.
 
 #### Scenario: Open the committee decision
 - **WHEN** the viewer clicks "Go or no-go" in the sample's swimlane
-- **THEN** the step detail opens with the bid board's name and "By committee" badge, then an Acme heading listing Account lead (Accountable, jointly) and Bid manager (Informed), and a Globex heading listing Partner manager (Accountable, jointly) and Solution architect (Consulted)
+- **THEN** the step detail opens with the bid board's name and "By committee" badge, then an Acme heading listing Account lead (Accountable, jointly), Bid manager (Informed) and Legal counsel (Consulted), and a Globex heading listing Partner manager (Accountable, jointly) and Solution architect (Consulted)
 
 ### Requirement: Handoffs to and from committee steps
 A connector into or out of a committee-owned step SHALL be styled as cross-party when the committee has at least one member from a party other than that of the step at the other end. Between two committee-owned steps it SHALL be styled as cross-party when the two committees' member parties differ.
@@ -154,7 +196,7 @@ Below 768px, a committee-owned step in the vertical step list SHALL be labelled 
 - **THEN** "Go or no-go" in the step list shows the bid board's name and the "By committee" badge but no member list, opening it shows the members split by organisation, and the page does not scroll horizontally
 
 ### Requirement: Sample committee
-The Acme sample, in both its folder and capture-sheet forms, SHALL include the committee "Acme + Globex bid board", owning the step "Go or no-go" in "Qualify an opportunity", with the members Account lead (A), Partner manager (A), Solution architect (C) and Bid manager (I). It SHALL use fictional names only, and both forms SHALL still load with 0 errors and 0 warnings and stay in parity.
+The Acme sample, in both its folder and capture-sheet forms, SHALL include the committee "Acme + Globex bid board", owning the step "Go or no-go" in "Qualify an opportunity", with the members Account lead (A), Partner manager (A), Solution architect (C), Bid manager (I) and Legal counsel (C). Legal counsel SHALL take no other part in that process, so the sample shows an idle member. It SHALL use fictional names only, and both forms SHALL still load with 0 errors and 0 warnings and stay in parity.
 
 #### Scenario: Sample committee loads
 - **WHEN** `examples/acme-sample/` and `examples/acme-capture-sheet/` are each loaded
