@@ -57,9 +57,9 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.19 Persona is an idle member
 - [x] 2.20 Hidden behind more
 
-- [ ] 2.23 Accountable members first
-- [ ] 2.24 Accountable member not hidden
-- [ ] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes. Lane-count assertions on the sample are updated only where this rule changes them
+- [x] 2.23 Accountable members first
+- [x] 2.24 Accountable member not hidden
+- [x] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes. Lane-count assertions on the sample are updated only where this rule changes them
 
 ## 3. Verify
 
@@ -78,5 +78,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.7.0 with the three standard assets and checksums
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.7.0 with the three standard assets and checksums
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated

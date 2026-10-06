@@ -33,3 +33,8 @@ New tests are in `tests/e2e/idle-members.spec.js`.
 
 ## Observation for QA
 In 2.9, the entry "Legal counsel · C Sam Example" wraps at 24 characters, so the person's name splits across two lines ("Sam" / "Example"). This is within the spec, but worth a polish look.
+
+# Round 2: accountable members first: PASS
+- **2.23:** variant whose idle members are C (Alpha), A (Beta) and I (Alpha). Listed A, C, I, top to bottom, with matching accessible names.
+- **2.24:** `committee-idle-long`. Partner director (A, last party) is the first entry, above "+ N more". The aria-label and the tooltip list all nine with it first.
+- **Results:** unit 266 of 266; e2e 363 of 363.

@@ -4,7 +4,7 @@ An engine that turns an operating model, written as one capture sheet or a folde
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.6.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.6.0)). It shows who holds each role, marks every process and structure diagram as Under review or Agreed, adds a Simple home page (the new default) with a list of all processes, and keeps the Detailed home page as an option. Built, tested (349 end-to-end and 256 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-people-status-simple-view/reports/`.
+**Status:** v1.7.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.7.0)). Committee members who take part in a process only through their committee no longer get empty lanes; they're listed in the committee's lane instead, accountable members first. Built, tested (363 end-to-end and 266 unit tests), verified and QA-approved. Reports are in `openspec/changes/list-idle-committee-members/reports/`.
 
 
 ## For authors
@@ -34,6 +34,7 @@ From v1.4.0, a step can be owned by a **committee** instead of one role, for a d
 - **A committee has its own RACI.** Each member role, from any party, has one letter. Members marked **A** share the decision and are jointly accountable; there is no single owner. Others can be consulted (C), informed (I) or do the work (R).
 - In a capture sheet, add a `## Committees` table (`Committee`, `Members` such as `Account lead (A); Partner manager (A); Solution architect (C)`, `Summary`) and name the committee in a step's `Owner` cell. In a content folder, use a `type: committee` file in `committees/`. See `docs/capture-sheet.md` (Committees) and `docs/authoring-guide.md` (Committees).
 - **In the swimlane**, committees get their own lanes, together in the middle between the parties, and their steps are marked "By committee". Each member's own lane says which committee it sits on, with its letter. Opening a committee step lists all its members, split by organisation.
+- **Members with nothing else to do in a process get no lane** (from v1.7.0). A member keeps its own lane only if it owns a step, or has a RACI letter on a step owned by a role. The others are listed in the committee's lane, accountable members first, with "+ N more" when there are many.
 - The engine warns when a committee isn't really joint: no A member, only one, or A members from only one party. Rename "committee" per model if you prefer (for example "Steering group").
 
 ### People, review status and the home page

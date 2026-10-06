@@ -197,7 +197,7 @@ test.describe('idle members (exported committee-idle-long)', () => {
     const shown = await idleIds(page, 'steering-group');
     expect(shown.length).toBeGreaterThan(0);
     expect(shown.length).toBeLessThan(9);
-    // The first entries, in party then role order.
+    // The first entries, in list order: letter (A, C, I), then party, then role.
     expect(shown).toEqual(['partner-director', 'finance-director', 'legal-counsel', 'risk-officer', 'delivery-director', 'hr-partner', 'comms-lead', 'security-officer', 'quality-lead'].slice(0, shown.length));
     // Beta Inc has no lanes (all its members are idle), but its members are listed, so the legend has its key.
     await expect(page.getByTestId('legend-party')).toHaveText([/Alpha Ltd$/, /Beta Inc$/]); // after the mark (initials for Beta)
@@ -289,5 +289,63 @@ test.describe('idle members (exported committee-idle-persona)', () => {
     await expect(e).toHaveText('Legal counsel · C You');
     await expect(e.locator('.idle-you')).toHaveText('You'); // a text cue, not colour alone
     await expect(e).toHaveAccessibleName(/, you$/);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 2.23: committee-basic, varied so the bid board's idle members are an Alpha role marked C, a Beta role marked A and
+// an Alpha role marked I (Account lead, A, owns steps and keeps its lane; Solution architect, C, owns "scope").
+const MIXED_LETTERS = variant('committee-basic', 'committee-mixed-letters', {
+  'committees/01-bid-board.md': (t) => t.replace(/members:\n(  .*\n)+/, 'members:\n  account-lead: A\n  bid-manager: C\n  partner-manager: A\n  delivery-manager: I\n  solution-architect: C\n'),
+  'processes/01-flow.md': (t) => t.replace('    raci:\n      delivery-manager: I\n', ''),
+});
+test.describe('idle members (exported committee-basic, mixed letters)', () => {
+  const snap = useSnapshot(MIXED_LETTERS);
+
+  test('2.23 committees › Accountable members first', async ({ page }) => {
+    await openSnapshot(page, snap, '#/p/flow');
+    for (const r of ['bid-manager', 'partner-manager', 'delivery-manager']) await expect(page.getByTestId(`lane-${r}`)).toHaveCount(0);
+    // The Beta A member first, then the Alpha C member, then the Alpha I member: in the header, top to bottom.
+    expect(await idleIds(page, 'bid-board')).toEqual(['partner-manager', 'bid-manager', 'delivery-manager']);
+    const ys = await page.locator('.lane-heads .idle-entry .lane-hit').evaluateAll((rs) => rs.map((r) => +r.getAttribute('y')));
+    expect([...ys].sort((a, b) => a - b)).toEqual(ys);
+    await expect(page.locator('.lane-heads .idle-entry')).toHaveText(['Partner manager · A', 'Bid manager · C', 'Delivery manager · I']);
+    await expect(page.locator('.lane-heads .idle-entry').nth(0)).toHaveAccessibleName('Partner manager, Beta Inc, accountable');
+    await expect(page.locator('.lane-heads .idle-entry').nth(1)).toHaveAccessibleName('Bid manager, Alpha Ltd, consulted');
+    await expect(page.locator('.lane-heads .idle-entry').nth(2)).toHaveAccessibleName('Delivery manager, Alpha Ltd, informed');
+    await expect(page.getByTestId('idle-more-bid-board')).toHaveCount(0);
+  });
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// 2.24: committee-idle-long: Partner director is the only idle A member, and Beta Inc is the last party.
+test.describe('idle members (exported committee-idle-long, accountable member)', () => {
+  const snap = useSnapshot('committee-idle-long');
+
+  test('2.24 committees › Accountable member not hidden', async ({ page }) => {
+    await openSnapshot(page, snap, '#/p/change-flow');
+    await skipPrompt(page);
+    const more = page.getByTestId('idle-more-steering-group');
+    await expect(more).toBeVisible();
+    const shown = await idleIds(page, 'steering-group');
+    expect(shown[0], 'the A member is the first entry shown').toBe('partner-director');
+    await expect(page.getByTestId('idle-steering-group-partner-director')).toBeVisible();
+    await expect(page.getByTestId('idle-steering-group-partner-director')).toContainText('Partner director · A');
+    await expect(page.getByTestId('idle-steering-group-partner-director')).toHaveAccessibleName(/^Partner director, Beta Inc, accountable/);
+    // It is above "+ N more", which counts only the others.
+    const pd = await page.getByTestId('idle-steering-group-partner-director').locator('.lane-hit').boundingBox();
+    const mb = await more.locator('.lane-hit').boundingBox();
+    expect(pd.y).toBeLessThan(mb.y);
+    await expect(more).toHaveText(`+ ${9 - shown.length} more`);
+    // The same order in the "+ N more" accessible name and tooltip: Partner director first.
+    const name = await more.getAttribute('aria-label');
+    const order = NINE.map((n) => name.indexOf(n));
+    expect(order.every((i) => i >= 0), 'aria-label names all nine').toBe(true);
+    expect([...order].sort((a, b) => a - b), 'aria-label in list order').toEqual(order);
+    expect(name).toMatch(/All 9: Partner director, Beta Inc, accountable;/);
+    await more.locator('text').hover();
+    await expect(tip(page).locator('li')).toHaveCount(9);
+    await expect(tip(page).locator('li').first()).toContainText('Partner director · A');
+    for (const [i, n] of NINE.entries()) await expect(tip(page).locator('li').nth(i)).toContainText(n);
   });
 });
