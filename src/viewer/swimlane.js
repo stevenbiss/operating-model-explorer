@@ -2,7 +2,7 @@
 // Steps are <g role="button"> in flow order so Tab follows the flow; lane-header role links come last.
 import { esc } from './esc.js';
 import { peopleAttrs, peopleLine } from './people.js';
-import { columns, GAP_MIN, HEAD, labelLines, NW } from '../model/layout.js';
+import { columns, entryPoints, GAP_MIN, HEAD, labelLines, NW } from '../model/layout.js';
 
 const NH = 70; // node height
 const PARTY_H = 34; // a party row; a two-line party name adds BAND_LINE
@@ -183,7 +183,15 @@ export function swimlaneSvg(ctx) {
   let edges = '';
   let labels = '';
   const loops = {};
-  const stack = {}; // label lines already drawn above each target's entry line
+  // Labelled forward connectors into each step: each enters at its own point, ordered by the source's height (D4).
+  const forward = (e) => !e.back && pos(e.to).x > pos(e.from).x;
+  const entry = new Map();
+  for (const to of new Set(f.edges.filter((e) => e.label && forward(e)).map((e) => e.to))) {
+    const b = pos(to);
+    const into = f.edges.filter((e) => e.to === to && e.label && forward(e)).map((e) => ({ e, a: pos(e.from), lines: labelLines(e.label) }));
+    into.sort((p, q) => p.a.cy - q.a.cy || p.a.x - q.a.x);
+    entryPoints(into.map((i) => i.lines.length), b.cy, b.y + 10, b.bottom - 10, height).forEach((pt, n) => entry.set(into[n].e, { ...pt, lines: into[n].lines }));
+  }
   for (const e of f.edges) {
     const a = pos(e.from);
     const b = pos(e.to);
@@ -197,17 +205,24 @@ export function swimlaneSvg(ctx) {
       d = path([[a.cx + 18, a.bottom], [a.cx + 18, yl], [b.cx - 18, yl], [b.cx - 18, b.bottom + 3]]);
       if (e.label) labels += `<text class="edge-label${emph}" x="${(a.cx + b.cx) / 2}" y="${yl - 5}" text-anchor="middle">${esc(e.label)}</text>`;
     } else {
-      // Bend just past the source, then enter the target across the gap, with the label on that entry line (D4).
-      const mx = a.x + NW + 12;
-      d = path([[a.x + NW, a.cy], [mx, a.cy], [mx, b.cy], [b.x - 3, b.cy]]);
-      if (e.label) {
-        // Too wide for the largest gap: wrapped, the lines stacking upwards from the entry line.
-        const lines = labelLines(e.label);
-        // Labelled edges into the same step stack above one another.
-        const y0 = b.cy - 6 - (stack[e.to] ?? 0) * 14;
-        stack[e.to] = (stack[e.to] ?? 0) + lines.length;
-        const text = lines.length > 1 ? lines.map((l, i) => `<tspan x="${b.x - 8}" y="${y0 - (lines.length - 1 - i) * 14}">${i ? ' ' : ''}${esc(l)}</tspan>`).join('') : esc(lines[0]);
-        labels += `<text class="edge-label${emph}" x="${b.x - 8}" y="${y0}" text-anchor="end">${text}</text>`;
+      // Bend just past the column before the target (just past the source for adjacent columns), then enter the target
+      // across the gap at its own entry point, with the label on that entry line (D4).
+      const mx = cols[f.nodes[e.to].rank - 1] + NW + 12;
+      const at = entry.get(e);
+      const y = at ? at.y : b.cy;
+      d = path([[a.x + NW, a.cy], [mx, a.cy], [mx, y], [b.x - 3, y]]);
+      if (at) {
+        // Wrapped lines run downwards from the first baseline; a line that starts a new word gets a leading space,
+        // so the text reads back as the whole label.
+        let rest = String(e.label).replace(/\s+/g, ' ').trim();
+        const text = at.lines.length > 1
+          ? at.lines.map((l, i) => {
+            const glue = i && rest.startsWith(' ') ? ' ' : '';
+            rest = rest.trimStart().slice(l.length);
+            return `<tspan x="${b.x - 8}" y="${at.baseline + i * 14}">${glue}${esc(l)}</tspan>`;
+          }).join('')
+          : esc(at.lines[0]);
+        labels += `<text class="edge-label${emph}" x="${b.x - 8}" y="${at.baseline}" text-anchor="end">${text}</text>`;
       }
     }
     edges += `<path class="${cls}" d="${d}" marker-end="url(#om-${e.crossParty ? 'open' : 'arrow'})" data-from="${esc(e.from)}" data-to="${esc(e.to)}"/>`;

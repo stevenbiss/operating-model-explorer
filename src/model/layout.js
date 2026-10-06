@@ -111,10 +111,12 @@ export const HEAD = 196; // lane header width
 export const NW = 164; // step box width
 export const GAP_MIN = 80;
 export const GAP_MAX = 220;
-export const LABEL_PAD = 2 * 12; // padding on both sides: the bend sits 12px past the source, the label ends 8px before the target
+export const LABEL_PAD = 2 * 12; // the bend sits 12px past the column before, the label ends 8px before the target: 4px slack
 
-// A generous estimate of a label's width at its 12px font, so the layout never depends on fonts or the DOM.
-export const labelWidth = (text) => Math.ceil(String(text).length * 7.2) + 8;
+// An estimate of a label's width at its 12px font, so the layout never depends on fonts or the DOM (D2). Characters
+// from U+2E80 on (CJK and other wide scripts) count as 1.7, since 6.4px a character assumes Latin text.
+export const labelWidth = (text) => Math.ceil([...String(text)].reduce((n, c) => n + (c.codePointAt(0) >= 0x2e80 ? 1.7 : 1), 0) * 6.4) + 8;
+const fits = (s) => labelWidth(s) + LABEL_PAD <= GAP_MAX;
 
 // The left edge of each rank's step box. The gap in front of rank k fits the widest label on a forward edge into it.
 export function columns(f) {
@@ -125,16 +127,50 @@ export function columns(f) {
   return { x };
 }
 
-// A label's lines: one when it fits the largest gap, otherwise wrapped greedily at spaces so each line's estimate
-// fits it. A word longer than a line stays whole; nothing is cut.
+// A label's lines: one when it fits the largest gap, otherwise wrapped greedily so each line's estimate fits it (D4).
+// A word too long for a line breaks after "-" or "/", or else mid-word. Nothing is cut: the lines joined, with a space
+// where a line starts a new word, give back the label.
 export function labelLines(text) {
-  const t = String(text);
-  if (labelWidth(t) + LABEL_PAD <= GAP_MAX) return [t];
-  const out = [];
-  for (const w of t.split(/\s+/).filter(Boolean)) {
-    const last = out.length && `${out[out.length - 1]} ${w}`;
-    if (last && labelWidth(last) + LABEL_PAD <= GAP_MAX) out[out.length - 1] = last;
-    else out.push(w);
+  const t = String(text).replace(/\s+/g, ' ').trim();
+  if (fits(t)) return [t];
+  // Pieces of each word, with the glue that goes before them: a space before a word, nothing inside one.
+  const pieces = t.split(' ').flatMap((w) =>
+    w.split(/(?<=[-/])/).flatMap((a) => {
+      const out = [''];
+      for (const c of a) fits(out[out.length - 1] + c) ? (out[out.length - 1] += c) : out.push(c);
+      return out;
+    }).map((a, i) => [i ? '' : ' ', a]),
+  );
+  const lines = [];
+  for (const [glue, a] of pieces) {
+    if (lines.length && fits(lines[lines.length - 1] + glue + a)) lines[lines.length - 1] += glue + a;
+    else lines.push(a);
   }
-  return out;
+  return lines;
+}
+
+// Where several labelled connectors enter one step (D4): one entry line each, at least 16px apart around the step's
+// centre cy and within [top, bottom], in the given order (top to bottom), each label on its own line. counts: each
+// label's number of lines. The first k labels sit above their lines and the rest below, trying k = n, n - 1, ... 0 until
+// no label leaves the diagram (0 to limit). Returns each entry's y and its label's first baseline; lines are 14px apart.
+const ASC = 12; // a label line's box: 12px above its baseline, 3px below
+const boxH = (lines) => ASC + 3 + (lines - 1) * 14;
+export function entryPoints(counts, cy, top, bottom, limit) {
+  const n = counts.length;
+  let first;
+  for (let k = n; k >= 0; k--) {
+    // Room between two entry lines for the label that sits between them, or 16px when neither does.
+    let pitch = counts.slice(1).map((c, j) => Math.max(16, j + 1 < k ? boxH(c) + 4 : j >= k ? boxH(counts[j]) + 4 : 16));
+    if (pitch.reduce((s, p) => s + p, 0) > bottom - top) pitch = pitch.map(() => 16);
+    const ys = [cy - pitch.reduce((s, p) => s + p, 0) / 2];
+    for (const p of pitch) ys.push(ys[ys.length - 1] + p);
+    // Label boxes' tops: above their lines, pushed up clear of the one below; below their lines, pushed down.
+    const tops = [];
+    for (let i = k - 1; i >= 0; i--) tops[i] = Math.min(ys[i] - 3, i < k - 1 ? tops[i + 1] - 1 : Infinity) - boxH(counts[i]);
+    for (let i = k; i < n; i++) tops[i] = Math.max(ys[i] + 3, i > k ? tops[i - 1] + boxH(counts[i - 1]) + 1 : -Infinity);
+    const out = ys.map((y, i) => ({ y, baseline: tops[i] + ASC }));
+    first ??= out;
+    if (tops.every((t, i) => t >= 0 && t + boxH(counts[i]) <= limit)) return out;
+  }
+  return first;
 }

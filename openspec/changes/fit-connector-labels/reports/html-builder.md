@@ -19,3 +19,13 @@
 - `labelLines()` wraps greedily into as many lines as needed, each at most 196px by estimate. A long word stays whole and nothing is cut. The 60-character label takes 3 lines.
 - Unit tests updated, plus a long-word test. No overlaps in Chromium across the sample and the fixtures.
 - **Results:** unit 271 of 271; e2e 363 of 363.
+
+## Round 3: verifier and QA fixes
+1. **Skip-column bend:** `mx = cols[targetRank - 1] + NW + 12`, restoring 1.7.0's routing for skips.
+2. **Entry points:** a pure `entryPoints()` gives each labelled connector its own entry line, ordered by source, at least 16px apart, kept on the step's edge. Labels are pushed clear of each other and stay inside the diagram; the lowest move below their lines if needed.
+3. **Estimate:** 6.4px per character; characters from U+2E80 count 1.7.
+4. **Long words:** broken after `-` or `/`, else mid-word; the text is always complete.
+5. **Small fixes:** `LABEL_PAD` comment; single `columns()` call in the unit test.
+- **Unit tests:** skip bend, entry spreading for several shapes, rendered entry order, long words, wide characters. The sample gap is now 192 on one line.
+- **Results:** unit 275 of 275; e2e 375 of 375.
+- **Limit raised:** four long multi-line labels can't each sit on their own line, because the step edge is 70px. The orchestrator's decision: they stack in connector order (spec updated), and 5 or more entries spread evenly within the edge (new scenario 2.11).

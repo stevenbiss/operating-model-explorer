@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadModel } from '../../src/model/load.js';
-import { columns, flow, labelLines, labelWidth } from '../../src/model/layout.js';
+import { columns, entryPoints, flow, labelLines, labelWidth } from '../../src/model/layout.js';
+import { swimlaneSvg } from '../../src/viewer/swimlane.js';
 import { files, MODEL, readFolder, SAMPLE, withoutAccountable } from './helpers.js';
 
 const sample = loadModel(readFolder(SAMPLE)).model;
@@ -227,7 +228,10 @@ test("1.1 idleness is per process: the sample's Legal counsel is idle in Qualify
 });
 
 // fit-connector-labels 1.1: column positions sized to connector labels (D2, D3).
-const gaps = (f) => columns(f).x.slice(1).map((x, k) => x - columns(f).x[k] - 164);
+const gaps = (f) => {
+  const { x } = columns(f);
+  return x.slice(1).map((v, k) => v - x[k] - 164);
+};
 const chain = (label) => mini(step('a', 'rx') + step('b', 'ry', label ? `    next:\n      - to: c\n        label: ${label}\n` : '') + step('c', 'rx') + step('d', 'ry'));
 
 test('1.1 with no labels every step keeps its 1.7.0 position', () => {
@@ -239,12 +243,12 @@ test('1.1 with no labels every step keeps its 1.7.0 position', () => {
 
 test('1.1 a long label widens only the gap in front of its target', () => {
   const label = 'Needs a second look'; // 19 characters
-  assert.equal(labelWidth(label), Math.ceil(19 * 7.2) + 8);
+  assert.equal(labelWidth(label), Math.ceil(19 * 6.4) + 8);
   assert.deepEqual(gaps(flow(chain(label), 'p')), [80, labelWidth(label) + 24, 80]);
   // The sample: the gap before "Submit the proposal" is wider than 1.7.0's 80px.
   const f = flow(sample, 'build-proposal');
   assert.equal(gaps(f)[f.nodes['submit-proposal'].rank - 1], labelWidth('Approved, ready to submit') + 24);
-  assert.equal(labelWidth('Approved, ready to submit') + 24, 212);
+  assert.equal(labelWidth('Approved, ready to submit') + 24, 192);
   assert.deepEqual(labelLines('Approved, ready to submit'), ['Approved, ready to submit'], 'fits on one line');
 });
 
@@ -258,9 +262,73 @@ test('1.1 a 60-character label caps its gap at 220px', () => {
   for (const l of lines) assert.ok(labelWidth(l) <= 196, `${l}: ${labelWidth(l)}`);
 });
 
-test('1.1 a word longer than a line stays whole', () => {
+test('1.1 a word longer than a line breaks after "-" or "/", or else mid-word, and nothing is cut', () => {
+  const hyphen = 'cross-functional-reprioritisation-required-now'; // 47 characters
+  const lines = labelLines(hyphen);
+  assert.ok(lines.length > 1);
+  assert.equal(lines.join(''), hyphen);
+  for (const l of lines) assert.ok(labelWidth(l) + 24 <= 220, l);
+  assert.ok(lines.slice(0, -1).every((l) => l.endsWith('-')), 'breaks after hyphens');
+  assert.deepEqual(labelLines('Send to legal/commercial/procurement/finance/approvals'), ['Send to legal/commercial/', 'procurement/finance/approvals']);
   const word = 'x'.repeat(40);
-  assert.deepEqual(labelLines(`Go ${word} now`), ['Go', word, 'now']);
+  const plain = labelLines(`Go ${word} now`);
+  assert.equal(plain.join(' ').replace(/(x) (x)/, '$1$2'), `Go ${word} now`);
+  assert.ok(plain.every((l) => labelWidth(l) + 24 <= 220), 'split mid-word into pieces that fit');
+});
+
+test('1.1 wide characters (U+2E80 and up) count as 1.7', () => {
+  assert.equal(labelWidth('承認'), Math.ceil(3.4 * 6.4) + 8);
+  assert.equal(labelWidth('ab'), Math.ceil(2 * 6.4) + 8);
+});
+
+const branches = (...bs) => `    next:\n${bs.map(([to, label]) => `      - to: ${to}\n        label: ${label}\n`).join('')}`;
+
+// Renders a process's swimlane in Node, with a minimal viewer context.
+const L = Object.assign((k) => k, { lower: (k) => k, a: (k) => k });
+const svgOf = (m, p) => {
+  const f = flow(m, p);
+  const html = swimlaneSvg({ m, f, L, dp: () => '', mark: () => '', mine: null, cue: () => null, badge: () => null, stepLabel: (s) => s.name, roleHref: () => '#', letterWord: (l) => l, label: 'P', selected: null });
+  const box = (id) => {
+    const [, x, y] = html.match(new RegExp(`data-step="${id}"[^]*?<rect class="box" x="([\\d.]+)" y="([\\d.]+)"`));
+    return { x: +x, y: +y, cy: +y + 35 };
+  };
+  const edge = (a, b) => html.match(new RegExp(`d="([^"]*)"[^>]*data-from="${a}" data-to="${b}"`))[1];
+  return { f, html, box, edge, cols: columns(f).x };
+};
+
+test('1.1 a branch that skips a column bends just past the column before its target, not along the target lane', () => {
+  // a -> b -> d and a -> d: d is two columns on, in b's lane, so a lane-level run at d's height would pass behind b.
+  const m = mini(step('a', 'rx', branches(['b', 'Next'], ['d', 'Skip ahead'])) + step('b', 'ry', '    next: [d]\n') + step('d', 'ry'));
+  const { edge, box, cols } = svgOf(m, 'p');
+  const mx = cols[1] + 164 + 12;
+  const a = box('a');
+  assert.ok(edge('a', 'd').includes(`Q${mx} ${a.cy}`), `bends at x=${mx}: ${edge('a', 'd')}`);
+  assert.ok(edge('a', 'b').includes(`Q${a.x + 164 + 12} ${a.cy}`), 'adjacent columns bend just past the source');
+});
+
+test('1.1 entry points: one label sits 6px above the centre line; several get their own lines, 16px or more apart', () => {
+  assert.deepEqual(entryPoints([1], 100, 75, 125, 400), [{ y: 100, baseline: 94 }]);
+  const box = (pt, n) => [pt.baseline - 12, pt.baseline + (n - 1) * 14 + 3];
+  for (const [counts, cy] of [[[1, 1], 200], [[1, 1, 1], 200], [[1, 1, 1, 1], 200], [[3, 3, 3, 3], 87], [[2, 1, 3], 87]]) {
+    const pts = entryPoints(counts, cy, cy - 25, cy + 25, 400);
+    const boxes = pts.map((pt, i) => box(pt, counts[i]));
+    pts.forEach((pt, i) => {
+      if (i) assert.ok(pt.y - pts[i - 1].y >= 16, `${counts}: pitch`);
+      assert.ok(pt.y >= cy - 25 && pt.y <= cy + 25, `${counts}: entry within the step's edge`);
+      assert.ok(boxes[i][0] >= 0 && boxes[i][1] <= 400, `${counts}: inside the diagram`);
+      for (let j = 0; j < i; j++) assert.ok(boxes[j][1] < boxes[i][0] || boxes[i][1] < boxes[j][0], `${counts}: labels ${j} and ${i} overlap`);
+    });
+  }
+  // Few short labels sit directly above their own lines, with no other line between.
+  const two = entryPoints([1, 1], 200, 175, 225, 400);
+  two.forEach((pt) => assert.equal(pt.baseline, pt.y - 6));
+});
+
+test('1.1 several labelled connectors into one step enter at their own points, ordered by the source height', () => {
+  const m = mini(step('a', 'rx', branches(['c', 'From above'])) + step('b', 'ry', branches(['c', 'From below'])) + step('c', 'rx'));
+  const { edge } = svgOf(m, 'p');
+  const end = (d) => +d.trim().split(/\s+/).pop();
+  assert.ok(end(edge('a', 'c')) + 16 <= end(edge('b', 'c')), `${edge('a', 'c')} | ${edge('b', 'c')}`);
 });
 
 test('1.1 the width estimate is at least the width from a bold sans-serif character table, for the sample and fixture labels', () => {
