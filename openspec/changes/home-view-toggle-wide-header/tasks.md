@@ -13,32 +13,32 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://`, at 1280×800 unless a scenario says otherwise. `@mobile` scenarios also run at 375×812.
 
 ### explorer-views
-- [ ] 2.1 Overview content
-- [ ] 2.2 Detailed view
-- [ ] 2.3 Key messages still reachable in Simple view
-- [ ] 2.4 Processes listed on the home page
-- [ ] 2.5 Main diagram first
-- [ ] 2.6 Home page on a phone (@mobile)
-- [ ] 2.7 Viewer switches to Detailed
-- [ ] 2.8 Viewer switches back to Simple
-- [ ] 2.9 Choice kept in the URL
-- [ ] 2.10 Keyboard toggle
-- [ ] 2.11 Toggle on a phone (@mobile)
-- [ ] 2.12 Header lines up on a wide screen
-- [ ] 2.13 Other pages unchanged
-- [ ] 2.14 Phones unchanged (@mobile)
+- [x] 2.1 Overview content
+- [x] 2.2 Detailed view
+- [x] 2.3 Key messages still reachable in Simple view
+- [x] 2.4 Processes listed on the home page
+- [x] 2.5 Main diagram first
+- [x] 2.6 Home page on a phone (@mobile)
+- [x] 2.7 Viewer switches to Detailed
+- [x] 2.8 Viewer switches back to Simple
+- [x] 2.9 Choice kept in the URL
+- [x] 2.10 Keyboard toggle
+- [x] 2.11 Toggle on a phone (@mobile)
+- [x] 2.12 Header lines up on a wide screen
+- [x] 2.13 Other pages unchanged
+- [x] 2.14 Phones unchanged (@mobile)
 
 ### author-mode
-- [ ] 2.15 Reload after an edit
-- [ ] 2.16 Preview the other view
-- [ ] 2.17 Export ignores the preview toggle
-- [ ] 2.18 Keyboard toggle (author preview)
+- [x] 2.15 Reload after an edit
+- [x] 2.16 Preview the other view
+- [x] 2.17 Export ignores the preview toggle
+- [x] 2.18 Keyboard toggle (author preview)
 
 ### capture-sheet
-- [ ] 2.19 Detailed from the sheet
-- [ ] 2.20 Unknown view value
+- [x] 2.19 Detailed from the sheet
+- [x] 2.20 Unknown view value
 
-- [ ] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes
+- [x] 2.21 The full existing suite (`npm run test:unit` and `npm test`) still passes
 
 ## 3. Verify
 
