@@ -64,7 +64,7 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate:
+- [x] 4.1 html-qa final gate:
   - accessibility: axe at 1920, 1280 and 375; entry accessible names; tooltip on "+ N more"; focus order through the header list;
   - visual polish of the header list (party marks, letters, people lines, "+ N more"), light and dark;
   - performance with a 9-member committee;
