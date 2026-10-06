@@ -33,13 +33,13 @@ No new dependencies.
 - Rejected: one gap for the whole diagram. A single long label would widen every column and make big diagrams much wider for no benefit.
 
 ### D4. Label on the entry segment *(answers open question 3)*
-- The bend moves to `mx = a.x + NW + 12`, just past the source.
+- The bend sits at `mx = x[targetRank - 1] + NW + 12`: just past the column before the target, which is just past the source for adjacent columns. *(Corrected after QA: bending just past the source routed skip-column branches along the target's lane, behind steps in skipped columns. This brings back 1.7.0's routing for skips.)*
 - The connector then runs vertically and enters the target horizontally across almost the whole gap.
 - The label is right-aligned at `target.x - 8`, sitting 6px above the entry line.
 - A decision's branches go to different targets, which sit in different lanes or slots, so their entry lines are at least one step height apart. The labels land on separate rows by construction.
-- **Edges that skip columns** (rank difference greater than 1): only the gap directly in front of the target is sized for the label, which is where the label sits.
+- **Edges that skip columns** (rank difference greater than 1) run along the source's lane and drop down just before the target's column, as in 1.7.0. Only the gap directly in front of the target is sized for the label, which is where the label sits.
 - **Same-lane edges** (a straight horizontal line): same placement, above the line.
-- **Wrapping:** when `labelWidth + 24 > 220`, the text is wrapped greedily at word boundaries into as many lines as needed, so that each line's estimated width is at most `220 - 24`. The lines are `<tspan>`s stacked upwards from the entry line. A single word longer than a line stays whole. Typical long labels take two lines, which fit easily in the vertical space between lanes.
+- **Wrapping:** when `labelWidth + 24 > 220`, the text is wrapped greedily at word boundaries into as many lines as needed, so that each line's estimated width is at most `220 - 24`. The lines are `<tspan>`s stacked upwards from the entry line. A word longer than a line is broken after `-` or `/` where possible, and otherwise split into pieces that fit. Characters at or above U+2E80 (CJK and other wide scripts) count as 1.7 units in `labelWidth`, since the per-character estimate assumes Latin text. Typical long labels take two lines, which fit easily in the vertical space between lanes.
 - **Several labelled edges into the same step** (corrected after verification): each enters at its own point on the target's left edge, spread at 16px pitch around the centre line and ordered by the source's vertical position, so connectors don't cross near the target. Each label sits above its own entry line. When the topmost label would rise above the diagram, the lane-band area is reserved by shifting the entries down within the box, or the label is placed below its line. Line pitch is at least 16px, against a 15px text box.
 
 ### D5. Unchanged parts

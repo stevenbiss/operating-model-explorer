@@ -17,6 +17,8 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 - [x] 2.2 Long label widens its gap
 - [x] 2.3 Five-branch decision
 - [ ] 2.8 Several labels into one step (added after verification)
+- [ ] 2.9 Branch that skips a column (added after QA)
+- [ ] 2.10 One very long word (added after QA)
 - [x] 2.4 Label past the maximum wraps
 - [x] 2.5 Loop-back label unchanged
 - [x] 2.6 Same layout in the snapshot
