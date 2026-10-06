@@ -134,5 +134,5 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 5. Package
 
-- [ ] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.6.0 with the three standard assets and checksums. The release notes explain the new Under review and Simple defaults and the one-line opt-outs
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 `npm run build`, export the Acme demo snapshot from the capture sheet, and publish release 1.6.0 with the three standard assets and checksums. The release notes explain the new Under review and Simple defaults and the one-line opt-outs
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated

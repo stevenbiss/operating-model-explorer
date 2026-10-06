@@ -4,7 +4,7 @@ An engine that turns an operating model, written as one capture sheet or a folde
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.5.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.5.0)). Process swimlanes and structure diagrams now use the full window width, fit the window's height so both scrollbars stay on screen, and can be dragged around with the mouse. Committees also sit between their members' parties when a model has three or more parties. Built, tested (309 end-to-end and 246 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-wide-pannable-diagrams/reports/`.
+**Status:** v1.6.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.6.0)). It shows who holds each role, marks every process and structure diagram as Under review or Agreed, adds a Simple home page (the new default) with a list of all processes, and keeps the Detailed home page as an option. Built, tested (349 end-to-end and 256 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-people-status-simple-view/reports/`.
 
 
 ## For authors
@@ -35,6 +35,14 @@ From v1.4.0, a step can be owned by a **committee** instead of one role, for a d
 - In a capture sheet, add a `## Committees` table (`Committee`, `Members` such as `Account lead (A); Partner manager (A); Solution architect (C)`, `Summary`) and name the committee in a step's `Owner` cell. In a content folder, use a `type: committee` file in `committees/`. See `docs/capture-sheet.md` (Committees) and `docs/authoring-guide.md` (Committees).
 - **In the swimlane**, committees get their own lanes, together in the middle between the parties, and their steps are marked "By committee". Each member's own lane says which committee it sits on, with its letter. Opening a committee step lists all its members, split by organisation.
 - The engine warns when a committee isn't really joint: no A member, only one, or A members from only one party. Rename "committee" per model if you prefer (for example "Steering group").
+
+### People, review status and the home page
+
+From v1.6.0:
+
+- **Who holds a role.** Add a `People` column to the Roles table (names separated by semicolons), or `people:` in a role file. Wherever the role appears, viewers see the person's name under it, or "Multiple people", and can hover or tab to it to see everyone. The role's page lists them all. A structure box with its own Name text keeps showing that text.
+- **Under review or Agreed.** Every process and structure diagram is **Under review** unless you add `Status: Agreed` to its section (or `status: agreed` in its file). The status shows as a badge wherever it's listed, and an under-review item has a notice above its diagram saying it may still change.
+- **Simple or Detailed home page.** The home page is **Simple** by default: the model name, then the parties, workstreams, every process and the structure diagrams. Add `View: Detailed` under the sheet's title (or `view: detailed` in `model.md`) to also show the purpose, narrative, key messages and persona doors. Other pages are the same either way, and the Key messages button is always there. In author mode, the preview says which view will be published and lets you preview the other.
 
 ### Brands: each party in its own colour and mark
 
