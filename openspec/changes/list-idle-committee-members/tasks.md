@@ -59,8 +59,8 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 3. Verify
 
-- [ ] 3.1 html-verifier checks every requirement in the three delta specs against the running engine and an exported snapshot at 1920, 1280 and 375 (phones unchanged), plus a regression pass over the main specs. It returns VERIFIED. The report is saved to `openspec/changes/list-idle-committee-members/reports/html-verifier.md`
-- [ ] 3.2 Confirm there are no real names anywhere in the repo (private-names guard plus `git grep -iw` for common real company names)
+- [x] 3.1 html-verifier checks every requirement in the three delta specs against the running engine and an exported snapshot at 1920, 1280 and 375 (phones unchanged), plus a regression pass over the main specs. It returns VERIFIED. The report is saved to `openspec/changes/list-idle-committee-members/reports/html-verifier.md`
+- [x] 3.2 Confirm there are no real names anywhere in the repo (private-names guard plus `git grep -iw` for common real company names)
 
 ## 4. QA
 
