@@ -268,13 +268,15 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
   }
 
   // An Owner names a role or a committee (design D7). A role and a committee with the same name are reported by validate().
-  function findOwner(raw, where) {
+  // In a list of joint owners (joint-steps D2), an unknown name is matched against roles only, since only roles can be there.
+  function findOwner(raw, where, joint) {
     if (!raw) return undefined;
     const hit = names.role.get(nameKey(raw)) || names.committee.get(nameKey(raw));
     if (hit) return hit.id;
-    const all = [...names.role.values(), ...names.committee.values()];
+    const all = [...names.role.values(), ...(joint ? [] : names.committee.values())];
     const guess = closest(nameKey(raw), all.map((x) => nameKey(x.name)));
-    say('error', where, `The owner "${raw}" does not match any role or committee.`, guess ? `Did you mean ${all.find((x) => nameKey(x.name) === guess).name}?` : 'Use the name of a role from the Roles section or a committee from the Committees section, or add it there.');
+    const fix = joint ? 'Use the name of a role from the Roles section, or add it there.' : 'Use the name of a role from the Roles section or a committee from the Committees section, or add it there.';
+    say('error', where, `The owner "${raw}" does not match any role${joint ? '' : ' or committee'}.`, guess ? `Did you mean ${all.find((x) => nameKey(x.name) === guess).name}?` : fix);
     return toId(raw);
   }
 
@@ -377,11 +379,12 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
     };
     const header = steps.map((st) => {
       const next = st.get('next');
+      // "Bid manager; Solution architect": a joint step (joint-steps D2), whose owners validate() checks are roles.
+      const owners = list(st.get('owner')).map((n, _, all) => findOwner(n, st.where, all.length > 1));
       const out = compact({
         id: st.id,
         name: st.get('name'),
-        // "Bid manager; Solution architect": a joint step (joint-steps D2), whose owners validate() checks are roles.
-        owner: ((o) => (o.length > 1 ? o : o[0]))(list(st.get('owner')).map((n) => findOwner(n, st.where))),
+        owner: owners.length > 1 ? owners : owners[0],
         description: st.get('description'),
         inputs: list(st.get('inputs')),
         outputs: list(st.get('outputs')),

@@ -835,3 +835,12 @@ test('1.2 parity: sheet-joint and joint-basic give the same steps', () => {
   const pick = (m) => m.model.elements['main-flow'].steps.map(({ id, name, owner, owners, joint, parties, raci, next }) => ({ id, name, owner, owners, joint, parties, raci, next }));
   assert.deepEqual(pick(sheet), pick(folder));
 });
+
+test('an unknown name in a several-name Owner cell is matched against roles only', () => {
+  const committees = '## Committees\n\n| Committee | Summary | Members |\n|---|---|---|\n| Bid board | Decides. | Account lead (A); Solution architect (A) |\n';
+  const m = only(load(with_(committees).replace('| 2 | Design the solution | Solution architect |', '| 2 | Design the solution | Account lead; Bid bord |')).messages.filter((x) => x.level === 'error'));
+  assert.equal(m.problem, 'The owner "Bid bord" does not match any role.');
+  assert.equal(m.fix, 'Use the name of a role from the Roles section, or add it there.');
+  // A single name may still be a committee, so it says so.
+  assert.match(only(load(BASE.replace('| 2 | Design the solution | Solution architect |', '| 2 | Design the solution | Sol architect |')).messages).problem, /does not match any role or committee/);
+});

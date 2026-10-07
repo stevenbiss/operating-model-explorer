@@ -52,10 +52,13 @@ async function expectTie(scope, step, boxes) {
   expect(t.samples).toBeGreaterThan(10);
   expect(t.boxes).toBeGreaterThan(boxes.length);
   expect(t.hits, 'tie points inside a step box').toEqual([]);
-  // It spans from one box's middle to the other's, and reaches each box's left edge.
-  const mids = boxes.map((b) => b.y + b.h / 2);
-  expect(t.ys[0]).toBeCloseTo(Math.min(...mids), 0);
-  expect(t.ys[1]).toBeCloseTo(Math.max(...mids), 0);
+  // It spans from a stub into the top box to a stub into the bottom box (each placed clear of the connectors entering
+  // that box, QA round 1), and reaches the boxes' left edge.
+  const [top, bottom] = [...boxes].sort((a, b) => a.y - b.y).filter((b, i, all) => i === 0 || i === all.length - 1);
+  expect(t.ys[0]).toBeGreaterThan(top.y);
+  expect(t.ys[0]).toBeLessThan(top.y + top.h);
+  expect(t.ys[1]).toBeGreaterThan(bottom.y);
+  expect(t.ys[1]).toBeLessThan(bottom.y + bottom.h);
   expect(t.xs[1]).toBeCloseTo(boxes[0].x, 0);
 }
 
@@ -264,6 +267,7 @@ test.describe('joint steps (exported sample)', () => {
     expect(label).toContain('joint step');
     expect(label).toContain('Bid manager');
     expect(label).toContain('Solution architect');
+    expect(label).toContain('joint step: Bid manager (Acme Corp), Solution architect (Globex)');
     // Exactly one node in the accessibility tree: the twin is hidden from screen readers.
     await expect(page.locator('svg.swimlane').getByRole('button', { name: /^Kick off the bid/ })).toHaveCount(1);
     await expect(page.getByTestId('joint-twin-kick-off-bid')).toHaveAttribute('aria-hidden', 'true');

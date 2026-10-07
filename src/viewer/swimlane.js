@@ -2,7 +2,7 @@
 // Steps are <g role="button"> in flow order so Tab follows the flow; lane-header role links come last.
 import { esc } from './esc.js';
 import { peopleAttrs, peopleLine } from './people.js';
-import { boxesOf, columns, entryPoints, GAP_MIN, HEAD, labelLines, NW } from '../model/layout.js';
+import { boxesOf, columns, entryPoints, GAP_MIN, HEAD, labelLines, labelWidth, NW } from '../model/layout.js';
 
 const NH = 70; // node height
 const PARTY_H = 34; // a party row; a two-line party name adds BAND_LINE
@@ -199,6 +199,9 @@ export function swimlaneSvg(ctx) {
     entryPoints(list.map((i) => i.lines.length), b.cy, b.y + 10, b.bottom - 10, height).forEach((pt, n) => entry.set(list[n].e, { ...pt, lines: list[n].lines }));
   }
   const mineStep = (id) => f.nodes[id].step.owners.some(ctx.mine);
+  // Where connectors end ({ to, owner, y }) and their labels' boxes, which a joint step's tie keeps clear of.
+  const heads = [];
+  const labelBoxes = [];
   for (const e of f.edges) {
     const a = pos(e.from, e.fromBox);
     const b = pos(e.to, e.toBox);
@@ -210,7 +213,11 @@ export function swimlaneSvg(ctx) {
       loops[base] = (loops[base] ?? -1) + 1;
       const yl = base - 12 - loops[base] * 7;
       d = path([[a.cx + 18, a.bottom], [a.cx + 18, yl], [b.cx - 18, yl], [b.cx - 18, b.bottom + 3]]);
-      if (e.label) labels += `<text class="edge-label${emph}" x="${(a.cx + b.cx) / 2}" y="${yl - 5}" text-anchor="middle">${esc(e.label)}</text>`;
+      if (e.label) {
+        const w = labelWidth(e.label);
+        labelBoxes.push({ x0: (a.cx + b.cx - w) / 2, x1: (a.cx + b.cx + w) / 2, y0: yl - 17, y1: yl - 2 });
+        labels += `<text class="edge-label${emph}" x="${(a.cx + b.cx) / 2}" y="${yl - 5}" text-anchor="middle">${esc(e.label)}</text>`;
+      }
     } else {
       // Bend just past the column before the target (just past the source for adjacent columns), then enter the target
       // across the gap at its own entry point, with the label on that entry line (D4).
@@ -227,6 +234,7 @@ export function swimlaneSvg(ctx) {
       d = path(blocked
         ? [[a.x + NW, a.cy], [a.x + NW + 12, a.cy], [a.x + NW + 12, yb], [mx, yb], [mx, y], [b.x - 3, y]]
         : [[a.x + NW, a.cy], [mx, a.cy], [mx, y], [b.x - 3, y]]);
+      heads.push({ to: e.to, owner: e.toBox.owner, y });
       if (at && e.label) {
         // Wrapped lines run downwards from the first baseline; a line that starts a new word gets a leading space,
         // so the text reads back as the whole label.
@@ -238,15 +246,49 @@ export function swimlaneSvg(ctx) {
             return `<tspan x="${b.x - 8}" y="${at.baseline + i * 14}">${glue}${esc(l)}</tspan>`;
           }).join('')
           : esc(at.lines[0]);
+        // Its box, with the 2.5px halo the label's stroke adds.
+        labelBoxes.push({ x0: b.x - 8 - Math.max(...at.lines.map(labelWidth)), x1: b.x - 5.5, y0: at.baseline - 12, y1: at.baseline + 3 + (at.lines.length - 1) * 14 });
         labels += `<text class="edge-label${emph}" x="${b.x - 8}" y="${at.baseline}" text-anchor="end">${text}</text>`;
       }
     }
     edges += `<path class="${cls}" d="${d}" marker-end="url(#om-${e.crossParty ? 'open' : 'arrow'})" data-from="${esc(e.from)}" data-to="${esc(e.to)}"/>`;
   }
 
+  // A joint step's tie (D4): a dotted line 5px left of its column, with a stub into each box near its top-left, away from
+  // the connectors entering that box. The line breaks wherever it would cross anything but its own boxes: another step
+  // in the column (6px clear, which takes in the arrowheads entering it), an arrowhead entering one of its boxes, or
+  // a connector label.
+  const tie = (id, twins) => {
+    const { rank } = f.nodes[id];
+    const x = cols[rank];
+    const tx = x - 5;
+    const stubs = twins.map((b) => {
+      const p = pos(id, b);
+      const ins = heads.filter((h) => h.to === id && h.owner === b.owner).map((h) => h.y);
+      let y = p.y + 12;
+      while (y < p.bottom - 12 && ins.some((v) => Math.abs(v - y) < 12)) y += 2;
+      return y;
+    }).sort((a, b) => a - b);
+    const gaps = [
+      ...boxes.filter((b) => b.rank === rank && b.id !== id).map(({ p }) => [p.y - 6, p.bottom + 6]),
+      ...heads.filter((h) => h.to === id).map((h) => [h.y - 10, h.y + 10]),
+      ...labelBoxes.filter((l) => l.x0 <= tx + 1 && l.x1 >= tx - 1).map((l) => [l.y0 - 2, l.y1 + 2]),
+    ].sort((a, b) => a[0] - b[0]);
+    const end = stubs[stubs.length - 1];
+    let y = stubs[0];
+    let d = '';
+    for (const [g0, g1] of gaps) {
+      if (g1 <= y || g0 >= end) continue;
+      if (g0 > y) d += `M${tx} ${y}V${g0}`;
+      y = Math.max(y, g1);
+    }
+    if (y < end) d += `M${tx} ${y}V${end}`;
+    return d + stubs.map((sy) => `M${tx} ${sy}H${x}`).join('');
+  };
+
   // Steps, in flow order. A joint step draws a box in each owner's lane (D4): the primary owner's is the one Tab stop
   // and carries the accessible name; the others are hidden from screen readers but open the same step when clicked.
-  // A dotted tie in the gap just left of the column joins them: gaps never hold step boxes, so it crosses none.
+  // A dotted tie in the gap just left of the column joins them (see tie).
   let nodes = '';
   let ties = '';
   f.order.forEach((id) => {
@@ -267,7 +309,7 @@ export function swimlaneSvg(ctx) {
         px += pl.w + 6;
       }
       const lines = wrap(s.name, 21, pills.length ? 2 : 3);
-      const ty = p.y + (pills.length ? 24 : NH / 2 - (lines.length - 1) * 8.5 + 5);
+      const ty = p.y + (pills.length ? 21 : NH / 2 - (lines.length - 1) * 8.5 + 5);
       const party = s.joint ? el[box.owner] && el[box.owner].party : s.party;
       const a11y = n
         ? `aria-hidden="true" tabindex="-1" data-testid="joint-twin-${esc(id)}"`
@@ -280,12 +322,7 @@ export function swimlaneSvg(ctx) {
         pills.join('') +
         '</g>';
     });
-    if (s.joint) {
-      const ys = twins.map((b) => pos(id, b).cy).sort((a, b) => a - b);
-      const x = cols[f.nodes[id].rank];
-      const tx = x - 5;
-      ties += `<path class="joint-tie${persona ? (cue ? ' mine' : ' dim') : ''}" data-testid="joint-tie-${esc(id)}" d="M${tx} ${ys[0]}V${ys[ys.length - 1]}${ys.map((y) => `M${tx} ${y}H${x}`).join('')}"/>`;
-    }
+    if (s.joint) ties += `<path class="joint-tie${persona ? (cue ? ' mine' : ' dim') : ''}" data-testid="joint-tie-${esc(id)}" d="${tie(id, twins)}"/>`;
   });
 
   // Lane header links (layout computed above). With committees, each lane group (a party's roles, the committees)

@@ -248,10 +248,10 @@ function resolveSteps(p, el, partyOrder) {
   const list = (Array.isArray(p.steps) ? p.steps : []).filter((s) => s && typeof s === 'object');
   const partyOf = (role) => (el[role] && el[role].type === 'role' ? el[role].party : null);
   const committeeOf = (id) => (typeof id === 'string' && el[id] && el[id].type === 'committee' ? el[id] : null);
-  // A joint step (joint-steps D2) lists several role owners: owners is that list (each once), owner its first, the
+  // A joint step (joint-steps D2) lists several role owners: owners is that list (each text id once), owner its first, the
   // primary owner, and parties its owners' parties, in model order, as for a committee. Any other step has owners [owner].
   p.steps = list.map((s, i) => {
-    const owners = [...new Set([].concat(s.owner ?? []))];
+    const owners = [...new Set([].concat(s.owner ?? []).filter((o) => typeof o === 'string'))];
     const owner = Array.isArray(s.owner) ? owners[0] : s.owner;
     const joint = owners.length > 1;
     const committee = !joint && committeeOf(owner);

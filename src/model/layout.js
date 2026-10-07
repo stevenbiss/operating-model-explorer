@@ -8,7 +8,8 @@ const partiesKey = (s) => String(s.parties || [s.party]);
 export function flow(m, processId, { showRemoved = false } = {}) {
   const all = m.elements[processId].steps;
   const byId = Object.fromEntries(all.map((s) => [s.id, s]));
-  const hidden = (id) => !showRemoved && isRemoved(byId[id]);
+  // A step with no valid owner (an error the report shows) is left out like a hidden one, so the preview still renders.
+  const hidden = (id) => (!showRemoved && isRemoved(byId[id])) || !byId[id].owners.length;
   const steps = all.filter((s) => !hidden(s.id));
 
   // While removed steps are hidden, the flow bridges over them: a predecessor connects to their successors.
@@ -119,7 +120,7 @@ export function flow(m, processId, { showRemoved = false } = {}) {
 // A node's boxes: one per owner lane for a joint step, otherwise its own lane and slot.
 export const boxesOf = (n) => n.twins || [{ owner: n.step.owner, lane: n.lane, slot: n.slot }];
 
-export const nextOf =(f, id) => f.edges.filter((e) => e.from === id);
+export const nextOf = (f, id) => f.edges.filter((e) => e.from === id);
 export const prevOf = (f, id) => f.edges.filter((e) => e.to === id);
 
 // Column positions sized to connector labels (fit-connector-labels D2, D3). Shared with the swimlane renderer.

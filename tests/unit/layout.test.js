@@ -495,13 +495,80 @@ test('1.4 rendering: a box per owner with a Joint pill, one focusable primary, h
     assert.match(joint[1].attrs, /aria-hidden="true" tabindex="-1"/);
     assert.equal(joint[0].x, joint[1].x, 'same column');
     assert.equal((html.match(/>Joint<\/text>/g) || []).length, 2);
-    const segs = segments(tieOf(html, 'kick-off-the-bid'));
-    for (const b of boxes) for (const s of segs) assert.ok(!through(s, b), `${name}: tie ${s} crosses the box at ${b.x},${b.y}`);
-    // The vertical runs in the gap left of the column, from one box's centre to the other's, with stubs into each.
-    const v = segs.find(([x0, , x1]) => x0 === x1);
-    assert.deepEqual([v[0], Math.min(v[1], v[3]), Math.max(v[1], v[3])], [joint[0].x - 5, Math.min(...joint.map((b) => b.y + 35)), Math.max(...joint.map((b) => b.y + 35))]);
-    assert.equal(segs.filter(([, y0, x1, y1]) => y0 === y1 && x1 === joint[0].x).length, 2, 'a stub into each box');
+    assertTieClear(html, 'kick-off-the-bid', name);
   }
+});
+
+// Everything a joint step's tie must keep clear of: other step boxes (6px clear above and below), arrowheads entering
+// any box, and connector labels. Its stubs: one into each of its boxes, 12px or more from any arrowhead entering it.
+function assertTieClear(html, id, name) {
+  const boxes = allBoxes(html);
+  const own = boxes.filter((b) => b.attrs.includes(`data-step="${id}"`));
+  const unesc = (t) => t.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const obstacles = boxes.filter((b) => !own.includes(b)).map((b) => ({ what: `box ${b.x},${b.y}`, x: b.x, y: b.y - 6, w: 164, h: 82 }));
+  const heads = [...html.matchAll(/<path class="edge[^"]*" d="[^"]* L(-?[\d.]+) (-?[\d.]+)"/g)].map((m) => [+m[1], +m[2]]).filter(([x]) => boxes.some((b) => b.x - 3 === x));
+  for (const [x, y] of heads) obstacles.push({ what: `arrowhead ${x},${y}`, x: x - 18, y: y - 9, w: 19, h: 18 });
+  for (const m of html.matchAll(/<text class="edge-label[^"]*" x="([\d.]+)" y="([\d.]+)" text-anchor="(end|middle)">(.*?)<\/text>/g)) {
+    const lines = m[4].includes('<tspan') ? [...m[4].matchAll(/>([^<]*)<\/tspan>/g)].map((t) => unesc(t[1])) : [unesc(m[4])];
+    const w = Math.max(...lines.map(labelWidth));
+    obstacles.push({ what: `label "${lines.join(' ')}"`, x: m[3] === 'end' ? +m[1] - w : +m[1] - w / 2, y: +m[2] - 12, w: w + 2.5, h: 15 + (lines.length - 1) * 14 });
+  }
+  const segs = segments(tieOf(html, id));
+  const hit = ([x0, y0, x1, y1], o) => Math.max(x0, x1) >= o.x && Math.min(x0, x1) <= o.x + o.w && Math.max(y0, y1) >= o.y && Math.min(y0, y1) <= o.y + o.h;
+  for (const o of obstacles) for (const sg of segs) assert.ok(!hit(sg, o), `${name}: tie segment ${sg} crosses the ${o.what}`);
+  const x = own[0].x;
+  const stubs = segs.filter(([, y0, x1, y1]) => y0 === y1 && x1 === x);
+  assert.equal(stubs.length, own.length, `${name}: a stub into each box`);
+  for (const b of own) {
+    const stub = stubs.find(([, y]) => y > b.y && y < b.y + 70);
+    assert.ok(stub, `${name}: a stub into the box at ${b.y}`);
+    for (const [hx, hy] of heads) if (hx === x - 3 && hy > b.y && hy < b.y + 70) assert.ok(Math.abs(hy - stub[1]) >= 12, `${name}: stub at ${stub[1]} under an arrowhead at ${hy}`);
+  }
+  // The vertical parts run 5px left of the column and, with their breaks, span the stubs.
+  const v = segs.filter(([x0, , x1]) => x0 === x1);
+  assert.ok(v.length && v.every(([vx]) => vx === x - 5), name);
+  assert.deepEqual([Math.min(...v.flatMap(([, a, , c]) => [a, c])), Math.max(...v.flatMap(([, a, , c]) => [a, c]))].map((y) => y >= Math.min(...stubs.map((t) => t[1])) && y <= Math.max(...stubs.map((t) => t[1]))), [true, true]);
+}
+
+test('1.4 a stressed tie: labelled connectors into the step between the boxes and two labelled entries into one box', () => {
+  const STRESS = `---
+id: main-flow
+type: process
+name: Main flow
+workstream: main-work
+steps:
+  - id: open-the-bid
+    name: Open the bid
+    owner: bid-manager
+    raci: { bid-manager: A }
+    next: [{ to: kick-off-the-bid, label: Kick off now }, { to: brief-the-client, label: Brief the client before anything else happens }]
+  - id: prep
+    name: Prepare the room
+    owner: bid-manager
+    raci: { bid-manager: A }
+    next: [{ to: kick-off-the-bid, label: Ready to start }]
+  - id: draft
+    name: Draft the outline
+    owner: solution-architect
+    raci: { solution-architect: A }
+    next: [{ to: kick-off-the-bid, label: Outline drafted }, { to: brief-the-client, label: Outline }]
+  - id: kick-off-the-bid
+    name: Kick off the bid together with everyone
+    owner: [bid-manager, solution-architect]
+    raci: { bid-manager: A }
+    next: []
+  - id: brief-the-client
+    name: Brief the client
+    owner: account-lead
+    raci: { account-lead: A }
+    next: []
+---
+`;
+  const dir = fileURLToPath(new URL('../fixtures/joint-far/', import.meta.url));
+  const r = loadModel(readFolder(dir).map((f) => (f.path === 'processes/01-main-flow.md' ? { ...f, data: new TextEncoder().encode(STRESS) } : f)));
+  assert.deepEqual(r.messages, []);
+  const { html } = svgOf(r.model, 'main-flow');
+  assertTieClear(html, 'kick-off-the-bid', 'stress');
 });
 
 test('1.4 connectors attach to the nearest box: into the Bid manager box, out of the Solution architect box', () => {
@@ -509,4 +576,23 @@ test('1.4 connectors attach to the nearest box: into the Bid manager box, out of
   const [bm, sa] = allBoxes(html).filter((b) => b.attrs.includes('data-step="kick-off-the-bid"'));
   assert.ok(edge('capture-the-lead', 'kick-off-the-bid').endsWith(`L${bm.x - 3} ${bm.y + 35}`), edge('capture-the-lead', 'kick-off-the-bid'));
   assert.ok(edge('kick-off-the-bid', 'plan-the-work').startsWith(`M${sa.x + 164} ${sa.y + 35}`), edge('kick-off-the-bid', 'plan-the-work'));
+});
+
+test('a step with no valid owner is left out of the swimlane, bridged over, and the swimlane still renders', () => {
+  const dir = fileURLToPath(new URL('../fixtures/joint-basic/', import.meta.url));
+  for (const owner of ['[]', '7', '[7]', '[bid-manager, 7]', null]) {
+    const text = readFolder(dir).find((f) => f.path === 'processes/01-main-flow.md');
+    const src = new TextDecoder().decode(text.data).replace('    owner: [bid-manager, solution-architect]\n', owner === null ? '' : `    owner: ${owner}\n`);
+    const r = loadModel(readFolder(dir).map((f) => (f === text || f.path === text.path ? { ...f, data: new TextEncoder().encode(src) } : f)));
+    assert.ok(r.messages.some((m) => m.level === 'error'), `owner ${owner}: an error is reported`);
+    const f = flow(r.model, 'main-flow');
+    if (owner === '[bid-manager, 7]') {
+      // The valid owner is kept: a single-owner step in its lane.
+      assert.deepEqual([f.nodes['kick-off-the-bid'].lane, f.nodes['kick-off-the-bid'].twins], [f.lanes.indexOf('bid-manager'), undefined]);
+    } else {
+      assert.ok(!f.nodes['kick-off-the-bid'], `owner ${owner}: left out`);
+      assert.deepEqual(pairs(f), ['capture-the-lead>plan-the-work'], 'bridged over');
+    }
+    assert.doesNotThrow(() => svgOf(r.model, 'main-flow'), `owner ${owner}`);
+  }
 });

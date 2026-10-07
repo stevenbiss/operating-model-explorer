@@ -32,3 +32,15 @@
 4. **Phone label:** owners and parties only, with no people line.
 5. **Test ids:** `joint-twin-<id>`, `joint-tie-<id>`, `owner-item`, `joint-badge`.
 6. **Tie placement:** short arrowheads into intermediate boxes can cross the dotted line, but no step box can.
+
+## Round 2: html-qa fixes
+1. **The tie** (new `tie()`):
+   - It breaks across non-twin boxes in the column (±6px, which also covers their arrowheads), for ±10px around arrowheads entering its own boxes, and across connector labels.
+   - Stubs go in at top + 12, moved down until at least 12px from any incoming connector.
+   - New unit test `assertTieClear` runs on `joint-basic`, `joint-far` and a stress model.
+2. **Preview crash:** `load.js` keeps only text owners. `flow()` leaves out steps with no valid owner and bridges connectors over them, so the preview renders while the error shows. Unit test covers 5 cases.
+3. **Accessible name:** includes parties ("…joint step: Bid manager (Acme Corp), Solution architect (Globex)"), using the configurable step label.
+4. **Pill clearance:** step names above pills start 3px higher.
+5. **Wording:** an unknown name in a multi-name Owner cell now says "does not match any role" and suggests roles only.
+6. **Whitespace:** fixed.
+- **Results:** unit 306 of 306; e2e 416 of 416. Updated `joint-steps.spec.js` (tie span, party assertion).

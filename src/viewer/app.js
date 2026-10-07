@@ -133,7 +133,7 @@ const byCommittee = (s) => (committeeOf(s) ? `<span class="badge badge-committee
 // Several members marked A share the decision: each is "Accountable, jointly" (design D4).
 // A step done together by several roles (joint-steps D5).
 const jointBadge = (s) => (s.joint ? '<span class="badge badge-joint" data-testid="joint-badge">Joint</span>' : '');
-const isJoint = (c) =>Object.values(c.members).filter((l) => l === 'A').length > 1;
+const isJoint = (c) => Object.values(c.members).filter((l) => l === 'A').length > 1;
 // "on <committee>" after a step's letters, where a role takes part through the committee that owns it.
 const via = (s) => (committeeOf(s) ? `<span class="letter-role" data-testid="via-committee">on ${esc(committeeOf(s).name)}</span>` : '');
 const memberParty = (r) => (is(r, 'role') && is(E[r].party, 'party') ? E[r].party : null);
@@ -628,7 +628,7 @@ function stepLabel(s) {
   const c = cue(s);
   const owner = committeeOf(s)
     ? `, by ${L.lower('committee')}: ${esc(committeeOf(s).name)}`
-    : s.joint ? `, joint ${L.lower('step')}: ${s.owners.map((o) => esc(nameOf(o))).join(', ')}` : `. ${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? `, ${esc(E[s.party].name)}` : ''}`;
+    : s.joint ? `, joint ${L.lower('step')}: ${s.owners.map((o) => `${esc(nameOf(o))}${is(o, 'role') && is(E[o].party, 'party') ? ` (${esc(E[E[o].party].name)})` : ''}`).join(', ')}` : `. ${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? `, ${esc(E[s.party].name)}` : ''}`;
   return `${esc(s.name)}${owner}.${b ? ` ${b}.` : ''}${c ? ` ${c}.` : ''} ${nx.length ? `Next: ${nx.map((e) => `${esc(F.nodes[e.to].step.name)}${e.label ? ` (${esc(e.label)})` : ''}`).join(', ')}.` : 'End of the flow.'}`;
 }
 
