@@ -16,29 +16,29 @@
 Playwright tests run against `dist/operating-model-explorer.html` and exported snapshots via `file://` at 1280×800; `@mobile` scenarios also run at 375×812. Node tests cover the schema, sheet, validation and layout.
 
 ### joint-steps
-- [ ] 2.1 Joint step loads
-- [ ] 2.2 Committee among joint owners
-- [ ] 2.3 Same role twice
-- [ ] 2.4 Parallel boxes with a dotted tie
-- [ ] 2.5 Connectors attach to the nearest box
-- [ ] 2.6 Owners in non-adjacent lanes
-- [ ] 2.7 Step detail lists the owners
-- [ ] 2.8 Role pages
-- [ ] 2.9 Persona emphasis
-- [ ] 2.10 Phone list (@mobile)
-- [ ] 2.11 One Tab stop
-- [ ] 2.12 Accessible name
-- [ ] 2.13 Sample joint step loads
+- [x] 2.1 Joint step loads
+- [x] 2.2 Committee among joint owners
+- [x] 2.3 Same role twice
+- [x] 2.4 Parallel boxes with a dotted tie
+- [x] 2.5 Connectors attach to the nearest box
+- [x] 2.6 Owners in non-adjacent lanes
+- [x] 2.7 Step detail lists the owners
+- [x] 2.8 Role pages
+- [x] 2.9 Persona emphasis
+- [x] 2.10 Phone list (@mobile)
+- [x] 2.11 One Tab stop
+- [x] 2.12 Accessible name
+- [x] 2.13 Sample joint step loads
 
 ### content-schema
-- [ ] 2.14 Owner list in a file
-- [ ] 2.15 Unknown role in an owner list
+- [x] 2.14 Owner list in a file
+- [x] 2.15 Unknown role in an owner list
 
 ### capture-sheet
-- [ ] 2.16 Joint owners in a sheet
-- [ ] 2.17 Unknown name in the Owner list
+- [x] 2.16 Joint owners in a sheet
+- [x] 2.17 Unknown name in the Owner list
 
-- [ ] 2.18 The full existing suite (`npm run test:unit` and `npm test`) still passes
+- [x] 2.18 The full existing suite (`npm run test:unit` and `npm test`) still passes
 
 ## 3. Verify
 
