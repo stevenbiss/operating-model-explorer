@@ -47,9 +47,9 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 4. QA
 
-- [ ] 4.1 html-qa final gate: axe at 1920, 1280 and 375; twin-box and tie polish, light and dark; connector attachment and label interplay; security (markup in role names on twins); `/code-review` and a Ponytail audit. It returns SHIP. The report is saved to `reports/html-qa.md`
+- [x] 4.1 html-qa final gate: axe at 1920, 1280 and 375; twin-box and tie polish, light and dark; connector attachment and label interplay; security (markup in role names on twins); `/code-review` and a Ponytail audit. It returns SHIP. The report is saved to `reports/html-qa.md`
 
 ## 5. Package
 
-- [ ] 5.1 `npm run build`, export the Acme demo snapshot, and publish release 1.9.0 with the three standard assets and checksums
-- [ ] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated
+- [x] 5.1 `npm run build`, export the Acme demo snapshot, and publish release 1.9.0 with the three standard assets and checksums
+- [x] 5.2 dist/operating-model-explorer.html built, self-contained, and README updated

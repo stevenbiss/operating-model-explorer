@@ -27,3 +27,20 @@
 Correct and clean; no new dependencies.
 
 *Saved by the orchestrator, because html-qa is read-only. 4.1 is ticked after the MAJOR fixes are re-checked.*
+
+## Round 2 verdict: SHIP
+- **Tie (MAJOR 1) fixed:**
+  - It breaks across non-twin boxes, their arrowheads and labels (`joint-far` and stress cases, 1920 and 1280, light and dark).
+  - Stubs are visible at the top-left; the 3-owner tie is correct.
+- **Preview with bad owners (MAJOR 2) fixed:**
+  - `[]`, `[bid-manager, 7]`, `7`, a missing owner, an unknown role, a near-miss, a duplicate and `joint-invalid` each show their error and draw the swimlane.
+  - Invalid steps are left out and bridged.
+- **Accessibility:** axe 0 violations in 36 runs; the accessible name includes parties. Keyboard and persona unchanged.
+- **Also clean:** security, performance and the pill clearance fix.
+- **Diff since 74bfb41:** correct; Ponytail clean.
+- **Remaining minors:**
+  - A cosmetic short stub segment above a centre-entering arrow.
+  - Same-lane cross-party (by design).
+  - RACI circle overlap (existing before this change).
+
+*Saved by the orchestrator. 4.1 ticked on SHIP.*

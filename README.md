@@ -4,7 +4,7 @@ An engine that turns an operating model, written as one capture sheet or a folde
 
 The engine is a single file, `dist/operating-model-explorer.html`. Opened on its own it runs in **author mode**. A snapshot you export from it runs in **viewer mode**. Both work offline, from disk or an email attachment, with nothing to install.
 
-**Status:** v1.8.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.8.0)). Viewers can now switch the home page between Simple and Detailed themselves (the author's `View:` sets where it starts), and the header lines up with full-width process and structure pages on wide screens. Built, tested (397 end-to-end and 280 unit tests), verified and QA-approved. Reports are in `openspec/changes/home-view-toggle-wide-header/reports/`.
+**Status:** v1.9.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.9.0)). A step can now be owned jointly by two or more roles: it is drawn side by side in each owner's lane, in the same column, tied with a dotted line. Built, tested (416 end-to-end and 306 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-joint-steps/reports/`.
 
 
 ## For authors
@@ -44,6 +44,10 @@ From v1.6.0:
 - **Who holds a role.** Add a `People` column to the Roles table (names separated by semicolons), or `people:` in a role file. Wherever the role appears, viewers see the person's name under it, or "Multiple people", and can hover or tab to it to see everyone. The role's page lists them all. A structure box with its own Name text keeps showing that text.
 - **Under review or Agreed.** Every process and structure diagram is **Under review** unless you add `Status: Agreed` to its section (or `status: agreed` in its file). The status shows as a badge wherever it's listed, and an under-review item has a notice above its diagram saying it may still change.
 - **Simple or Detailed home page.** The home page is **Simple** by default: the model name, then the parties, workstreams, every process and the structure diagrams. **Detailed** also shows the purpose, narrative, key messages and persona doors. Viewers can switch between the two with the toggle under the home page heading, and their choice is kept in the link. `View: Detailed` under the sheet's title (or `view: detailed` in `model.md`) sets the view the home page opens in. Other pages are the same either way, and the Key messages button is always there. In author mode, the preview says which view the snapshot opens in and has the same toggle; using it there doesn't change the export.
+
+### Joint steps: one activity done together
+
+From v1.9.0, a step can be owned by two or more roles at once, for an activity they do together. List the roles in the step's Owner cell separated by semicolons (`Bid manager; Solution architect`), or give `owner:` a list in a content file. It stays one step, with one detail page, but the swimlane draws it in each owner's lane, in the same column, marked "Joint" and tied with a dotted line. Joint owners must be roles; use a committee for a group decision instead. Models that use joint steps need the 1.9.0 engine.
 
 ### Brands: each party in its own colour and mark
 
