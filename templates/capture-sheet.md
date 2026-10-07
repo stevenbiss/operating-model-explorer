@@ -76,7 +76,9 @@ Summary: <!-- Optional: one or two sentences -->
 Status: <!-- Optional: Agreed once the process is settled. Without it, the process is shown as Under review. -->
 
 <!--
-One row per step, in order. Owner is a role's or a committee's name. Lists in a cell are separated by semicolons.
+One row per step, in order. Owner is a role's or a committee's name. For a joint step, done together by two or
+more roles, list every role's name, e.g. "Bid manager; Solution architect": write the activity once, not once
+per role. Lists in a cell are separated by semicolons.
 Next: leave empty to go to the following row; write a # or step name; label decision branches
 ("Go: 4; No go: 5"); or write End to finish the flow at this step.
 -->

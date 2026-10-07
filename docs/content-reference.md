@@ -249,7 +249,7 @@ A process inside one workstream, with its steps in order. It is shown as a swiml
 | `steps` | Yes | list of groups of fields | The steps, in order. A step flows to the next one in the list unless it has next. (EDGY: Activity) |
 | `steps[].id` | Yes | text | Id, unique within this process: lower-case letters and numbers joined by hyphens, e.g. scope. |
 | `steps[].name` | Yes | text | The step's display name. |
-| `steps[].owner` | Yes | text | The id of the role or committee that owns this step. The step sits in that role's or committee's lane. |
+| `steps[].owner` | Yes | text or list of text | The id of the role or committee that owns this step. The step sits in that role's or committee's lane. For a joint step, done together by two or more roles, a list of role ids, e.g. [bid-manager, solution-architect]: the step is drawn in each owner's lane, and the first is its primary owner. |
 | `steps[].description` | No | text | What happens in this step. Markdown is allowed. |
 | `steps[].raci` | No | role id: R, A, C, I | Role id to R (responsible), A (accountable), C (consulted) or I (informed), e.g. solution-architect: C. |
 | `steps[].inputs` | No | list of text | What this step needs. (EDGY: Object) |

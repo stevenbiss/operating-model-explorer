@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
 import { loadModel } from '../../src/model/load.js';
 import { columns, entryPoints, flow, labelLines, labelWidth } from '../../src/model/layout.js';
 import { swimlaneSvg } from '../../src/viewer/swimlane.js';
@@ -421,4 +422,91 @@ test('1.1 a skip detour in the bottom lane runs inside it, not on the diagram ed
   const height = +html.match(/<svg class="swimlane" width="[\d.]+" height="([\d.]+)"/)[1];
   const ys = [...edge('s', 'far').matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((p) => +p[2]);
   assert.equal(Math.max(...ys), height - 6);
+});
+
+// ---------- joint steps (add-joint-steps 1.3, 1.4) ----------
+const fixture = (name) => loadModel(readFolder(fileURLToPath(new URL(`../fixtures/${name}/`, import.meta.url)))).model;
+const allBoxes = (html) => [...html.matchAll(/<g class="node[^"]*"([^>]*)><rect class="ring"[^>]*\/><rect class="box" x="([\d.]+)" y="([\d.]+)"/g)].map((m) => ({ attrs: m[1], x: +m[2], y: +m[3] }));
+const tieOf = (html, id) => html.match(new RegExp(`class="joint-tie[^"]*" data-testid="joint-tie-${id}" d="([^"]*)"`))[1];
+// Every segment of a path, as [x0, y0, x1, y1], from its M, H and V commands.
+const segments = (d) => {
+  const out = [];
+  let x = 0;
+  let y = 0;
+  for (const [, c, a, b] of d.matchAll(/([MHV])(-?[\d.]+)(?: (-?[\d.]+))?/g)) {
+    if (c === 'M') [x, y] = [+a, +b];
+    else {
+      const [nx, ny] = c === 'H' ? [+a, y] : [x, +a];
+      out.push([x, y, nx, ny]);
+      [x, y] = [nx, ny];
+    }
+  }
+  return out;
+};
+// Strictly inside a box (touching its edge, as a stub does, is fine).
+const through = ([x0, y0, x1, y1], b) => Math.max(x0, x1) > b.x && Math.min(x0, x1) < b.x + 164 && Math.max(y0, y1) > b.y && Math.min(y0, y1) < b.y + 70;
+
+test('1.3 adjacent owner lanes: a box in each owner lane at one rank, the primary first; the step once in order', () => {
+  const f = flow(fixture('joint-basic'), 'main-flow');
+  const n = f.nodes['kick-off-the-bid'];
+  assert.deepEqual(n.twins, [{ owner: 'bid-manager', lane: 1, slot: 0 }, { owner: 'solution-architect', lane: 2, slot: 0 }]);
+  assert.deepEqual([n.lane, n.slot, n.rank], [1, 0, 1]);
+  assert.deepEqual(f.order, ['capture-the-lead', 'kick-off-the-bid', 'plan-the-work']);
+  assert.equal(f.order.filter((id) => id === 'kick-off-the-bid').length, 1);
+  // Into it from Account lead (lane 0): the Bid manager box. Out of it to Solution architect (lane 2): that box.
+  const [into, out] = f.edges;
+  assert.deepEqual([into.toBox.owner, out.fromBox.owner], ['bid-manager', 'solution-architect']);
+  assert.ok(into.crossParty && out.crossParty, 'cross-party by party set');
+});
+
+test('1.3 non-adjacent owner lanes: both boxes in one column, with the step in the lane between them in that column too', () => {
+  const f = flow(fixture('joint-far'), 'main-flow');
+  assert.deepEqual(f.lanes, ['bid-manager', 'account-lead', 'solution-architect']);
+  assert.deepEqual(f.nodes['kick-off-the-bid'].twins.map((t) => [t.owner, t.lane, t.slot]), [['bid-manager', 0, 0], ['solution-architect', 2, 0]]);
+  assert.deepEqual([f.nodes['kick-off-the-bid'].rank, f.nodes['brief-the-client'].rank, f.nodes['brief-the-client'].lane], [1, 1, 1]);
+});
+
+test('1.3 a step already in an owner lane at that rank: the joint box takes the next slot there', () => {
+  const m = mini(step('a', 'rx', '    next: [b, j]\n') + step('b', 'rx', '    next: []\n') + step('j', '[rx, ry]', '    next: []\n'));
+  const f = flow(m, 'p');
+  assert.deepEqual(f.nodes.j.twins, [{ owner: 'rx', lane: 0, slot: 1 }, { owner: 'ry', lane: 1, slot: 0 }]);
+  assert.deepEqual([f.nodes.b.slot, f.rows.rx, f.rows.ry], [0, 2, 1]);
+  assert.equal(f.edges.find((e) => e.to === 'j').toBox.owner, 'rx', 'from rx: the rx box');
+});
+
+test('1.3 ties go to the primary owner: a source lane equally near both boxes enters the primary', () => {
+  // The far fixture rewired so Account lead (lane 1) flows into the joint step: lanes 0 and 2 are equally near.
+  const m = fixture('joint-far');
+  const steps = m.elements['main-flow'].steps;
+  steps.find((s) => s.id === 'open-the-bid').next = [{ to: 'brief-the-client' }];
+  steps.find((s) => s.id === 'brief-the-client').next = [{ to: 'kick-off-the-bid' }];
+  steps.find((s) => s.id === 'kick-off-the-bid').next = [];
+  const e = flow(m, 'main-flow').edges.find((x) => x.to === 'kick-off-the-bid');
+  assert.equal(e.toBox.owner, 'bid-manager');
+});
+
+test('1.4 rendering: a box per owner with a Joint pill, one focusable primary, hidden twins, and a dotted tie through no box', () => {
+  for (const name of ['joint-basic', 'joint-far']) {
+    const { html } = svgOf(fixture(name), 'main-flow');
+    const boxes = allBoxes(html);
+    const joint = boxes.filter((b) => b.attrs.includes('data-step="kick-off-the-bid"'));
+    assert.equal(joint.length, 2, name);
+    assert.match(joint[0].attrs, /role="button" tabindex="0" data-testid="step-kick-off-the-bid"/);
+    assert.match(joint[1].attrs, /aria-hidden="true" tabindex="-1"/);
+    assert.equal(joint[0].x, joint[1].x, 'same column');
+    assert.equal((html.match(/>Joint<\/text>/g) || []).length, 2);
+    const segs = segments(tieOf(html, 'kick-off-the-bid'));
+    for (const b of boxes) for (const s of segs) assert.ok(!through(s, b), `${name}: tie ${s} crosses the box at ${b.x},${b.y}`);
+    // The vertical runs in the gap left of the column, from one box's centre to the other's, with stubs into each.
+    const v = segs.find(([x0, , x1]) => x0 === x1);
+    assert.deepEqual([v[0], Math.min(v[1], v[3]), Math.max(v[1], v[3])], [joint[0].x - 5, Math.min(...joint.map((b) => b.y + 35)), Math.max(...joint.map((b) => b.y + 35))]);
+    assert.equal(segs.filter(([, y0, x1, y1]) => y0 === y1 && x1 === joint[0].x).length, 2, 'a stub into each box');
+  }
+});
+
+test('1.4 connectors attach to the nearest box: into the Bid manager box, out of the Solution architect box', () => {
+  const { html, edge } = svgOf(fixture('joint-basic'), 'main-flow');
+  const [bm, sa] = allBoxes(html).filter((b) => b.attrs.includes('data-step="kick-off-the-bid"'));
+  assert.ok(edge('capture-the-lead', 'kick-off-the-bid').endsWith(`L${bm.x - 3} ${bm.y + 35}`), edge('capture-the-lead', 'kick-off-the-bid'));
+  assert.ok(edge('kick-off-the-bid', 'plan-the-work').startsWith(`M${sa.x + 164} ${sa.y + 35}`), edge('kick-off-the-bid', 'plan-the-work'));
 });

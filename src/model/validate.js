@@ -181,7 +181,7 @@ export function validate(docs) {
     add({ level: 'error', ...at, problem, fix: guess ? `Did you mean ${guess}?` : `Use the id of an existing ${type}, or add a ${type} with this id.` });
   };
   const list = (v) => (Array.isArray(v) ? v : []);
-  const owners = new Set(typed.filter((d) => d.header.type === 'process').flatMap((d) => list(d.header.steps).map((s) => s && s.owner)));
+  const owners = new Set(typed.filter((d) => d.header.type === 'process').flatMap((d) => list(d.header.steps).flatMap((s) => (s ? [].concat(s.owner) : []))));
 
   for (const doc of typed) {
     const h = doc.header;
@@ -217,11 +217,24 @@ export function validate(docs) {
           const sat = { ...at, ...whereOf(doc, i), step: typeof s.id === 'string' ? s.id : undefined };
           if (seen.has(s.id)) add({ level: 'error', ...sat, problem: `Two steps in this process use the id "${s.id}".`, fix: 'Give each step in a process its own id.' });
           seen.add(s.id);
-          ref(sat, 'owner', s.owner, 'role or committee', [...idsOf('role'), ...idsOf('committee')]);
-          const owner = byId.get(s.owner);
-          if (owner && ['role', 'committee'].includes(owner.type) && owner.removed && !removed(s)) {
-            add({ level: 'warning', ...sat, problem: `This step is owned by the ${owner.type} "${owner.type === 'committee' ? nameOf(s.owner) : s.owner}", which is marked as removed.`, fix: 'Give the step an owner that stays, or mark the step as removed too (change: status: removed).' });
+          // A joint step's owners (joint-steps D2): roles only, each once. The sheet reader matched the names, but
+          // these checks run for both forms, so they give the same messages.
+          const stepName = typeof s.name === 'string' ? s.name : s.id;
+          if (Array.isArray(s.owner)) {
+            if (!s.owner.length) add({ level: 'error', ...sat, problem: `The step "${stepName}" has an empty list of owners.`, fix: 'Name the role that owns it, or list the roles that do it together.' });
+            s.owner.forEach((o, n) => {
+              if (s.owner.indexOf(o) < n) return add({ level: 'error', ...sat, problem: `The step "${stepName}" lists ${nameOf(o)} twice as an owner.`, fix: 'List each owner once.' });
+              if (byId.get(o) && byId.get(o).type === 'committee') return add({ level: 'error', ...sat, problem: `The step "${stepName}" lists the committee "${nameOf(o)}" among its owners. Joint owners must be roles.`, fix: `Make "${nameOf(o)}" the step's only owner, or list only roles as its owners.` });
+              ref(sat, 'owner', o, 'role');
+            });
+          } else ref(sat, 'owner', s.owner, 'role or committee', [...idsOf('role'), ...idsOf('committee')]);
+          for (const o of new Set([].concat(s.owner))) {
+            const who = byId.get(o);
+            if (who && ['role', 'committee'].includes(who.type) && who.removed && !removed(s)) {
+              add({ level: 'warning', ...sat, problem: `This step is owned by the ${who.type} "${who.type === 'committee' ? nameOf(o) : o}", which is marked as removed.`, fix: 'Give the step an owner that stays, or mark the step as removed too (change: status: removed).' });
+            }
           }
+          const owner = Array.isArray(s.owner) ? null : byId.get(s.owner);
           if (s.raci && typeof s.raci === 'object') for (const r of Object.keys(s.raci)) ref(sat, 'RACI role', r, 'role');
           for (const n of list(s.next)) ref(sat, 'next step', typeof n === 'string' ? n : n && n.to, 'step', stepIds);
           // A capture sheet's combined letter is reported at its RACI table row, where it is written.

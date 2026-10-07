@@ -81,7 +81,7 @@ Status: Agreed
 | 2 | Assess solution fit | Solution architect | Check whether Globex can build what the client needs. | Lead record | Fit assessment | | | | | |
 | 3 | Go or no-go | Acme + Globex bid board | Decide together whether to bid. | Fit assessment | | | Decision within 5 working days | Go: 5; No go: 4 | | |
 | 4 | Decline politely | Account lead | Tell the client why, and what would change the answer. | | | | | End | New | Opportunities without a fit were left to go cold, with no reply to the client. |
-| 5 | Kick off the bid | Bid manager | Agree the bid team, the plan and the deadline. | | Bid plan | Shared bid workspace | | | Changed | Kick-off happened by email, and Globex joined a week later. |
+| 5 | Kick off the bid | Bid manager; Solution architect | Agree the bid team, the plan and the deadline. | | Bid plan | Shared bid workspace | | | Changed | Kick-off happened by email, and Globex joined a week later. |
 
 ### RACI
 
@@ -91,7 +91,7 @@ Status: Agreed
 | 2 | C | A | I | | |
 | 3 | | | | | |
 | 4 | A | | | | |
-| 5 | | C | | A | I |
+| 5 | | R | | A | I |
 
 ### Notes
 

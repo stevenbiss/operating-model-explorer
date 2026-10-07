@@ -336,7 +336,8 @@ test.describe('people and status (exported sample)', () => {
     await expect(lane('capture-lead')).toContainText('Account lead (Sam Example)');
     await expect(lane('assess-fit')).toContainText('Solution architect (Multiple people)');
     await expect(lane('decline')).toContainText('Account lead (Sam Example)');
-    await expect(lane('kick-off-bid')).not.toContainText('(');
+    // A joint step (add-joint-steps) lists its owners with their parties, not their people.
+    await expect(lane('kick-off-bid')).toHaveText('Bid manager (Acme Corp) · Solution architect (Globex)');
     expect(await noHorizontalScroll(page)).toBe(true);
   });
 

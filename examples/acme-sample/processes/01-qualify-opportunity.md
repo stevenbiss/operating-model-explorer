@@ -48,10 +48,10 @@ steps:
       today: Opportunities without a fit were left to go cold, with no reply to the client.
   - id: kick-off-bid
     name: Kick off the bid
-    owner: bid-manager
+    owner: [bid-manager, solution-architect]
     description: Agree the bid team, the plan and the deadline.
     raci:
-      solution-architect: C
+      solution-architect: R
       bid-manager: A
       delivery-manager: I
     outputs: [Bid plan]

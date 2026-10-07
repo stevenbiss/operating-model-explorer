@@ -65,7 +65,7 @@ The account lead is the **single point of contact** for the client.
 
 ## Processes and steps
 
-A process lists its steps in order. Each step needs an `id`, a `name` and an `owner` (a role id, or a [committee](#committees-decisions-taken-together) id), and sits in its owner's lane in the swimlane.
+A process lists its steps in order. Each step needs an `id`, a `name` and an `owner` (a role id, a [committee](#committees-decisions-taken-together) id, or a list of role ids for a [joint step](#joint-steps-one-activity-several-roles)), and sits in its owner's lane in the swimlane.
 
 ```yaml
 steps:
@@ -124,6 +124,26 @@ members:
 - A member that takes part in a process **only through the committee** is an *idle member* there, and gets no lane. Instead, the committee's lane header lists it under the committee's name, with its party's mark or colour. Members marked A come first, then R, C and I, each in party order. Each entry reads like "Legal counsel · C", followed by the person who holds the role, and links to the role's page. When the list needs more than four lines, the header ends with "+ N more", which opens the committee page and lists everyone when you hover over it or focus it. This is worked out per process, so a role can be listed in one process and have its own lane in another. Nothing changes in the content: there is no setting for it, and the step and the committee page still show every member.
 
 **When to use a committee, and when one owner.** Use a committee only when two or more people, usually from different parties, genuinely make the decision together. When one person decides and the others are only consulted or informed, keep that person as the step's owner and put the others in the step's RACI. The engine warns about a committee with no member marked `A`, with only one (that's a single owner), or whose `A` members all belong to one party (a team may fit better), and about a committee that owns no step. A role and a committee can't share a name.
+
+## Joint steps: one activity, several roles
+
+Some activities are done by two or more roles together, at the same time, such as a bid kick-off run by the bid manager and the solution architect. Write it as **one** step and list its owners:
+
+```yaml
+  - id: kick-off-bid
+    name: Kick off the bid
+    owner: [bid-manager, solution-architect]
+    raci:
+      bid-manager: A
+      solution-architect: R
+```
+
+- It is still one step: one id, one name, one place in the flow and one detail page. The first owner listed is its primary owner.
+- In the swimlane it is drawn once in each owner's lane, in the same column, each box marked "Joint" and tied together by a dotted line. Connectors into it end at the box nearest the step they come from, and connectors out of it start at the box nearest the step they go to. Its detail lists every owner with their party, and each owner's role page lists it.
+- Don't write the activity twice, once per role, joined by a "Joint" branch label: the swimlane reads that as one step after the other.
+- Joint owners must be roles: a committee can't be one of them, and naming the same role twice is an error. Joint owners get no RACI letter by default, so give each its letter in `raci`.
+- Use a [committee](#committees-decisions-taken-together) instead when a group takes a decision together, and one owner when one role does the work with others only consulted or informed.
+- Joint steps need engine 1.9.0 or later.
 
 ## Structure diagrams
 

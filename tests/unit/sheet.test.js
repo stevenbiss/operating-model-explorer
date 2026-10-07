@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { zipSync } from 'fflate';
 import { loadModel } from '../../src/model/load.js';
 import { isSheet, sheetToDocs, FORMAT } from '../../src/model/sheet.js';
@@ -799,4 +800,38 @@ test('1.9 the Acme sample, both forms: the same people and statuses, one agreed 
     assert.ok(m.order.structure.every((id) => m.elements[id].status === 'under-review'));
     assert.equal(m.model.view, 'simple', 'no View line: the Simple default');
   }
+});
+
+// ---------- joint steps (add-joint-steps 1.2) ----------
+const fixtureDir = (name) => new URL(`../fixtures/${name}/`, import.meta.url);
+
+test('1.2 an Owner cell with several names, matched ignoring case and spacing, is a joint step with no messages', () => {
+  const r = load(BASE.replace('| 2 | Design the solution | Solution architect |', '| 2 | Design the solution | account LEAD;  Solution  Architect |'));
+  assert.deepEqual(r.messages, []);
+  const s = proc(r).steps[1];
+  assert.deepEqual([s.owners, s.owner, s.joint, s.parties], [['account-lead', 'solution-architect'], 'account-lead', true, ['acme-corp', 'globex']]);
+});
+
+test('1.2 an unknown name in the Owner list: an error naming the process, the row and a suggestion', () => {
+  const m = only(load(BASE.replace('| 2 | Design the solution | Solution architect |', '| 2 | Design the solution | Account lead; Sol architect |')).messages);
+  assert.equal(m.where, 'Process: Build the proposal › row 2 (Design the solution)');
+  assert.match(m.problem, /"Sol architect"/);
+  assert.equal(m.fix, 'Did you mean Solution architect?');
+});
+
+test('1.2 a committee or a repeated role in the Owner list gives the same errors as a folder', () => {
+  const committees = '## Committees\n\n| Committee | Summary | Members |\n|---|---|---|\n| Bid board | Decides. | Account lead (A); Solution architect (A) |\n';
+  const twice = load(BASE.replace('| 2 | Design the solution | Solution architect |', '| 2 | Design the solution | Solution architect; solution architect |')).messages;
+  assert.match(only(twice).problem, /"Design the solution" lists Solution architect twice/);
+  const withCommittee = load(with_(committees).replace('| 2 | Design the solution | Solution architect |', '| 2 | Design the solution | Solution architect; Bid board |')).messages;
+  assert.match(only(withCommittee).problem, /committee "Bid board" among its owners\. Joint owners must be roles/);
+  assert.equal(withCommittee[0].where, 'Process: Build the proposal › row 2 (Design the solution)');
+});
+
+test('1.2 parity: sheet-joint and joint-basic give the same steps', () => {
+  const sheet = loadModel(readFolder(fileURLToPath(fixtureDir('sheet-joint'))));
+  const folder = loadModel(readFolder(fileURLToPath(fixtureDir('joint-basic'))));
+  assert.deepEqual([sheet.messages, folder.messages], [[], []]);
+  const pick = (m) => m.model.elements['main-flow'].steps.map(({ id, name, owner, owners, joint, parties, raci, next }) => ({ id, name, owner, owners, joint, parties, raci, next }));
+  assert.deepEqual(pick(sheet), pick(folder));
 });

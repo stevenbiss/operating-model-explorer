@@ -113,12 +113,13 @@ const reviewNote = (x, term) => (x.status === 'agreed' ? '' : `<p class="review-
 function cue(s) {
   const roles = personaRoles();
   if (!roles.size) return null;
-  if (roles.has(s.owner)) return `Your ${L.lower('step')}`;
+  if (s.owners.some((r) => roles.has(r))) return `Your ${L.lower('step')}`;
   const letters = [...new Set([...roles].map((r) => s.raci[r]).filter(Boolean))];
   return letters.length ? `You: ${letters.map(esc).join(', ')}` : null;
 }
-const involved = (s, r) => s.owner === r || r in s.raci;
-const letterOf = (s, r) => s.raci[r] || (s.owner === r ? 'R' : null);
+const involved = (s, r) => s.owners.includes(r) || r in s.raci;
+// A joint step's owners get no letter by default (joint-steps).
+const letterOf = (s, r) => s.raci[r] || (s.owner === r && !s.joint ? 'R' : null);
 // joint: one of several committee members marked A, written "Accountable, jointly" (design D4).
 const letterHtml = (l, joint) => {
   const word = Object.hasOwn(RACI, l) ? `${RACI[l]}${joint && l === 'A' ? ', jointly' : ''}` : '';
@@ -130,7 +131,9 @@ const raciRow = ([role, l], joint) => `<tr${mine(role) ? ' class="mine"' : ''}><
 const committeeOf = (s) => (s.ownerType === 'committee' && is(s.owner, 'committee') ? E[s.owner] : null);
 const byCommittee = (s) => (committeeOf(s) ? `<span class="badge badge-committee" data-testid="by-committee">By ${L.lower('committee')}</span>` : '');
 // Several members marked A share the decision: each is "Accountable, jointly" (design D4).
-const isJoint = (c) => Object.values(c.members).filter((l) => l === 'A').length > 1;
+// A step done together by several roles (joint-steps D5).
+const jointBadge = (s) => (s.joint ? '<span class="badge badge-joint" data-testid="joint-badge">Joint</span>' : '');
+const isJoint = (c) =>Object.values(c.members).filter((l) => l === 'A').length > 1;
 // "on <committee>" after a step's letters, where a role takes part through the committee that owns it.
 const via = (s) => (committeeOf(s) ? `<span class="letter-role" data-testid="via-committee">on ${esc(committeeOf(s).name)}</span>` : '');
 const memberParty = (r) => (is(r, 'role') && is(E[r].party, 'party') ? E[r].party : null);
@@ -590,7 +593,7 @@ function partyCard(id) {
 
 function rolesIn(processIds) {
   const set = new Set();
-  for (const p of processIds) for (const s of E[p].steps) if (visible(s)) [s.owner, ...Object.keys(s.raci)].forEach((r) => is(r, 'role') && set.add(r));
+  for (const p of processIds) for (const s of E[p].steps) if (visible(s)) [...s.owners, ...Object.keys(s.raci)].forEach((r) => is(r, 'role') && set.add(r));
   return M.order.role.filter((r) => set.has(r));
 }
 
@@ -623,7 +626,9 @@ function stepLabel(s) {
   const nx = F.nodes[s.id] ? nextOf(F, s.id) : [];
   const b = badgeText(s.change);
   const c = cue(s);
-  const owner = committeeOf(s) ? `, by ${L.lower('committee')}: ${esc(committeeOf(s).name)}` : `. ${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? `, ${esc(E[s.party].name)}` : ''}`;
+  const owner = committeeOf(s)
+    ? `, by ${L.lower('committee')}: ${esc(committeeOf(s).name)}`
+    : s.joint ? `, joint ${L.lower('step')}: ${s.owners.map((o) => esc(nameOf(o))).join(', ')}` : `. ${esc(r ? r.name : s.owner)}${is(s.party, 'party') ? `, ${esc(E[s.party].name)}` : ''}`;
   return `${esc(s.name)}${owner}.${b ? ` ${b}.` : ''}${c ? ` ${c}.` : ''} ${nx.length ? `Next: ${nx.map((e) => `${esc(F.nodes[e.to].step.name)}${e.label ? ` (${esc(e.label)})` : ''}`).join(', ')}.` : 'End of the flow.'}`;
 }
 
@@ -680,8 +685,10 @@ function flowList() {
     <span class="fi-body"><span class="fi-name">${esc(s.name)}</span>
     <span class="fi-lane">${committeeOf(s)
       ? esc(committeeOf(s).name)
-      : `${esc(r ? r.name : s.owner)}${ppl(s.owner) ? ` (${ppl(s.owner)})` : ''}${is(s.party, 'party') ? ` · <span class="ptag">${mark(s.party, false)}${esc(E[s.party].name)}</span>` : ''}`}</span>
-    ${byCommittee(s) || badge(s.change) || c ? `<span class="tags">${byCommittee(s)}${badge(s.change)}${c ? `<span class="cue">${c}</span>` : ''}</span>` : ''}
+      : s.joint
+        ? s.owners.map((o) => `${esc(nameOf(o))}${is(o, 'role') && is(E[o].party, 'party') ? ` (<span class="ptag">${mark(E[o].party, false)}${esc(E[E[o].party].name)}</span>)` : ''}`).join(' · ')
+        : `${esc(r ? r.name : s.owner)}${ppl(s.owner) ? ` (${ppl(s.owner)})` : ''}${is(s.party, 'party') ? ` · <span class="ptag">${mark(s.party, false)}${esc(E[s.party].name)}</span>` : ''}`}</span>
+    ${byCommittee(s) || s.joint || badge(s.change) || c ? `<span class="tags">${byCommittee(s)}${jointBadge(s)}${badge(s.change)}${c ? `<span class="cue">${c}</span>` : ''}</span>` : ''}
     <span class="fi-next">${nx.length ? `Next: ${nx.map((e) => `${esc(F.nodes[e.to].step.name)}${e.label ? ` (${esc(e.label)})` : ''}`).join(', ')}` : 'End of the flow'}</span></span>
   </a></li>`;
     })
@@ -692,15 +699,15 @@ function stepDetail(s) {
   const inFlow = !!F.nodes[s.id];
   const nx = inFlow ? nextOf(F, s.id) : [];
   const pv = inFlow ? prevOf(F, s.id) : [];
-  const r = E[s.owner];
   const c = persona() ? cue(s) : null;
   const items = (title, v) => (list(v).length ? `<div class="field"><h3>${title}</h3><ul>${list(v).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '');
   // A committee step leads with its members split by organisation; its RACI then lists only the non-members.
   const com = committeeOf(s);
   const raci = Object.entries(s.raci).filter(([role]) => !com || !Object.hasOwn(com.members, role));
+  const one = (o) => `${is(o, 'role') ? `<a href="${href({ view: 'role', id: o })}"${pplAttrs(o)}>${esc(E[o].name)}</a>` : esc(o)}${partyTag(is(o, 'role') && E[o].party)}${ppl(o)}`;
   const owner = com
     ? `<a href="${href({ view: 'element', id: s.owner })}">${esc(com.name)}</a> ${byCommittee(s)}`
-    : `${r ? `<a href="${href({ view: 'role', id: s.owner })}"${pplAttrs(s.owner)}>${esc(r.name)}</a>` : esc(s.owner)}${partyTag(s.party)}${ppl(s.owner)}`;
+    : one(s.owner);
   const link = (id, dir, label) => {
     const t = F.nodes[id].step;
     return `<a class="flow-btn ${dir}" href="${stepHref(t)}" data-testid="step-${dir}" data-to="${esc(id)}"><span class="fb-k">${dir === 'next' ? 'Next' : 'Previous'}${label ? ` · ${esc(label)}` : ''}</span><span class="fb-name">${esc(t.name)}</span></a>`;
@@ -710,7 +717,9 @@ function stepDetail(s) {
     <a class="btn btn-quiet close" href="${href({ view: 'process', id: s.process })}" data-testid="close-detail" aria-label="Close ${L.lower('step')} detail">Close</a></div>
   <h2 id="om-detail-title" tabindex="-1">${esc(s.name)}</h2>
   ${badge(s.change) || c ? `<div class="tags">${badge(s.change)}${c ? `<span class="cue">${c}</span>` : ''}</div>` : ''}
-  <p class="owner" data-testid="owner"><span class="k">Owner</span> ${owner}</p>
+  ${s.joint
+    ? `<div class="owner" data-testid="owner"><span class="k">Owners</span> ${jointBadge(s)}<ul class="owners">${s.owners.map((o) => `<li data-testid="owner-item">${one(o)}</li>`).join('')}</ul></div>`
+    : `<p class="owner" data-testid="owner"><span class="k">Owner</span> ${owner}</p>`}
   ${com ? `<div class="field members" data-testid="committee-members"><h3>${L('committee')} members</h3>${membersHtml(com, 'h4')}</div>` : ''}
   ${s.description ? `<div class="prose">${renderMarkdown(s.description)}</div>` : ''}
   ${today(s)}
@@ -765,7 +774,7 @@ ${head(`${L('role')}${party ? ` · ${party}` : ''}${team}`, r, mine(r.id) ? `<sp
 ${names(r).length ? `<section class="section" aria-labelledby="om-ppl-h" data-testid="role-people"><h2 id="om-ppl-h">People</h2><ul class="people-list">${names(r).map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>` : ''}
 ${committees.length ? `<section class="section" data-testid="role-committees"><h2>${L('committees')}</h2><ul class="step-list">${committees.map((c) => `<li><a href="${href({ view: 'element', id: c.committee })}">${esc(E[c.committee].name)}</a><span class="step-tags">${letterHtml(c.letter, isJoint(E[c.committee]))}${badge(E[c.committee].change)}</span></li>`).join('')}</ul></section>` : ''}
 <section class="section" aria-labelledby="om-where-h"><h2 id="om-where-h">Where this ${L.lower('role')} takes part</h2>
-${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${s.owner === r.id ? '<span class="tag">Owner</span>' : ''}${s.raci[r.id] ? letterHtml(s.raci[r.id]) : ''}${via(s)}${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">Not part of any ${L.lower('steps')} yet.</p>`}
+${groups.length ? groups.map((g) => `<div class="group"><h3><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h3><ul class="step-list">${g.steps.map((s) => `<li><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${s.owners.includes(r.id) ? `<span class="tag">Owner</span>${jointBadge(s)}` : ''}${s.raci[r.id] ? letterHtml(s.raci[r.id]) : ''}${via(s)}${badge(s.change)}</span></li>`).join('')}</ul></div>`).join('') : `<p class="note">Not part of any ${L.lower('steps')} yet.</p>`}
 </section>
 ${diagrams.length ? `<section class="section" data-testid="role-structures"><h2>${L('structures')} with this ${L.lower('role')}</h2><p class="chips">${diagrams.map(structureChip).join('')}</p></section>` : ''}
 </div>`;
@@ -839,6 +848,6 @@ function me() {
 <header class="page-head"><p class="eyebrow">${esc(p.name)}</p><h1 tabindex="-1">What matters for me</h1>
 <p class="lead">Every ${L.lower('step')}, across all ${L.lower('processes')}, where ${roles.map((r) => esc(E[r].name)).join(' or ')} ${roles.length === 1 ? 'is' : 'are'} the owner${list(M.order.committee).length ? `, in the RACI or on the ${L.lower('committee')} that owns it` : ' or in the RACI'}.</p>
 ${hasChanges() ? `<label class="toggle" data-testid="only-changes"><input type="checkbox" id="om-only"${only ? ' checked' : ''}><span>Only changes</span></label>` : ''}</header>
-${groups.length ? groups.map((g) => `<section class="section group" data-testid="me-group-${esc(g.p.id)}"><h2><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h2><ul class="step-list">${g.steps.map((s) => `<li data-testid="me-step"><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${roles.filter((r) => involved(s, r)).map((r) => `${letterHtml(letterOf(s, r))}${roles.length > 1 ? `<span class="letter-role">${esc(E[r].name)}</span>` : ''}`).join('')}${via(s)}${badge(s.change, only)}</span></li>`).join('')}</ul></section>`).join('') : `<p class="note">${only ? `No changes affect you.` : `No ${L.lower('steps')} involve you yet.`}</p>`}
+${groups.length ? groups.map((g) => `<section class="section group" data-testid="me-group-${esc(g.p.id)}"><h2><a href="${href({ view: 'process', id: g.p.id })}">${esc(g.p.name)}</a> ${statusBadge(g.p)}</h2><ul class="step-list">${g.steps.map((s) => `<li data-testid="me-step"><a href="${stepHref(s)}">${esc(s.name)}</a><span class="step-tags">${roles.filter((r) => involved(s, r)).map((r) => `${letterOf(s, r) ? letterHtml(letterOf(s, r)) : '<span class="tag">Owner</span>'}${roles.length > 1 ? `<span class="letter-role">${esc(E[r].name)}</span>` : ''}`).join('')}${via(s)}${badge(s.change, only)}</span></li>`).join('')}</ul></section>`).join('') : `<p class="note">${only ? `No changes affect you.` : `No ${L.lower('steps')} involve you yet.`}</p>`}
 </div>`;
 }

@@ -2,7 +2,7 @@
 // Steps are <g role="button"> in flow order so Tab follows the flow; lane-header role links come last.
 import { esc } from './esc.js';
 import { peopleAttrs, peopleLine } from './people.js';
-import { columns, entryPoints, GAP_MIN, HEAD, labelLines, NW } from '../model/layout.js';
+import { boxesOf, columns, entryPoints, GAP_MIN, HEAD, labelLines, NW } from '../model/layout.js';
 
 const NH = 70; // node height
 const PARTY_H = 34; // a party row; a two-line party name adds BAND_LINE
@@ -136,12 +136,14 @@ export function swimlaneSvg(ctx) {
     }
   }
   const height = y;
-  const pos = (id) => {
-    const n = f.nodes[id];
-    const x = cols[n.rank];
-    const top = laneTop[n.step.owner] + PAD_T + n.slot * (NH + 16);
-    return { x, y: top, cx: x + NW / 2, cy: top + NH / 2, bottom: top + NH, laneBottom: laneTop[n.step.owner] + lh(n.step.owner) };
+  // A step box's position: the primary one, or box (one of a joint step's twins, from boxesOf).
+  const pos = (id, box = boxesOf(f.nodes[id])[0]) => {
+    const x = cols[f.nodes[id].rank];
+    const top = laneTop[box.owner] + PAD_T + box.slot * (NH + 16);
+    return { x, y: top, cx: x + NW / 2, cy: top + NH / 2, bottom: top + NH, laneBottom: laneTop[box.owner] + lh(box.owner) };
   };
+  // Every drawn box, joint steps' twins included: { id, rank, owner, p }.
+  const boxes = f.order.flatMap((id) => boxesOf(f.nodes[id]).map((b) => ({ id, rank: f.nodes[id].rank, owner: b.owner, p: pos(id, b) })));
 
   // Backgrounds: party rows and lanes in the body (bg); their left-hand header cells in the sticky column (headBg).
   // A party's mark is an HTML <img> laid over its header cell (marks), never SVG markup (design D5).
@@ -172,8 +174,8 @@ export function swimlaneSvg(ctx) {
     const s = f.nodes[id].step;
     const col = cols[f.nodes[id].rank] + NW / 2;
     for (const [r, letter] of Object.entries(s.raci)) {
-      if (r === s.owner || !(r in laneTop)) continue;
-      if (Object.values(f.nodes).some((n) => n.step.owner === r && n.rank === f.nodes[id].rank)) continue;
+      if (s.owners.includes(r) || !(r in laneTop)) continue;
+      if (boxes.some((b) => b.owner === r && b.rank === f.nodes[id].rank)) continue;
       const cy = laneTop[r] + (f.rows[r] ? PAD_T + NH / 2 : lh(r) / 2);
       raci += `<g class="raci${persona && ctx.mine(r) ? ' mine' : ''}"><circle cx="${col}" cy="${cy}" r="12"/><text x="${col}" y="${cy + 4.5}" text-anchor="middle">${esc(letter)}</text></g>`;
     }
@@ -185,18 +187,22 @@ export function swimlaneSvg(ctx) {
   const loops = {};
   // Into a step with a labelled forward connector, every forward connector enters at its own point, ordered by the
   // source's height, so no line crosses a label (D4). Other steps keep one entry at their centre.
-  const forward = (e) => !e.back && pos(e.to).x > pos(e.from).x;
+  // A connector runs between the boxes the layout chose (fromBox, toBox), which differ from the primary only for a
+  // joint step (D4). Entry points are per box entered.
+  const forward = (e) => !e.back && f.nodes[e.to].rank > f.nodes[e.from].rank;
+  const into = (e) => `${e.to}|${e.toBox.owner}`;
   const entry = new Map();
-  for (const to of new Set(f.edges.filter((e) => e.label && forward(e)).map((e) => e.to))) {
-    const b = pos(to);
-    const into = f.edges.filter((e) => e.to === to && forward(e)).map((e) => ({ e, a: pos(e.from), lines: e.label ? labelLines(e.label) : [] }));
-    into.sort((p, q) => p.a.cy - q.a.cy || p.a.x - q.a.x);
-    entryPoints(into.map((i) => i.lines.length), b.cy, b.y + 10, b.bottom - 10, height).forEach((pt, n) => entry.set(into[n].e, { ...pt, lines: into[n].lines }));
+  for (const key of new Set(f.edges.filter((e) => e.label && forward(e)).map(into))) {
+    const list = f.edges.filter((e) => into(e) === key && forward(e)).map((e) => ({ e, a: pos(e.from, e.fromBox), lines: e.label ? labelLines(e.label) : [] }));
+    const b = pos(list[0].e.to, list[0].e.toBox);
+    list.sort((p, q) => p.a.cy - q.a.cy || p.a.x - q.a.x);
+    entryPoints(list.map((i) => i.lines.length), b.cy, b.y + 10, b.bottom - 10, height).forEach((pt, n) => entry.set(list[n].e, { ...pt, lines: list[n].lines }));
   }
+  const mineStep = (id) => f.nodes[id].step.owners.some(ctx.mine);
   for (const e of f.edges) {
-    const a = pos(e.from);
-    const b = pos(e.to);
-    const emph = persona ? (ctx.mine(f.nodes[e.from].step.owner) || ctx.mine(f.nodes[e.to].step.owner) ? ' mine' : ' dim') : '';
+    const a = pos(e.from, e.fromBox);
+    const b = pos(e.to, e.toBox);
+    const emph = persona ? (mineStep(e.from) || mineStep(e.to) ? ' mine' : ' dim') : '';
     const cls = `edge${e.crossParty ? ' cross' : ''}${e.back ? ' back' : ''}${emph}`;
     let d;
     if (e.back || b.x <= a.x) {
@@ -213,14 +219,11 @@ export function swimlaneSvg(ctx) {
       const y = at ? at.y : b.cy;
       // A branch that skips columns with a step of its source's lane in the way at its height runs along the lane
       // boundary on the target's side instead (lane boundaries never hold steps), then drops before the target (D4).
-      const { rank: from, step: src } = f.nodes[e.from];
-      const blocked = f.order.some((id) => {
-        const n = f.nodes[id];
-        const p = pos(id);
-        return n.step.owner === src.owner && n.rank > from && n.rank < f.nodes[e.to].rank && a.cy > p.y && a.cy < p.bottom;
-      });
+      const from = f.nodes[e.from].rank;
+      const lane = e.fromBox.owner;
+      const blocked = boxes.some(({ owner, rank, p }) => owner === lane && rank > from && rank < f.nodes[e.to].rank && a.cy > p.y && a.cy < p.bottom);
       // In the bottom lane, 6px inside it rather than on the diagram's edge, still below any rework loop (12px up).
-      const yb = b.cy < a.cy ? laneTop[src.owner] : a.laneBottom - (a.laneBottom >= height ? 6 : 0);
+      const yb = b.cy < a.cy ? laneTop[lane] : a.laneBottom - (a.laneBottom >= height ? 6 : 0);
       d = path(blocked
         ? [[a.x + NW, a.cy], [a.x + NW + 12, a.cy], [a.x + NW + 12, yb], [mx, yb], [mx, y], [b.x - 3, y]]
         : [[a.x + NW, a.cy], [mx, a.cy], [mx, y], [b.x - 3, y]]);
@@ -241,32 +244,48 @@ export function swimlaneSvg(ctx) {
     edges += `<path class="${cls}" d="${d}" marker-end="url(#om-${e.crossParty ? 'open' : 'arrow'})" data-from="${esc(e.from)}" data-to="${esc(e.to)}"/>`;
   }
 
-  // Steps, in flow order.
+  // Steps, in flow order. A joint step draws a box in each owner's lane (D4): the primary owner's is the one Tab stop
+  // and carries the accessible name; the others are hidden from screen readers but open the same step when clicked.
+  // A dotted tie in the gap just left of the column joins them: gaps never hold step boxes, so it crosses none.
   let nodes = '';
+  let ties = '';
   f.order.forEach((id) => {
     const s = f.nodes[id].step;
-    const p = pos(id);
     const badge = ctx.badge(s.change);
     const cue = persona ? ctx.cue(s) : null;
     const cls = ['node', s.id === ctx.selected && 'selected', persona && (cue ? 'mine' : 'dim'), badge && `status-${s.change.status}`].filter(Boolean).join(' ');
-    const pills = [];
-    let px = p.x + 14;
-    const by = s.ownerType === 'committee' && `By ${ctx.L.lower('committee')}`;
-    for (const [text, c] of [[by, 'committee'], [badge, `badge-${badge && s.change.status}`], [cue, 'cue']]) {
-      if (!text) continue;
-      const pl = pill(px, p.bottom - 26, text, c);
-      pills.push(pl.svg);
-      px += pl.w + 6;
+    const by = (s.ownerType === 'committee' && `By ${ctx.L.lower('committee')}`) || (s.joint && 'Joint');
+    const twins = boxesOf(f.nodes[id]);
+    twins.forEach((box, n) => {
+      const p = pos(id, box);
+      const pills = [];
+      let px = p.x + 14;
+      for (const [text, c] of [[by, s.joint ? 'joint' : 'committee'], [badge, `badge-${badge && s.change.status}`], [cue, 'cue']]) {
+        if (!text) continue;
+        const pl = pill(px, p.bottom - 26, text, c);
+        pills.push(pl.svg);
+        px += pl.w + 6;
+      }
+      const lines = wrap(s.name, 21, pills.length ? 2 : 3);
+      const ty = p.y + (pills.length ? 24 : NH / 2 - (lines.length - 1) * 8.5 + 5);
+      const party = s.joint ? el[box.owner] && el[box.owner].party : s.party;
+      const a11y = n
+        ? `aria-hidden="true" tabindex="-1" data-testid="joint-twin-${esc(id)}"`
+        : `role="button" tabindex="0" data-testid="step-${esc(id)}" aria-label="${ctx.stepLabel(s)}"${s.id === ctx.selected ? ' aria-current="step"' : ''}`;
+      nodes += `<g class="${cls}" ${a11y} data-step="${esc(id)}"${s.joint ? ` data-owner="${esc(box.owner)}"` : ''}${ctx.dp(party)}>` +
+        `<rect class="ring" x="${p.x - 5}" y="${p.y - 5}" width="${NW + 10}" height="${NH + 10}" rx="14"/>` +
+        `<rect class="box" x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="10"/>` +
+        `<line class="stripe" x1="${p.x + 6}" x2="${p.x + 6}" y1="${p.y + 12}" y2="${p.bottom - 12}"/>` +
+        `<text class="node-name" x="${p.x + 14}" y="${ty}">${lines.map((l, i) => `<tspan x="${p.x + 14}" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join('')}</text>` +
+        pills.join('') +
+        '</g>';
+    });
+    if (s.joint) {
+      const ys = twins.map((b) => pos(id, b).cy).sort((a, b) => a - b);
+      const x = cols[f.nodes[id].rank];
+      const tx = x - 5;
+      ties += `<path class="joint-tie${persona ? (cue ? ' mine' : ' dim') : ''}" data-testid="joint-tie-${esc(id)}" d="M${tx} ${ys[0]}V${ys[ys.length - 1]}${ys.map((y) => `M${tx} ${y}H${x}`).join('')}"/>`;
     }
-    const lines = wrap(s.name, 21, pills.length ? 2 : 3);
-    const ty = p.y + (pills.length ? 24 : NH / 2 - (lines.length - 1) * 8.5 + 5);
-    nodes += `<g class="${cls}" role="button" tabindex="0" data-step="${esc(id)}" data-testid="step-${esc(id)}" aria-label="${ctx.stepLabel(s)}"${s.id === ctx.selected ? ' aria-current="step"' : ''}${ctx.dp(s.party)}>` +
-      `<rect class="ring" x="${p.x - 5}" y="${p.y - 5}" width="${NW + 10}" height="${NH + 10}" rx="14"/>` +
-      `<rect class="box" x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="10"/>` +
-      `<line class="stripe" x1="${p.x + 6}" x2="${p.x + 6}" y1="${p.y + 12}" y2="${p.bottom - 12}"/>` +
-      `<text class="node-name" x="${p.x + 14}" y="${ty}">${lines.map((l, i) => `<tspan x="${p.x + 14}" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join('')}</text>` +
-      pills.join('') +
-      '</g>';
   });
 
   // Lane header links (layout computed above). With committees, each lane group (a party's roles, the committees)
@@ -332,6 +351,6 @@ export function swimlaneSvg(ctx) {
   return `<div class="swim-row"><svg class="swimlane" width="${body}" height="${height}" viewBox="${HEAD} 0 ${body} ${height}" preserveAspectRatio="xMinYMin meet" role="group" aria-label="${ctx.label}">` +
     '<defs><marker id="om-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>' +
     '<marker id="om-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.8"/></marker></defs>' +
-    `<g aria-hidden="true">${bg}${raci}${edges}${labels}</g>${nodes}</svg>` +
+    `<g aria-hidden="true">${bg}${raci}${ties}${edges}${labels}</g>${nodes}</svg>` +
     `<div class="lane-heads"><svg class="swimlane" width="${HEAD}" height="${height}" viewBox="0 0 ${HEAD} ${height}"${committees.length ? ' role="none"' : ` role="group" aria-label="${ctx.L('roles')}"`}><g aria-hidden="true">${headBg}</g>${headLinks}</svg>${marks ? `<div class="band-marks" aria-hidden="true">${marks}</div>` : ''}</div></div>`;
 }

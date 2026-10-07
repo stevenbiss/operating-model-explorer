@@ -380,7 +380,8 @@ export function sheetToDocs(text, file = 'capture-sheet.md') {
       const out = compact({
         id: st.id,
         name: st.get('name'),
-        owner: findOwner(st.get('owner'), st.where),
+        // "Bid manager; Solution architect": a joint step (joint-steps D2), whose owners validate() checks are roles.
+        owner: ((o) => (o.length > 1 ? o : o[0]))(list(st.get('owner')).map((n) => findOwner(n, st.where))),
         description: st.get('description'),
         inputs: list(st.get('inputs')),
         outputs: list(st.get('outputs')),

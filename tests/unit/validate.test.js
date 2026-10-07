@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { fileURLToPath } from 'node:url';
 import { loadModel } from '../../src/model/load.js';
 import { closest, effectiveRaci } from '../../src/model/validate.js';
 import { toSnapshot } from '../../src/model/snapshot.js';
@@ -570,4 +571,42 @@ test('1.1 people that is not a list of names: an error naming the role and sayin
   assert.equal(m.problem, '"people" should be a list of names, but it is text.');
   const item = only(run({ ...ROLES, 'roles/al.md': '---\nid: account-lead\ntype: role\nname: AL\nparty: acme\npeople: [Sam Example, 42]\n---\n' }));
   assert.equal(item.problem, '"people item 2" should be text, but it is a whole number.');
+});
+
+// ---------- joint steps (add-joint-steps 1.1, 1.2) ----------
+const fixture = (name) => loadModel(readFolder(fileURLToPath(new URL(`../fixtures/${name}/`, import.meta.url))));
+
+test('1.1 a joint step loads as one step: owners, the primary owner, joint, parties in model order; the snapshot carries them', () => {
+  const { model, messages } = fixture('joint-basic');
+  assert.deepEqual(messages, []);
+  const steps = model.elements['main-flow'].steps;
+  const s = steps.find((x) => x.id === 'kick-off-the-bid');
+  assert.deepEqual([s.owners, s.owner, s.lane, s.joint, s.ownerType, s.parties, s.party], [['bid-manager', 'solution-architect'], 'bid-manager', 'bid-manager', true, 'role', ['alpha', 'beta'], 'alpha']);
+  assert.deepEqual(s.raci, { 'bid-manager': 'A' }, 'joint owners get no default letter');
+  const single = steps.find((x) => x.id === 'capture-the-lead');
+  assert.deepEqual([single.owners, single.joint, 'parties' in single], [['account-lead'], false, false]);
+  // Cross-party by party set: into the joint step from Alpha, and out of it to Beta.
+  assert.deepEqual(model.elements['main-flow'].edges.map((e) => e.crossParty), [true, true]);
+  const snap = JSON.parse(JSON.stringify(toSnapshot(model)));
+  assert.deepEqual(snap.elements['main-flow'].steps[1].owners, s.owners);
+  assert.equal(snap.elements['main-flow'].steps[1].joint, true);
+});
+
+test('1.2 joint owners: a committee among them and a repeated role are errors naming the step (joint-invalid)', () => {
+  const msgs = fixture('joint-invalid').messages;
+  assert.deepEqual(msgs.map((m) => [m.level, m.step]), [['error', 'decide-together'], ['error', 'plan-the-bid']]);
+  assert.match(msgs[0].problem, /"Decide together".*committee "Bid board".*Joint owners must be roles/);
+  assert.match(msgs[1].problem, /"Plan the bid" lists Bid manager twice/);
+});
+
+test('1.2 an unknown role in an owner list: an error naming the step and the id, with a suggestion', () => {
+  const m = only(run(processWith('  - id: scope\n    name: Scope\n    owner: [account-lead, sol-arch]\n')));
+  assert.deepEqual([m.level, m.step], ['error', 'scope']);
+  assert.match(m.problem, /"sol-arch" does not match any role\./);
+  assert.equal(m.fix, 'Did you mean solution-architect?');
+});
+
+test('1.2 an empty owner list is an error; a schema type error names a non-text owner', () => {
+  assert.match(only(run(processWith('  - id: scope\n    name: Scope\n    owner: []\n'))).problem, /empty list of owners/);
+  assert.match(only(run(processWith('  - id: scope\n    name: Scope\n    owner: 3\n'))).problem, /should be text or a list/);
 });

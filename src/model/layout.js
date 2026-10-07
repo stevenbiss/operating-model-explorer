@@ -60,7 +60,7 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   const used = new Set();
   for (const s of steps) {
     if (s.ownerType === 'committee') committees.includes(s.owner) || committees.push(s.owner);
-    else if (typeof s.owner === 'string') used.add(s.owner);
+    else for (const o of s.owners) if (typeof o === 'string') used.add(o);
     const members = s.ownerType === 'committee' ? m.elements[s.owner].members : {};
     Object.keys(s.raci).forEach((r) => Object.hasOwn(members, r) || used.add(r));
   }
@@ -86,16 +86,29 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   if (committees.length) groups.splice(at, 0, { party: null, committee: true, lanes: committees.sort((a, b) => first(a) - first(b)) });
   const lanes = groups.flatMap((g) => g.lanes);
 
-  // Two steps in the same lane and rank stack into slots.
+  // Two steps in the same lane and rank stack into slots. A joint step (joint-steps D3) gets a box in each owner's
+  // lane at its one rank, each with a slot of its own there: twins [{ owner, lane, slot }], the primary owner's first.
   const nodes = {};
   const slots = {};
-  for (const s of steps) {
-    const key = `${s.owner}|${rank[s.id]}`;
+  const place = (owner, r) => {
+    const key = `${owner}|${r}`;
     slots[key] = (slots[key] ?? -1) + 1;
-    nodes[s.id] = { step: s, rank: rank[s.id], lane: lanes.indexOf(s.owner), slot: slots[key] };
+    return { owner, lane: lanes.indexOf(owner), slot: slots[key] };
+  };
+  for (const s of steps) {
+    const [first, ...rest] = (s.joint ? s.owners : [s.owner]).map((o) => place(o, rank[s.id]));
+    nodes[s.id] = { step: s, rank: rank[s.id], lane: first.lane, slot: first.slot, ...(s.joint && { twins: [first, ...rest] }) };
   }
   const rows = Object.fromEntries(lanes.map((r) => [r, 0]));
-  for (const n of Object.values(nodes)) rows[n.step.owner] = Math.max(rows[n.step.owner], n.slot + 1);
+  for (const n of Object.values(nodes)) for (const b of boxesOf(n)) rows[b.owner] = Math.max(rows[b.owner], b.slot + 1);
+
+  // A connector leaves a joint step from the box nearest the other end's lane and enters one at the box nearest
+  // the box it comes from (D4); ties go to the primary owner's box. fromBox and toBox: { owner, lane, slot }.
+  const nearest = (id, lane) => boxesOf(nodes[id]).reduce((b, t) => (Math.abs(t.lane - lane) < Math.abs(b.lane - lane) ? t : b));
+  for (const e of edges) {
+    e.fromBox = nearest(e.from, nodes[e.to].lane);
+    e.toBox = nearest(e.to, e.fromBox.lane);
+  }
 
   // Flow order (also the Tab order): by rank, then lane, then slot.
   const order = steps.map((s) => s.id).sort((a, b) => nodes[a].rank - nodes[b].rank || nodes[a].lane - nodes[b].lane || nodes[a].slot - nodes[b].slot);
@@ -103,7 +116,10 @@ export function flow(m, processId, { showRemoved = false } = {}) {
   return { nodes, edges, groups, lanes, rows, order, idle, ranks: Math.max(0, ...Object.values(rank)) + 1 };
 }
 
-export const nextOf = (f, id) => f.edges.filter((e) => e.from === id);
+// A node's boxes: one per owner lane for a joint step, otherwise its own lane and slot.
+export const boxesOf = (n) => n.twins || [{ owner: n.step.owner, lane: n.lane, slot: n.slot }];
+
+export const nextOf =(f, id) => f.edges.filter((e) => e.from === id);
 export const prevOf = (f, id) => f.edges.filter((e) => e.to === id);
 
 // Column positions sized to connector labels (fit-connector-labels D2, D3). Shared with the swimlane renderer.

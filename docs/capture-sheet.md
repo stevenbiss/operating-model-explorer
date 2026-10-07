@@ -310,7 +310,7 @@ Most lost bids were lost **before they started**.
 |---|---|---|
 | `#` | Yes | The step's number, used by `Next` and the RACI matrix. Number the rows 1, 2, 3 and so on. |
 | `Step` | Yes | The step's name. Names must be different within a process. |
-| `Owner` | Yes | The name of the role or [committee](#committees) that owns the step. The step sits in that role's or committee's lane. |
+| `Owner` | Yes | The name of the role or [committee](#committees) that owns the step. The step sits in that role's or committee's lane. For a [joint step](#joint-steps), done together by two or more roles, their names separated by semicolons. |
 | `Description` | No | What happens. Markdown is allowed. |
 | `Inputs` | No | What the step needs, separated by semicolons. |
 | `Outputs` | No | What the step produces, separated by semicolons. |
@@ -319,6 +319,32 @@ Most lost bids were lost **before they started**.
 | `Next` | No | The steps that follow (see below). |
 
 Steps appear in the order of the rows.
+
+### Joint steps
+
+When two or more roles do one activity together, at the same time, write it as **one** step and list every owner in its `Owner` cell, separated by semicolons. Don't write the activity twice, once per role: the swimlane would show two steps one after the other.
+
+```markdown
+## Process: Kick off a bid
+
+Workstream: Presales
+
+| # | Step | Owner | Next |
+|---|---|---|---|
+| 1 | Kick off the bid | Bid manager; Solution architect | End |
+
+### RACI
+
+| Step | Bid manager | Solution architect |
+|---|---|---|
+| 1 | A | R |
+```
+
+- It is still one step, with one row, one RACI row and one place in the flow. The first owner listed is the primary owner.
+- In the swimlane it is drawn once in each owner's lane, in the same column, each box marked "Joint", tied together by a dotted line.
+- Joint owners must be roles: a committee can't be one of them, and naming the same role twice is an error. The owners can belong to one party or to several.
+- Joint owners get no RACI letter of their own, so give each the letter that fits on the step's RACI row: usually one A and R for the others.
+- Joint steps need engine 1.9.0 or later. An older engine reports the Owner cell as an unknown role.
 
 ### Next
 
@@ -339,7 +365,7 @@ A `Next` that points to a step that doesn't exist in the process is an error nam
 - A cell with more than one letter, such as `A/R`, is an error. Choose R if the role does the work, or A if it signs the work off.
 - Every step should have **exactly one A**. A step with no A, or with more than one, is a warning. It doesn't stop the export.
 - A step owned by a committee takes its members' letters from the committee, so leave its row empty for them. Its A is the committee's members marked A, together. Give letters on its row only to roles that aren't members, and never A.
-- The owner counts as R when it has no letter of its own.
+- The owner counts as R when it has no letter of its own. The owners of a joint step don't: give them their letters on the row.
 - An unknown role column or step row is an error, with a suggestion when a name is close.
 
 ### Notes

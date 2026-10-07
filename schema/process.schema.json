@@ -23,7 +23,7 @@
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Id, unique within this process: lower-case letters and numbers joined by hyphens, e.g. scope." },
           "name": { "type": "string", "description": "The step's display name." },
-          "owner": { "type": "string", "description": "The id of the role or committee that owns this step. The step sits in that role's or committee's lane." },
+          "owner": { "type": ["string", "array"], "items": { "type": "string" }, "description": "The id of the role or committee that owns this step. The step sits in that role's or committee's lane. For a joint step, done together by two or more roles, a list of role ids, e.g. [bid-manager, solution-architect]: the step is drawn in each owner's lane, and the first is its primary owner." },
           "description": { "type": "string", "description": "What happens in this step. Markdown is allowed." },
           "raci": { "type": "object", "additionalProperties": { "enum": ["R", "A", "C", "I"] }, "description": "Role id to R (responsible), A (accountable), C (consulted) or I (informed), e.g. solution-architect: C." },
           "inputs": { "type": "array", "items": { "type": "string" }, "x-edgy": "Object", "description": "What this step needs." },

@@ -248,19 +248,31 @@ function resolveSteps(p, el, partyOrder) {
   const list = (Array.isArray(p.steps) ? p.steps : []).filter((s) => s && typeof s === 'object');
   const partyOf = (role) => (el[role] && el[role].type === 'role' ? el[role].party : null);
   const committeeOf = (id) => (typeof id === 'string' && el[id] && el[id].type === 'committee' ? el[id] : null);
-  p.steps = list.map((s, i) => ({
-    ...s,
-    process: p.id,
-    lane: s.owner,
-    ownerType: committeeOf(s.owner) ? 'committee' : 'role',
-    party: partyOf(s.owner),
-    ...(committeeOf(s.owner) && { parties: partyOrder.filter((x) => Object.keys(committeeOf(s.owner).members).some((r) => partyOf(r) === x)) }),
-    raci: effectiveRaci(s.raci, committeeOf(s.owner) && committeeOf(s.owner).members),
-    // Without "next", a step flows to the following step in the list.
-    next: Array.isArray(s.next)
-      ? s.next.map((n) => (typeof n === 'string' ? { to: n } : { to: n && n.to, label: n && n.label }))
-      : list[i + 1] ? [{ to: list[i + 1].id }] : [],
-  }));
+  // A joint step (joint-steps D2) lists several role owners: owners is that list (each once), owner its first, the
+  // primary owner, and parties its owners' parties, in model order, as for a committee. Any other step has owners [owner].
+  p.steps = list.map((s, i) => {
+    const owners = [...new Set([].concat(s.owner ?? []))];
+    const owner = Array.isArray(s.owner) ? owners[0] : s.owner;
+    const joint = owners.length > 1;
+    const committee = !joint && committeeOf(owner);
+    return {
+      ...s,
+      process: p.id,
+      owner,
+      owners,
+      joint,
+      lane: owner,
+      ownerType: committee ? 'committee' : 'role',
+      party: partyOf(owner),
+      ...(committee && { parties: partyOrder.filter((x) => Object.keys(committee.members).some((r) => partyOf(r) === x)) }),
+      ...(joint && { parties: partyOrder.filter((x) => owners.some((r) => partyOf(r) === x)) }),
+      raci: effectiveRaci(s.raci, committee && committee.members),
+      // Without "next", a step flows to the following step in the list.
+      next: Array.isArray(s.next)
+        ? s.next.map((n) => (typeof n === 'string' ? { to: n } : { to: n && n.to, label: n && n.label }))
+        : list[i + 1] ? [{ to: list[i + 1].id }] : [],
+    };
+  });
   const byId = Object.fromEntries(p.steps.map((s) => [s.id, s]));
   p.edges = p.steps.flatMap((s) =>
     s.next

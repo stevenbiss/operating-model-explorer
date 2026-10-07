@@ -7,7 +7,7 @@ const cell = (s) => String(s).replace(/\|/g, '\\|');
 
 function valueOf(s) {
   if (s.enum) return `one of: ${s.enum.join(', ')}`;
-  if (s.items) return `list of ${s.items.enum ? `(${s.items.enum.join(', ')})` : [].concat(s.items.type).map((t) => (t === 'object' ? 'groups of fields' : WORDS[t])).join(' or ')}`;
+  if (s.items) return `${[].concat(s.type).filter((t) => t !== 'array').map((t) => `${WORDS[t]} or `).join('')}list of ${s.items.enum ? `(${s.items.enum.join(', ')})` : [].concat(s.items.type).map((t) => (t === 'object' ? 'groups of fields' : WORDS[t])).join(' or ')}`;
   if (s.additionalProperties && typeof s.additionalProperties === 'object') return `role id: ${s.additionalProperties.enum.join(', ')}`;
   return [].concat(s.type).map((t) => WORDS[t]).join(' or ');
 }

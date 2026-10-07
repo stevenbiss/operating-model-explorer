@@ -212,7 +212,7 @@ test.describe('explorer-views (exported sample)', () => {
     await page.getByTestId('change-toggle').locator('input').check();
     await expect(page).toHaveURL(/changes=1/);
     await expect(pills('decline')).toHaveText(['New']);
-    await expect(pills('kick-off-bid')).toHaveText(['Changed']);
+    await expect(pills('kick-off-bid')).toHaveText(['Joint', 'Changed']); // a joint step (add-joint-steps)
     await expect(page.getByTestId('step-decline')).toHaveAttribute('aria-label', /\bNew\./);
     await page.getByTestId('step-kick-off-bid').click();
     const detail = page.getByTestId('step-detail');
@@ -256,7 +256,9 @@ test.describe('explorer-views (exported sample)', () => {
       const it = lane.getByTestId(`step-${step}`);
       const roleName = { 'account-lead': 'Account lead (Sam Example)', 'solution-architect': 'Solution architect (Multiple people)', 'bid-manager': 'Bid manager' }[owner];
       const committee = 'Acme + Globex bid board'; // the committee's name only, no member list
-      await expect(it.locator('.fi-lane')).toHaveText(owner === 'bid-board' ? committee : `${roleName} · ${PARTY_NAME[PARTY[owner]]}`);
+      // Kick off the bid is a joint step (add-joint-steps): every owner with their party.
+      const joint = 'Bid manager (Acme Corp) · Solution architect (Globex)';
+      await expect(it.locator('.fi-lane')).toHaveText(owner === 'bid-board' ? committee : step === 'kick-off-bid' ? joint : `${roleName} · ${PARTY_NAME[PARTY[owner]]}`);
       await expect(it.locator('.fi-next')).toHaveText(/^(Next: .+|End of the flow)$/);
     }
     await expect(lane.getByTestId('step-go-no-go').locator('.fi-next')).toHaveText('Next: Kick off the bid (Go), Decline politely (No go)');

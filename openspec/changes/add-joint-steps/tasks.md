@@ -2,14 +2,14 @@
 
 ## 1. Build
 
-- [ ] 1.1 Schema and load (D2): `owner` as a string or a list of role ids in `process.schema.json`; normalise `owners`, `owner` (primary), `joint` and `parties` in `load.js` and `snapshot.js`. Verify with unit tests
-- [ ] 1.2 Validation and sheet (D2): every owner in a list is a role (committee → error), no duplicates, reference checks with suggestions; the sheet Owner cell split on `;`; folder/sheet parity. Verify with unit tests in `validate.test.js` and `sheet.test.js`
-- [ ] 1.3 Layout (D3): twin placements per owner lane at one rank with per-lane slots; the step once in `order`. Verify with unit tests in `layout.test.js` (adjacent and non-adjacent owner lanes, a step already in an owner lane at that rank)
-- [ ] 1.4 Rendering (D4): twin boxes with "Joint" pills; a focusable primary and `aria-hidden` click-through twins; the dotted tie in the gap left of the column; connectors attached to the nearest twin; cross-party by party set. Verify manually at 1280, light and dark, and with a unit render test that the tie crosses no box
-- [ ] 1.5 Viewer pages (D5): step detail owners plus "Joint", role profiles, persona emphasis on all twins, search once, phone list label. Verify manually at 1280 and 375
-- [ ] 1.6 Fixtures (fictional): `joint-basic` (adjacent owner lanes), `joint-far` (non-adjacent owner lanes with a step in between in the same column), `joint-invalid` (a committee among owners; a duplicate role), `sheet-joint`. Verify each gives exactly its intended messages
-- [ ] 1.7 Sample, skill, docs (D6): "Kick off the bid" joint in both forms (parity); a SKILL.md note; the capture-sheet format, the authoring guide and the template. Verify that both forms give 0 errors and 0 warnings, and that the parity, skill-folder-current and doc-example tests pass
-- [ ] 1.8 Version 1.9.0 in `package.json` and `package-lock.json`. Verify with the version test
+- [x] 1.1 Schema and load (D2): `owner` as a string or a list of role ids in `process.schema.json`; normalise `owners`, `owner` (primary), `joint` and `parties` in `load.js` and `snapshot.js`. Verify with unit tests
+- [x] 1.2 Validation and sheet (D2): every owner in a list is a role (committee → error), no duplicates, reference checks with suggestions; the sheet Owner cell split on `;`; folder/sheet parity. Verify with unit tests in `validate.test.js` and `sheet.test.js`
+- [x] 1.3 Layout (D3): twin placements per owner lane at one rank with per-lane slots; the step once in `order`. Verify with unit tests in `layout.test.js` (adjacent and non-adjacent owner lanes, a step already in an owner lane at that rank)
+- [x] 1.4 Rendering (D4): twin boxes with "Joint" pills; a focusable primary and `aria-hidden` click-through twins; the dotted tie in the gap left of the column; connectors attached to the nearest twin; cross-party by party set. Verify manually at 1280, light and dark, and with a unit render test that the tie crosses no box
+- [x] 1.5 Viewer pages (D5): step detail owners plus "Joint", role profiles, persona emphasis on all twins, search once, phone list label. Verify manually at 1280 and 375
+- [x] 1.6 Fixtures (fictional): `joint-basic` (adjacent owner lanes), `joint-far` (non-adjacent owner lanes with a step in between in the same column), `joint-invalid` (a committee among owners; a duplicate role), `sheet-joint`. Verify each gives exactly its intended messages
+- [x] 1.7 Sample, skill, docs (D6): "Kick off the bid" joint in both forms (parity); a SKILL.md note; the capture-sheet format, the authoring guide and the template. Verify that both forms give 0 errors and 0 warnings, and that the parity, skill-folder-current and doc-example tests pass
+- [x] 1.8 Version 1.9.0 in `package.json` and `package-lock.json`. Verify with the version test
 
 ## 2. Test
 

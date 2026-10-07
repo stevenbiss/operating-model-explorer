@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { zipSync } from 'fflate';
 import { loadModel } from '../../src/model/load.js';
 import { readDirectoryHandle, readZip } from '../../src/model/read.js';
-import { readFolder, SAMPLE } from './helpers.js';
+import { readFolder, readSampleSheet, SAMPLE } from './helpers.js';
 import { PRIVATE_NAMES } from '../private-names.js';
 
 const files = readFolder(SAMPLE);
@@ -120,4 +120,12 @@ test('a folder handle is read, and re-reading it picks up edits (Reload)', async
 test('the sample contains no real company names', () => {
   const text = files.map((f) => new TextDecoder().decode(f.data)).join('\n');
   if (PRIVATE_NAMES) assert.doesNotMatch(text, PRIVATE_NAMES);
+});
+
+test('1.7 both sample forms make Kick off the bid a joint step of Bid manager and Solution architect, with 0 messages', () => {
+  for (const r of [loadModel(readSampleSheet()), loadModel(files)]) {
+    assert.deepEqual(r.messages, []);
+    const s = r.model.order.process.flatMap((p) => r.model.elements[p].steps).find((x) => x.name === 'Kick off the bid');
+    assert.deepEqual([s.owners, s.joint, s.raci], [['bid-manager', 'solution-architect'], true, { 'solution-architect': 'R', 'bid-manager': 'A', 'delivery-manager': 'I' }]);
+  }
 });

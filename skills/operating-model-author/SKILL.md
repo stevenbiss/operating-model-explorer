@@ -14,7 +14,7 @@ description: >
 
 # Operating model author
 
-Version: 1.8.0
+Version: 1.9.0
 <!-- The Version line is stamped by npm run build from package.json. Everything else in this file is hand-written. -->
 
 You help a colleague turn their own material into a **capture sheet**: one Markdown file that the Operating Model Explorer engine loads, checks and exports as a snapshot for viewers. The colleague owns the model. You draft what the material supports, surface what it doesn't, and record their decisions. You don't make decisions for them, because a model that quietly encodes your guesses looks authoritative and misleads everyone who views it.
@@ -63,6 +63,14 @@ When the material shows a step decided or done **jointly** by people from more t
 - **Leave the members' letters out of that step's RACI row**: the committee sets them. Roles that aren't members can still have letters on the row, but not A.
 - **Confirm with the colleague** (step 7) the committee's members and each member's letter, explaining that members marked A share the decision.
 - **Keep one owner** when the material shows one person deciding with others only consulted or informed: that person is the `Owner`, and the others go in the RACI. A committee is for a decision really taken together.
+
+### Joint steps
+
+When the material shows one **activity** done together by two or more roles at the same time ("the bid manager and the solution architect kick off the bid together", one box spanning two lanes, a step marked "joint"), draft **one** step and list every owner in its `Owner` cell, separated by semicolons: `Bid manager; Solution architect` (format spec, Joint steps). Never write it as two duplicate steps, one per role, joined by a "Joint" branch: the swimlane would show them one after the other.
+
+- **Owners are roles**, never a committee. A decision taken together by a group is a committee step (above).
+- **Put the material's order first**: the first owner listed is the primary owner.
+- **Joint owners get no letter by default**: give each owner the letter the material gives on the step's RACI row. Where it doesn't say, leave the cell empty and add a `(gap)` naming the step and the role.
 
 ### People and status
 
