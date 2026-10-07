@@ -42,8 +42,8 @@ Playwright tests run against `dist/operating-model-explorer.html` and exported s
 
 ## 3. Verify
 
-- [ ] 3.1 html-verifier checks every requirement against the running engine and a snapshot at 1920, 1280 and 375, light and dark, plus a regression pass over the swimlane (labels, committees, idle members, drag to pan, keyboard). It returns VERIFIED. The report is saved to `reports/html-verifier.md`
-- [ ] 3.2 Confirm there are no real names in the repo
+- [x] 3.1 html-verifier checks every requirement against the running engine and a snapshot at 1920, 1280 and 375, light and dark, plus a regression pass over the swimlane (labels, committees, idle members, drag to pan, keyboard). It returns VERIFIED. The report is saved to `reports/html-verifier.md`
+- [x] 3.2 Confirm there are no real names in the repo
 
 ## 4. QA
 
