@@ -1,17 +1,16 @@
 schema: spec-driven
 
-# Shared standards from the workspace root (my-work-ai-builds), registered as an OpenSpec store.
+# Shared standards, registered as an OpenSpec store.
 references:
   - ai-builds-shared
 
 context: |
   Project: operating-model-explorer. This is an interactive HTML app with its own git repo (github.com/stevenbiss/operating-model-explorer).
-  It lives at projects/operating-model-explorer/ inside the my-work-ai-builds workspace, which provides the shared
-  agents (html-builder, html-tester, html-verifier, html-qa), skills and plugins.
+  It is built and tested with a set of shared agents (html-builder, html-tester, html-verifier, html-qa), skills and plugins.
   Layout: src/ (source), tests/ (Playwright), dist/operating-model-explorer.html (the shareable single file, built output).
   The deliverable is one self-contained HTML file that colleagues and clients can open from email or disk.
   It must work offline, with no CDN or network calls.
-  Must also meet the shared html-deliverable spec in the ai-builds-shared store.
+  Must also meet the shared html-deliverable spec.
   Default stack: vanilla HTML/CSS/JS in one file. Use React (via the web-artifacts-builder skill) only when complexity justifies it.
   Platform: Windows 11 (PowerShell primary, Git Bash available).
   Ponytail minimal-code mode is active: no unrequested features, abstractions or dependencies.

@@ -162,7 +162,7 @@ tests/skill-packs/  fictional context packs, a fictional brand library and the s
 openspec/           specs and changes for this project (OpenSpec)
 ```
 
-Requirements and changes are managed with [OpenSpec](https://github.com/Fission-AI/OpenSpec) in `openspec/`. This project is built from the [my-work-ai-builds](https://github.com/stevenbiss/my-work-ai-builds) workspace: open Claude Code at the workspace root and use `/opsx:propose` and `/opsx:apply`.
+Requirements and changes are managed with [OpenSpec](https://github.com/Fission-AI/OpenSpec) in `openspec/`. Changes are proposed and built through the OpenSpec workflow in that folder.
 
 ## Licence
 
