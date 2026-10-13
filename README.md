@@ -163,3 +163,7 @@ openspec/           specs and changes for this project (OpenSpec)
 ```
 
 Requirements and changes are managed with [OpenSpec](https://github.com/Fission-AI/OpenSpec) in `openspec/`. This project is built from the [my-work-ai-builds](https://github.com/stevenbiss/my-work-ai-builds) workspace: open Claude Code at the workspace root and use `/opsx:propose` and `/opsx:apply`.
+
+## Licence
+
+[MIT](LICENSE). Copyright (c) 2026 Steven Biss. Third-party dependencies keep their own licences, and brand packs and logos you use in your own models are not covered.
