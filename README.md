@@ -7,6 +7,28 @@ The engine is a single file, `dist/operating-model-explorer.html`. Opened on its
 **Status:** v1.9.0 released ([release notes](https://github.com/stevenbiss/operating-model-explorer/releases/tag/v1.9.0)). A step can now be owned jointly by two or more roles: it is drawn side by side in each owner's lane, in the same column, tied with a dotted line. Built, tested (416 end-to-end and 306 unit tests), verified and QA-approved. Reports are in `openspec/changes/add-joint-steps/reports/`.
 
 
+## What it produces
+
+These screenshots come from the fictional Acme + Globex sample model (`examples/acme-sample/`), which is also built as `dist/acme-sample.html`.
+
+**Process swimlanes** show who does what, across organisations. Handoffs between parties are dashed, committee steps get their own lane and joint steps sit in each owner's lane.
+
+![Swimlane for "Qualify an opportunity", with a committee lane and a joint step](docs/images/swimlane-qualify.png)
+
+Opening a step shows its owner, its RACI and the steps before and after it.
+
+![Swimlane with the step detail panel open](docs/images/step-detail.png)
+
+**Structure diagrams** show who sits where and who works with whom, one column per party in its own brand colour.
+
+![Partnership structure diagram with two parties](docs/images/structure-partnership.png)
+
+The **home page** gives viewers the key messages, the parties, every process and structure, and a persona to start from.
+
+![Home page of the sample model](docs/images/home.png)
+
+More: [another swimlane](docs/images/swimlane-proposal.png) and [a team structure](docs/images/structure-account.png). Run `node scripts/screenshots.mjs` after `npm run build` to regenerate them.
+
 ## For authors
 
 You need a current Chrome or Edge (Safari and Firefox work too, but can only load a `.zip` or a single capture sheet). No other software is needed.
